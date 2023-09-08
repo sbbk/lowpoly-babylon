@@ -1,0 +1,27 @@
+{
+  "name": "lowpoly-babylon",
+  "version": "1.0.0",
+  "description": "lowpoly web environment",
+  "scripts": {
+    "dev": "parcel serve -p 3000 ./src/index.html",
+    "build": "parcel build ./src/index.html"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sbbk/lowpoly-babylon.git"
+  },
+  "author": "Elliot Turner",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sbbk/lowpoly-babylon/issues"
+  },
+  "homepage": "https://github.com/sbbk/lowpoly-babylon#readme",
+  "dependencies": {
+    "@babylonjs/loaders": "^6.20.0",
+    "babylonjs": "^6.20.0"
+  },
+  "devDependencies":{
+    "@vertx/jsx": "^1.0.0",
+    "parcel": "^2.9.3"
+  }
+}
