@@ -18,9 +18,11 @@
   "homepage": "https://github.com/sbbk/lowpoly-babylon#readme",
   "dependencies": {
     "@babylonjs/loaders": "^6.20.0",
-    "babylonjs": "^6.20.0"
+    "@types/three": "^0.155.1",
+    "babylonjs": "^6.20.0",
+    "three": "^0.156.1"
   },
-  "devDependencies":{
+  "devDependencies": {
     "@vertx/jsx": "^1.0.0",
     "parcel": "^2.9.3"
   }
