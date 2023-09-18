@@ -17,12 +17,14 @@
   },
   "homepage": "https://github.com/sbbk/lowpoly-babylon#readme",
   "dependencies": {
+    "@babylonjs/core": "^6.21.0",
     "@babylonjs/loaders": "^6.20.0",
     "@types/three": "^0.155.1",
     "babylonjs": "^6.20.0",
     "three": "^0.156.1"
   },
   "devDependencies": {
+    "@parcel/transformer-sass": "^2.9.3",
     "@vertx/jsx": "^1.0.0",
     "parcel": "^2.9.3"
   }

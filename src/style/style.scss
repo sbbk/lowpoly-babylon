@@ -1,0 +1,22 @@
+body {
+    margin:0;
+    padding:0;
+    width:100vw;
+    height:100vh
+}
+
+.main-wrapper {
+    width:100vw;
+    height:100vh;
+    display: flex;
+
+}
+canvas {
+    width:80%;
+    height:100%;
+}
+
+#ui-area {
+    width:20%;
+    height:100%;
+}

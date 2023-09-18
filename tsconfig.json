@@ -1,0 +1,35 @@
+{
+    "include": [
+      "./src/app.ts",
+      "./src/**/*"
+    ],
+    "exclude": [
+      "node_modules/**/*",
+      "./src/models/**/*"
+    ],
+    "compilerOptions": {
+      "lib": [
+        "dom",
+        "dom.iterable",
+        "esnext"
+      ],
+      "types": [
+        "node",
+        "babylonjs",
+      ],
+      "jsx": "react",
+      "jsxFactory": "jsx",
+      "baseUrl": "./src",
+      "paths": {
+        "~/*": [
+          "./*"
+        ]
+      },
+      "module": "commonjs",
+      "target": "es2017",
+      "declaration": true,
+      "outDir": "./dist",
+      "experimentalDecorators": true,
+      "emitDecoratorMetadata": true
+    }
+  }

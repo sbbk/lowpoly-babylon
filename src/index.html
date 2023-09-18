@@ -6,7 +6,26 @@
     <title>lowpoly-babylon</title>
 </head>
 <body>
-    <canvas id="main-canvas"></canvas>
+    <div class="main-wrapper">
+        <canvas id="main-canvas"></canvas>
+        <div id="ui-area">
+            <h2>Render Settings</h2>
+            <label class="input-label" for="hardware-scaling-range">Hardware Scaling</label>
+            <input class="ranger" type="range" id="hardware-scaling-range" min="0.7" max="10" step="0.1">
+            <hr>
+            <label class="input-label" for="jitter-level-range">Jitter Amount</label>
+            <input class="ranger" type="range" id="jitter-level-range" min="0.000" max="0.100" step="0.001">
+            <hr>
+            <label class="input-label" for="dither-lightness-range">Dither Lightness</label>
+            <input class="ranger" type="range" id="dither-lightness-range" min="0.010" max="4" step="0.01">
+            <label class="input-label" for="dither-darkness-range">Dither Darkness</label>
+            <input class="ranger" type="range" id="dither-darkness-range" min="0.5" max="4" step="0.1">
+            
+            <h2>Load Models</h2>
+            <div id="model-area"></div>
+        </div>
+
+    </div>
     <script type="module" src="./app.ts"></script>
 </body>
 </html>

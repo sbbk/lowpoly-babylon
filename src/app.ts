@@ -1,4 +1,5 @@
 import { SceneViewer } from "./babylon/sceneViewer";
+import "./style/style.scss"
 
 export class App {
 
