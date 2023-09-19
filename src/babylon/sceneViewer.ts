@@ -81,7 +81,9 @@ export class SceneViewer {
         window["engine"] = this.engine;
         this.engine.setHardwareScalingLevel(2);
         this.scene = new BABYLON.Scene(this.engine);
+        window["scene"] = this.scene;
         this.camera = new MainCamera('main-camera',Math.PI / 2, Math.PI / -2, 10, BABYLON.Vector3.Zero());
+        window["camera"] = this.camera;
         this.mainLight = new BABYLON.HemisphericLight('main-light',BABYLON.Vector3.Zero());
         let graphics = new GraphicsConfig();
 
@@ -121,7 +123,7 @@ export class SceneViewer {
             let button = document.createElement("button") as HTMLButtonElement;
             button.innerText = model;
             button.addEventListener('click',() =>{
-                ModelLoader.LoadModel(model,this.scene);
+                ModelLoader.LoadModel(model,this.scene,true);
             })
             modelArea.appendChild(button);
         })
@@ -142,9 +144,66 @@ export class SceneViewer {
 
         })
 
-        this.loadedModel = ModelLoader.LoadModel("dva",this.scene);
-        window["model"] = this.loadedModel;
-        console.log(this.loadedModel);
+        //this.loadedModel = ModelLoader.LoadModel("dva",this.scene,false);
+
+        let modelLoadingComplete = () => {
+            let cameraTarget = loadedModels[0]
+            this.camera.setTarget(cameraTarget);
+
+            document.addEventListener("keydown", (e) => {
+                console.log("DOWN")
+                if (e.key === 'a') {
+
+                    e.preventDefault();
+                    let currentIndex = loadedModels.indexOf(cameraTarget);
+                    if (currentIndex == 0) {
+                        cameraTarget = loadedModels[loadedModels.length -1];
+                        this.camera.setTarget(cameraTarget);
+                    }
+                    else {
+                        cameraTarget = loadedModels[currentIndex +1]
+                        this.camera.setTarget(cameraTarget);
+                    }
+                }
+                if (e.key === 'd') {
+
+                    e.preventDefault();
+                    let currentIndex = loadedModels.indexOf(cameraTarget);
+                    if (currentIndex == loadedModels.length -1) {
+                        cameraTarget = loadedModels[0];
+                        this.camera.setTarget(cameraTarget);
+                    }
+                    else {
+                        cameraTarget = loadedModels[currentIndex +1]
+                        this.camera.setTarget(cameraTarget);
+                    }
+                }
+            });
+        }
+
+        let modelCount = 0;
+        let loadedCount = 0;
+        let loadedModels : BABYLON.AbstractMesh[] = [];
+        document.addEventListener("modelLoader:TotalCount",(e:CustomEvent) => {
+            console.log("Setting count..",e.detail.count)
+            modelCount = e.detail.count;
+        })
+
+        document.addEventListener("modelLoader:Loaded",(e:CustomEvent) => {
+            let mesh = e.detail.mesh as BABYLON.AbstractMesh;
+            loadedModels.push(mesh);
+            loadedCount += 1;
+            console.log("Loading Model..",loadedCount);
+            if (loadedCount == modelCount) {
+                modelLoadingComplete();
+            }
+
+        })
+
+        // LOAD ALL MODELS AND DISTRUBUTE
+        ModelLoader.LoadAllModels(this.scene);
+    
+        
 
         BABYLON.Effect.ShadersStore["customFragmentShader"] = `
         #ifdef GL_ES

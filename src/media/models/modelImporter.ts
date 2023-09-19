@@ -15,7 +15,7 @@ export class GraphicsConfig {
         GraphicsConfig.ditherDarkenFactor = 1.2;
         GraphicsConfig.ditherLightenFactor = 0.1;
         GraphicsConfig.jitterAmplitude = 0.0010;
-        GraphicsConfig.hardwareScaling = 1.5;
+        GraphicsConfig.hardwareScaling = 0.8;
 
     }
 
@@ -50,13 +50,13 @@ export namespace ModelLoader {
     const monitor = new URL ('./monitor/mesh.gltf',import.meta.url).pathname;
     const trestle = new URL ('./trestle/mesh.gltf',import.meta.url).pathname;
     const cityScene = new URL ('./city_scene.glb',import.meta.url).pathname;
-    export var LoadedModel:BABYLON.Mesh = null;
+    export var LoadedModels:BABYLON.AbstractMesh[] = [];
 
     export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" | "Monitor" | "TrestleTable";
 
     export function generateList():models[] {
         
-        let models = ["Scene", "CityScene","CrashBandicoot","dva","CheesePlant","MetalCabinet","Maschine","Monitor","TrestleTable"] as models[];
+        let models = ["CrashBandicoot","dva","CheesePlant","MetalCabinet","Maschine","Monitor","TrestleTable"] as models[];
         return models;
 
     }
@@ -86,10 +86,72 @@ export namespace ModelLoader {
     
     }
 
-    export function LoadModel(model:models,scene:BABYLON.Scene):BABYLON.Scene {
+    export async function LoadAllModels(scene:BABYLON.Scene) {
 
-        if (ModelLoader.LoadedModel) {
-            ModelLoader.LoadedModel.dispose();
+        let radius = 10;
+        let models = this.generateList();
+        let startingVal = 1;
+
+        const countTotalModels = new CustomEvent("modelLoader:TotalCount", { detail: { count: models.length  } })
+        document.dispatchEvent(countTotalModels)
+
+        for (let i=0;i < models.length; i++) {
+            let path = importModel(models[i]);
+            let loadedScene;
+            BABYLON.SceneLoader.LoadAssetContainer(path, "", scene, ((container) => {
+                container.addAllToScene();
+                container.meshes[0].scalingDeterminant = 2;
+                LoadedModels.push(container.meshes[0]);
+
+                const myEvent = new CustomEvent("modelLoader:Loaded", { detail: { mesh: container.meshes[0] } })
+                document.dispatchEvent(myEvent);
+
+                container.meshes[0].normalizeToUnitCube();
+                let rootNodes = container.rootNodes
+                for (var mNode of rootNodes) {
+                    var posVector = (new BABYLON.Vector3(radius * Math.sin(startingVal*2*Math.PI/models.length),0, radius * Math.cos(startingVal*2*Math.PI/models.length)));
+                    mNode.position = posVector
+                }
+                startingVal+=1;
+            }))
+        }
+
+        // let model = importModel("CrashBandicoot");
+        // BABYLON.SceneLoader.LoadAssetContainer(model, "", scene, ((container) => {
+
+        //     container.addAllToScene();
+        //     let starting = 1
+        //     for (let i=0; i < 10; i++) {
+                
+        //         let entries = container.instantiateModelsToScene();
+        //         for (var node of entries.rootNodes) {
+        //             console.log("X",radius * Math.sin(startingVal*2*Math.PI/models.length));
+        //             console.log("Z",radius * Math.cos(startingVal*2*Math.PI/models.length))
+        //             var posVector = new BABYLON.Vector3(radius * Math.sin(startingVal*2*Math.PI/models.length),0, radius * Math.cos(startingVal*2*Math.PI/models.length));
+        //             //console.log(posVector);
+        //             node.position = posVector;
+        //             starting +=1
+        //         }
+        //         // let instance = mesh.createInstance("i" + i);
+        //         // instance.normalizeToUnitCube();
+        //         // instance.position = posVector.clone();
+        //         // instance.position.x = i;
+        //         // console.log(instance);
+
+        //     }
+        // }))
+        return LoadedModels;
+
+    }
+
+
+    export function LoadModel(model:models,scene:BABYLON.Scene,dispose:boolean):BABYLON.Scene {
+
+        if (dispose == true) {
+
+            if (ModelLoader.LoadedModel) {
+                ModelLoader.LoadedModel.dispose();
+            }
         }
         let path = importModel(model);
         let loadedScene;
