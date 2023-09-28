@@ -5,7 +5,7 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import { ShaderManager } from "./shaders/shaderManager";
 import * as GUI from "@babylonjs/gui"
 
-export class MainCamera extends BABYLON.FreeCamera {
+export class MainCamera extends BABYLON.UniversalCamera {
 
     defaultSpeed:number = 1;
     defaultFrameRate:number = 1;
@@ -99,8 +99,93 @@ export class SceneViewer {
         this.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
         //this.camera.wheelDeltaPercentage = 0.1;
 
+        this.scene.gravity = new BABYLON.Vector3(0, -.75, 0); 
+        this.scene.collisionsEnabled = true;
+        this.scene.enablePhysics();
+
+        this.camera.checkCollisions = true;
+        this.camera.applyGravity = true;
+        this.camera.ellipsoid = new BABYLON.Vector3(.4, .8, .4);
         this.camera.checkCollisions = true;
 
+        var hero = BABYLON.Mesh.CreateBox('hero', 2.0, this.scene, false, BABYLON.Mesh.FRONTSIDE);
+        hero.position.x = 0.0;
+        hero.position.y = 1.0;
+        hero.position.z = 0.0;
+        hero.physicsImpostor = new BABYLON.PhysicsImpostor(hero, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 1, restitution: 0.0, friction: 0.1 }, this.scene);	
+        hero.physicsImpostor.physicsBody = hero;
+
+        var pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, this.scene, false, BABYLON.Mesh.DOUBLESIDE);
+        // move the sphere upward 1/2 of its height
+        pointer.position.x = 0.0;
+        pointer.position.y = 0.0;
+        pointer.position.z = 0.0;
+        pointer.isPickable = false;
+
+        var moveForward = false;
+        var moveBackward = false;
+        var moveRight = false;
+        var moveLeft = false;
+        
+        var onKeyDown = function (event) {
+            switch (event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    moveForward = true;
+                    break;
+    
+                case 37: // left
+                case 65: // a
+                    moveLeft = true; break;
+    
+                case 40: // down
+                case 83: // s
+                    moveBackward = true;
+                    break;
+    
+                case 39: // right
+                case 68: // d
+                    moveRight = true;
+                    break;
+    
+                case 32: // space
+                    break;
+            }
+        };
+    
+        var onKeyUp = function (event) {
+            switch (event.keyCode) {
+                case 38: // up
+                case 87: // w
+                    moveForward = false;
+                    break;
+    
+                case 37: // left
+                case 65: // a
+                    moveLeft = false;
+                    break;
+    
+                case 40: // down
+                case 83: // a
+                    moveBackward = false;
+                    break;
+    
+                case 39: // right
+                case 68: // d
+                    moveRight = false;
+                    break;
+            }
+        };
+    
+        document.addEventListener('keydown', onKeyDown, false);
+        document.addEventListener('keyup', onKeyUp, false);
+        
+
+        var myGround = BABYLON.MeshBuilder.CreateGround("myGround", {width: 200, height: 200}, this.scene);
+        var groundMaterial = new BABYLON.StandardMaterial("ground", this.scene);
+        myGround.position.y;
+        myGround.checkCollisions= true;
+        myGround.physicsImpostor = new BABYLON.PhysicsImpostor(myGround, BABYLON.PhysicsImpostor.BoxImpostor, { mass: 0, restitution: 0.5, friction:0.1 }, this.scene);
         //this.interestPoints = [new BABYLON.Vector3(1.751672367244813,1.94732104969539,0.06579143706881602),new BABYLON.Vector3(0.8125,1.125,-0.5),new BABYLON.Vector3(0,0,0.015625)];
 
         this.interestPoints = [];
@@ -150,73 +235,6 @@ export class SceneViewer {
             ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
             BABYLON.Animation.CreateAndStartAnimation('at4', this.camera, whichprop, speed, 120, this.camera[whichprop], targetval, 0, ease);
         }
-
-        document.addEventListener("keydown", (e) => {
-            if (e.key === 'a') {
-
-                let cameraTarget = this.interestPoints[this.currentTarget];
-                this.currentTarget = this.interestPoints.indexOf(cameraTarget);
-
-                e.preventDefault();
-                if (this.currentTarget == 0) {
-                    cameraTarget = this.interestPoints[this.interestPoints.length -1];
-                    this.currentTarget = this.interestPoints.indexOf(cameraTarget);
-                    //ease("position",cameraTarget.target,2000);
-
-                    ease("alpha",cameraTarget.alpha,2000);
-                    ease("beta",cameraTarget.beta,2000);
-                    ease("radius",cameraTarget.radius,2000);
-                    this.camera.target = cameraTarget.target;
-
-
-
-                }
-                else {
-                    console.log("ELSE",this.currentTarget);
-                    cameraTarget = this.interestPoints[this.currentTarget -1]
-                    console.log(cameraTarget);
-                    this.currentTarget = this.interestPoints.indexOf(cameraTarget);
-                    //ease("position",cameraTarget.target,2000);
-
-                    ease("alpha",cameraTarget.alpha,2000);
-                    ease("beta",cameraTarget.beta,2000);
-                    ease("radius",cameraTarget.radius,2000);
-                    this.camera.target = cameraTarget.target;
-
-                }
-            }
-            if (e.key === 'd') {
-
-                e.preventDefault();
-                let cameraTarget = this.interestPoints[this.currentTarget];
-                console.log(cameraTarget)
-
-                if (this.currentTarget == this.interestPoints.length -1) {
-                    cameraTarget = this.interestPoints[0];
-                    this.currentTarget = this.interestPoints.indexOf(cameraTarget);
-                    //ease("position",cameraTarget.target,2000);
-
-                    ease("alpha",cameraTarget.alpha,2000);
-                    ease("beta",cameraTarget.beta,2000);
-                    ease("radius",cameraTarget.radius,2000);
-                    this.camera.target = cameraTarget.target;
-
-
-
-                }
-                else {
-                    cameraTarget = this.interestPoints[this.currentTarget +1];
-                    this.currentTarget = this.interestPoints.indexOf(cameraTarget);
-                    
-                    //ease("position",cameraTarget.target,2000);
-                    ease("alpha",cameraTarget.alpha,2000);
-                    ease("beta",cameraTarget.beta,2000);
-                    ease("radius",cameraTarget.radius,2000);
-                    this.camera.target = cameraTarget.target;
-
-                }
-            }
-        });
 
         let idleHands = new URL('../media/models/HANDS/duke-hands.png',import.meta.url).pathname;
         let dukeGrab = new URL('../media/models/HANDS/duke-grab.png',import.meta.url).pathname;
@@ -386,7 +404,7 @@ export class SceneViewer {
     
         var label = new GUI.TextBlock();
         label.text = "Sphere";
-        label.fontSize = "100px"
+        label.fontSize = "50px"
         rect1.addControl(label);
     
         var tag = new GUI.Ellipse();
@@ -410,6 +428,44 @@ export class SceneViewer {
 
 
         this.scene.registerBeforeRender(() => {
+
+            this.camera.position.x = hero.position.x;
+            this.camera.position.y = hero.position.y + 1.0;
+            this.camera.position.z = hero.position.z;
+            pointer.position = this.camera.getTarget();
+
+            var forward = this.camera.getTarget().subtract(this.camera.position).normalize();
+            forward.y = 0;
+            var right = BABYLON.Vector3.Cross(forward, this.camera.upVector).normalize();
+            right.y = 0;
+            
+            var SPEED = 20;
+            let f_speed = 0;
+            var s_speed = 0;
+            var u_speed = 0;			
+    
+            if (moveForward) {
+                f_speed = SPEED;
+            }
+            if (moveBackward) {
+                f_speed = -SPEED;
+            }
+    
+            if (moveRight) {
+                s_speed = SPEED;
+            }
+    
+            if (moveLeft) {
+                s_speed = -SPEED;
+            }
+            
+            var move = (forward.scale(f_speed)).subtract((right.scale(s_speed))).subtract(this.camera.upVector.scale(u_speed));
+            
+            console.log("HP",hero.physicsImpostor);
+            hero.physicsImpostor.physicsBody.velocity.x = move.x;
+            hero.physicsImpostor.physicsBody.velocity.z = move.z;
+            hero.physicsImpostor.physicsBody.velocity.y = move.y;
+
             setTimeout(() => {                
                 if (rayHelper) {
                     rayHelper.dispose();
