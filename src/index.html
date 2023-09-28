@@ -7,6 +7,14 @@
 </head>
 <body>
     <div class="main-wrapper">
+        <div id="duke-hand-wrapper" style="width: 1500px;
+        position: absolute;
+        bottom: 0;
+        right: 1500px;
+        height: 1500px;
+        overflow: hidden;">
+            <img id="duke-hands" src="./media/models/HANDS/duke-hands.png" style="height:100%;">
+        </div>
         <canvas id="main-canvas"></canvas>
         <div id="ui-area">
             <h2>Render Settings</h2>
@@ -14,7 +22,7 @@
             <input class="ranger" type="range" id="hardware-scaling-range" min="0.7" max="10" step="0.1">
             <hr>
             <label class="input-label" for="jitter-level-range">Jitter Amount</label>
-            <input class="ranger" type="range" id="jitter-level-range" min="0.000" max="0.100" step="0.001">
+            <input class="ranger" type="range" id="jitter-level-range" min="0.000" max="0.500" step="0.001">
             <hr>
             <label class="input-label" for="dither-lightness-range">Dither Lightness</label>
             <input class="ranger" type="range" id="dither-lightness-range" min="0.010" max="4" step="0.01">
