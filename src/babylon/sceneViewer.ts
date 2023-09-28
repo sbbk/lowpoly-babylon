@@ -218,21 +218,24 @@ export class SceneViewer {
             }
         });
 
-        let dukeHands = document.getElementById('duke-hands')
-        document.addEventListener('click',() => {
-            setTimeout(() => {
-                dukeHands.style.transform = "translateX(-1500px)"
-            }, 100);
-            setTimeout(() => {
-                dukeHands.style.transform = "translateX(-3000px)"
-            }, 200);
-            setTimeout(() => {
-                dukeHands.style.transform = "translateX(-4500px)"
-            }, 300);
-            setTimeout(() => {
-                dukeHands.style.transform = "translateX(0px)"
-            }, 400);
-        })
+        let idleHands = new URL('../media/models/HANDS/duke-hands.png',import.meta.url).pathname;
+        let dukeGrab = new URL('../media/models/HANDS/duke-grab.png',import.meta.url).pathname;
+        let dukeHands = document.getElementById('duke-hands') as HTMLImageElement;
+        dukeHands.src = idleHands;
+        // document.addEventListener('click',() => {
+        //     setTimeout(() => {
+        //         dukeHands.style.transform = "translateX(-1500px)"
+        //     }, 100);
+        //     setTimeout(() => {
+        //         dukeHands.style.transform = "translateX(-3000px)"
+        //     }, 200);
+        //     setTimeout(() => {
+        //         dukeHands.style.transform = "translateX(-4500px)"
+        //     }, 300);
+        //     setTimeout(() => {
+        //         dukeHands.style.transform = "translateX(0px)"
+        //     }, 400);
+        // })
 
 
         window["camera"] = this.camera;
@@ -420,6 +423,9 @@ export class SceneViewer {
             highlightLayer.removeAllMeshes();
             if (hit.pickedMesh) {
                 
+                if (dukeHands.src !== dukeGrab) {
+                    dukeHands.src = dukeGrab;
+                }
                 highlightLayer.isEnabled = true;
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 label.text = mesh.name;
@@ -459,6 +465,9 @@ export class SceneViewer {
             }
             if (!hit.pickedMesh) {
                 
+                if (dukeHands.src !== idleHands) {
+                    dukeHands.src = idleHands;
+                }
                 if (highlightedMeshes.length > 0) {
                     highlightedMeshes.forEach(mesh => {
                         highlightLayer.removeMesh(mesh);
