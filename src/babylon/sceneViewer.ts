@@ -5,6 +5,7 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import { ShaderManager } from "./shaders/shaderManager";
 import HavokPhysics from "@babylonjs/havok";
 import * as GUI from "@babylonjs/gui"
+import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory } from "../components/GameObject";
 
 export class MainCamera extends BABYLON.UniversalCamera {
 
@@ -89,6 +90,7 @@ export class SceneViewer {
     interestPoints:PointOfInterest[];
     currentTarget:number;
     static havokPlugin:BABYLON.HavokPlugin;
+    static inventory:pInventory;
 
     constructor(canvas:HTMLCanvasElement) {
         this.canvas = canvas;
@@ -100,6 +102,8 @@ export class SceneViewer {
         this.camera = new MainCamera('main-camera',new BABYLON.Vector3(8.88988495700036,5.39056883665061,1.260390443856567));
         this.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
         //this.camera.wheelDeltaPercentage = 0.1;
+
+        SceneViewer.inventory = new pInventory();
 
         HavokPhysics().then((havokInstance) => {
 
@@ -115,6 +119,7 @@ export class SceneViewer {
             this.camera.checkCollisions = true;
     
             var hero = BABYLON.Mesh.CreateBox('hero', 2.0, this.scene, false, BABYLON.Mesh.FRONTSIDE);
+            hero.isPickable = false;
             hero.position.x = 0.0;
             hero.position.y = 1.0;
             hero.position.z = 0.0;
@@ -131,6 +136,7 @@ export class SceneViewer {
             var moveBackward = false;
             var moveRight = false;
             var moveLeft = false;
+            var jump = false;
             
             var onKeyDown = function (event) {
                 switch (event.keyCode) {
@@ -154,6 +160,7 @@ export class SceneViewer {
                         break;
         
                     case 32: // space
+                        jump = true;
                         break;
                 }
             };
@@ -179,6 +186,9 @@ export class SceneViewer {
                     case 68: // d
                         moveRight = false;
                         break;
+                    case 32:
+                        jump = false;
+                        break;
                 }
             };
         
@@ -187,6 +197,7 @@ export class SceneViewer {
             
     
             var myGround = BABYLON.MeshBuilder.CreateGround("myGround", {width: 200, height: 200}, this.scene);
+            myGround.isPickable = false;
             var groundMaterial = new BABYLON.StandardMaterial("ground", this.scene);
             myGround.position.y;
             myGround.checkCollisions= true;
@@ -218,22 +229,6 @@ export class SceneViewer {
             this.currentTarget = 0;
             //this.camera.useFramingBehavior = true;
     
-            this.scene.onPointerObservable.add((pointerInfo, event) => {
-    
-                switch(pointerInfo.type) {
-    
-                    case BABYLON.PointerEventTypes.POINTERTAP:
-                        if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
-    
-                            console.log(pointerInfo.pickInfo.pickedMesh.position);
-    
-                        }
-    
-    
-                }
-    
-    
-            })
     
             let ease = (whichprop, targetval, speed) => {
                 var ease = new BABYLON.CubicEase();
@@ -330,45 +325,59 @@ export class SceneViewer {
     
             })
     
-            //this.loadedModel = ModelLoader.LoadModel("dva",this.scene,false);
+            this.loadedModel = ModelLoader.LoadModel("Scene",this.scene,false);
     
-            let modelLoadingComplete = () => {
-                let cameraTarget = loadedModels[0]
-                this.camera.setTarget(cameraTarget);
-    
-                document.addEventListener("keydown", (e) => {
-                    console.log("DOWN")
-                    if (e.key === 'a') {
-    
-                        e.preventDefault();
-                        let currentIndex = loadedModels.indexOf(cameraTarget);
-                        if (currentIndex == 0) {
-                            cameraTarget = loadedModels[loadedModels.length -1];
-                            this.camera.setTarget(cameraTarget);
-    
-                        }
-                        else {
-                            cameraTarget = loadedModels[currentIndex +1]
-                            this.camera.setTarget(cameraTarget);
-                            this.camera.radius = 3;
-                        }
+            var isLocked = false;
+	
+            // On click event, request pointer lock
+            this.scene.onPointerDown = function (evt) {
+                
+                //true/false check if we're locked, faster than checking pointerlock on each single click.
+                if (!isLocked) {
+                    canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
+                    if (canvas.requestPointerLock) {
+                        canvas.requestPointerLock();
                     }
-                    if (e.key === 'd') {
-    
-                        e.preventDefault();
-                        let currentIndex = loadedModels.indexOf(cameraTarget);
-                        if (currentIndex == loadedModels.length -1) {
-                            cameraTarget = loadedModels[0];
-                            this.camera.setTarget(cameraTarget);
-                        }
-                        else {
-                            cameraTarget = loadedModels[currentIndex +1]
-                            this.camera.setTarget(cameraTarget);
-                            this.camera.radius = 3;
-                        }
-                    }
-                });
+                }
             }
+
+            // let modelLoadingComplete = () => {
+            //     let cameraTarget = loadedModels[0]
+            //     this.camera.setTarget(cameraTarget);
+    
+            //     document.addEventListener("keydown", (e) => {
+            //         console.log("DOWN")
+            //         if (e.key === 'a') {
+    
+            //             e.preventDefault();
+            //             let currentIndex = loadedModels.indexOf(cameraTarget);
+            //             if (currentIndex == 0) {
+            //                 cameraTarget = loadedModels[loadedModels.length -1];
+            //                 this.camera.setTarget(cameraTarget);
+    
+            //             }
+            //             else {
+            //                 cameraTarget = loadedModels[currentIndex +1]
+            //                 this.camera.setTarget(cameraTarget);
+            //                 this.camera.radius = 3;
+            //             }
+            //         }
+            //         if (e.key === 'd') {
+    
+            //             e.preventDefault();
+            //             let currentIndex = loadedModels.indexOf(cameraTarget);
+            //             if (currentIndex == loadedModels.length -1) {
+            //                 cameraTarget = loadedModels[0];
+            //                 this.camera.setTarget(cameraTarget);
+            //             }
+            //             else {
+            //                 cameraTarget = loadedModels[currentIndex +1]
+            //                 this.camera.setTarget(cameraTarget);
+            //                 this.camera.radius = 3;
+            //             }
+            //         }
+            //     });
+            // }
     
             let modelCount = 0;
             let loadedCount = 0;
@@ -391,7 +400,27 @@ export class SceneViewer {
     
             // LOAD ALL MODELS AND DISTRUBUTE
             //ModelLoader.LoadAllModels(this.scene);
-            this.loadedModel = ModelLoader.LoadModel("Scene",this.scene,true);
+            //this.loadedModel = ModelLoader.LoadModel("Scene",this.scene,true);
+
+            let gameObj = new GameObject("Collectable",this.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            let Collectable = new CollectableComponent("Boxy",gameObj);
+            gameObj.addComponent(Collectable);
+
+
+            let gameObj2 = new GameObject("No Interact",this.scene,BABYLON.MeshBuilder.CreateSphere('Static'),"Static");
+            let gameObj3 = new GameObject("Interactable",this.scene,BABYLON.MeshBuilder.CreateBox('Image Component'),"Interactable");
+            let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
+            let images = [img];
+            let imageComponent = new ImageComponent(images);
+            gameObj3.addComponent(imageComponent)
+            gameObj.setPosition(new BABYLON.Vector3(0,1,1))
+            gameObj2.setPosition(new BABYLON.Vector3(0,3,1))
+            gameObj3.setPosition(new BABYLON.Vector3(3,1,1));
+            let mat = new BABYLON.StandardMaterial('myguuyMat');
+            mat.diffuseColor = new BABYLON.Color3(1,0,0);
+            gameObj.mesh.material = mat;
+
+
             let rayHelper :BABYLON.RayHelper;
     
             let highlightLayer = new BABYLON.HighlightLayer('hl-l',this.scene);
@@ -421,6 +450,7 @@ export class SceneViewer {
             advancedTexture.addControl(tag);
      
       
+ 
         
             var line =  new GUI.Line();
             line.lineWidth = 4;
@@ -431,6 +461,53 @@ export class SceneViewer {
     
             line.connectedControl = rect1;  
     
+            rect1.isVisible = false;
+            label.isVisible = false;
+            tag.isVisible = false;
+            line.isVisible = false
+
+                
+            let activeTarget:GameObject = null;
+            let activeComponent:iGameComponent;
+
+            this.scene.onPointerObservable.add((pointerInfo, event) => {
+
+                switch(pointerInfo.type) {
+    
+                    case BABYLON.PointerEventTypes.POINTERTAP:
+                        if (activeTarget == null || !activeTarget) {
+                            if (activeComponent) {
+                                activeComponent.destroy();
+                                activeComponent = null;
+                            }
+                            return;
+                        }
+                        if (activeTarget !== null || activeTarget !== undefined) {
+                            console.log("Target",activeTarget)
+
+                            if (activeTarget.type == "Interactable") {
+
+                                if (activeComponent == activeTarget.component) return;
+                                let component = activeTarget.component;
+                                component.use();
+                                activeComponent = activeTarget.component;
+
+                            }
+
+                            if (activeTarget.type == "Collectable") {
+
+                                let component = activeTarget.component;
+                                component.use();
+                                // Add to Inventory debug.
+
+                            }
+
+                        }
+    
+                }
+    
+    
+            })
     
             this.scene.registerBeforeRender(() => {
     
@@ -444,7 +521,7 @@ export class SceneViewer {
                 var right = BABYLON.Vector3.Cross(forward, this.camera.upVector).normalize();
                 right.y = 0;
                 
-                var SPEED = 20;
+                var SPEED = 15;
                 let f_speed = 0;
                 var s_speed = 0;
                 var u_speed = 0;			
@@ -464,9 +541,23 @@ export class SceneViewer {
                     s_speed = -SPEED;
                 }
                 
+
+
                 var move = (forward.scale(f_speed)).subtract((right.scale(s_speed))).subtract(this.camera.upVector.scale(u_speed));
        
                 heroAggregate.body.setLinearVelocity(new BABYLON.Vector3(move.x,move.y,move.z))
+                // if (jump) {
+                //     console.log("JUMP")
+                //     heroAggregate.body.applyImpulse(new BABYLON.Vector3(0,1000,0),hero.position);
+                // }
+
+                let bubbleParent = (mesh) => {
+                    
+                    while (mesh.parent !== null) {
+                        mesh = mesh.parent;
+                    }
+                    return mesh;
+                }
     
                 setTimeout(() => {                
                     if (rayHelper) {
@@ -475,21 +566,58 @@ export class SceneViewer {
                 }, 10);
                 let target = this.camera.getTarget();
                 let ray = BABYLON.Ray.CreateNewFromTo(this.camera.position,target);
-                ray.length = 10000;
-    
+                ray.length = 100;
+
                 let hit = this.scene.pickWithRay(ray);
                 highlightLayer.removeAllMeshes();
                 if (hit.pickedMesh) {
-                    
-                    if (dukeHands.src !== dukeGrab) {
-                        dukeHands.src = dukeGrab;
-                    }
-                    highlightLayer.isEnabled = true;
+
                     let mesh = hit.pickedMesh as BABYLON.Mesh;
-                    label.text = mesh.name;
-                    line.linkWithMesh(mesh);
-                    tag.linkWithMesh(mesh); 
-                    rect1.linkWithMesh(mesh);   
+                    let foundParent = bubbleParent(mesh);
+                    if (foundParent) {
+                        let gameObject = foundParent as GameObject;
+                        let minDistance = 6;
+                        let canInteract:boolean = false;
+
+                        if ( gameObject.type == "Interactable" || gameObject.type == "Collectable" ) {
+
+                            activeTarget = gameObject;
+                            highlightLayer.isEnabled = true;
+                            let parent = mesh.parent;
+                            if (!parent) return;
+                            let meshes = parent.getChildMeshes();
+
+                            meshes.forEach(mesh => {
+                                highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
+                            })
+
+                            label.text = mesh.name;
+                            rect1.isVisible = true;
+                            label.isVisible = true;
+                            tag.isVisible = true;
+                            line.isVisible = true
+
+                            line.linkWithMesh(mesh);
+                            tag.linkWithMesh(mesh);
+                            rect1.linkWithMesh(mesh);
+
+                            if (BABYLON.Vector3.Distance(hero.position, hit.pickedMesh.position) < minDistance) {
+
+                                if (dukeHands.src !== dukeGrab) {
+                                    dukeHands.src = dukeGrab;
+                                }
+                                canInteract = true;
+
+                            }
+                            else {
+                                activeTarget = null;
+                            }
+
+                        }
+                    }
+
+           
+  
                     // Lets try spawning random text thing.
                     //let textPlane = BABYLON.MeshBuilder.CreatePlane('text-plane',{size:2},this.scene);
                     // let cube = BABYLON.MeshBuilder.CreateBox('box');
@@ -513,16 +641,16 @@ export class SceneViewer {
                     // planeTex.drawText(text,0,0,ctx.font,'white',"transparent",true,true)
     
     
-                    let parent = mesh.parent;
-                    if (!parent) return;
-                    let meshes = parent.getChildMeshes();
-    
-                    meshes.forEach(mesh => {
-                        highlightLayer.addMesh(mesh, new BABYLON.Color3(1,1,0));
-                    })
+
                 }
                 if (!hit.pickedMesh) {
                     
+                    activeTarget = null;
+                    rect1.isVisible = false;
+                    label.isVisible = false;
+                    tag.isVisible = false;
+                    line.isVisible = false
+
                     if (dukeHands.src !== idleHands) {
                         dukeHands.src = idleHands;
                     }
