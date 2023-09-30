@@ -81,9 +81,11 @@ export interface PointOfInterest {
 export class SceneViewer {
 
     canvas:HTMLCanvasElement;
-    scene:BABYLON.Scene;
+    static scene:BABYLON.Scene;
+    static heroMesh:BABYLON.Mesh;
+    static pointer:BABYLON.Mesh;
     engine:BABYLON.Engine;
-    camera:MainCamera;
+    static camera:MainCamera;
     mainLight:BABYLON.HemisphericLight;
     fileLoader:GLTFFileLoader;
     loadedModel:BABYLON.Scene
@@ -97,11 +99,11 @@ export class SceneViewer {
         this.engine = new BABYLON.Engine(this.canvas);
         window["engine"] = this.engine;
         this.engine.setHardwareScalingLevel(2);
-        this.scene = new BABYLON.Scene(this.engine);
-        window["scene"] = this.scene;
-        this.camera = new MainCamera('main-camera',new BABYLON.Vector3(8.88988495700036,5.39056883665061,1.260390443856567));
-        this.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
-        //this.camera.wheelDeltaPercentage = 0.1;
+        SceneViewer.scene = new BABYLON.Scene(this.engine);
+        window["scene"] = SceneViewer.scene;
+        SceneViewer.camera = new MainCamera('main-camera',new BABYLON.Vector3(8.88988495700036,5.39056883665061,1.260390443856567));
+        SceneViewer.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
+        //SceneViewer.camera.wheelDeltaPercentage = 0.1;
 
         SceneViewer.inventory = new pInventory();
 
@@ -109,34 +111,35 @@ export class SceneViewer {
 
             SceneViewer.havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
 
-            this.scene.gravity = new BABYLON.Vector3(0, -.75, 0); 
-            this.scene.collisionsEnabled = true;
-            this.scene.enablePhysics(new BABYLON.Vector3(0, -.75, 0),SceneViewer.havokPlugin);
+            SceneViewer.scene.gravity = new BABYLON.Vector3(0, -.75, 0); 
+            SceneViewer.scene.collisionsEnabled = true;
+            SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -.75, 0),SceneViewer.havokPlugin);
     
-            this.camera.checkCollisions = true;
-            this.camera.applyGravity = true;
-            this.camera.ellipsoid = new BABYLON.Vector3(.4, .8, .4);
-            this.camera.checkCollisions = true;
+            SceneViewer.camera.checkCollisions = true;
+            SceneViewer.camera.applyGravity = true;
+            SceneViewer.camera.ellipsoid = new BABYLON.Vector3(.4, .8, .4);
+            SceneViewer.camera.checkCollisions = true;
     
-            var hero = BABYLON.Mesh.CreateBox('hero', 2.0, this.scene, false, BABYLON.Mesh.FRONTSIDE);
-            hero.isPickable = false;
-            hero.position.x = 0.0;
-            hero.position.y = 1.0;
-            hero.position.z = 0.0;
-            let heroAggregate = new BABYLON.PhysicsAggregate(hero, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, this.scene);
+            SceneViewer.heroMesh = BABYLON.Mesh.CreateBox('hero', 2.0, SceneViewer.scene, false, BABYLON.Mesh.FRONTSIDE);
+            SceneViewer.heroMesh.isPickable = false;
+            SceneViewer.heroMesh.position.x = 0.0;
+            SceneViewer.heroMesh.position.y = 1.0;
+            SceneViewer.heroMesh.position.z = 0.0;
+            let heroAggregate = new BABYLON.PhysicsAggregate(SceneViewer.heroMesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, SceneViewer.scene);
     
-            var pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, this.scene, false, BABYLON.Mesh.DOUBLESIDE);
+            SceneViewer.pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, SceneViewer.scene, false, BABYLON.Mesh.DOUBLESIDE);
             // move the sphere upward 1/2 of its height
-            pointer.position.x = 0.0;
-            pointer.position.y = 0.0;
-            pointer.position.z = 0.0;
-            pointer.isPickable = false;
+            SceneViewer.pointer.position.x = 0.0;
+            SceneViewer.pointer.position.y = 0.0;
+            SceneViewer.pointer.position.z = 0.0;
+            SceneViewer.pointer.isPickable = false;
     
             var moveForward = false;
             var moveBackward = false;
             var moveRight = false;
             var moveLeft = false;
             var jump = false;
+            let sprinting = false;
             
             var onKeyDown = function (event) {
                 switch (event.keyCode) {
@@ -144,7 +147,9 @@ export class SceneViewer {
                     case 87: // w
                         moveForward = true;
                         break;
-        
+                    case 16: // Shift
+                        sprinting = true;
+                        break;
                     case 37: // left
                     case 65: // a
                         moveLeft = true; break;
@@ -167,6 +172,12 @@ export class SceneViewer {
         
             var onKeyUp = function (event) {
                 switch (event.keyCode) {
+                    case 70: //f
+                        SceneViewer.inventory.remove(SceneViewer.inventory.amount -1);
+                        break;
+                    case 16: // Shift
+                        sprinting = false;
+                        break;
                     case 38: // up
                     case 87: // w
                         moveForward = false;
@@ -196,12 +207,12 @@ export class SceneViewer {
             document.addEventListener('keyup', onKeyUp, false);
             
     
-            var myGround = BABYLON.MeshBuilder.CreateGround("myGround", {width: 200, height: 200}, this.scene);
+            var myGround = BABYLON.MeshBuilder.CreateGround("myGround", {width: 200, height: 200}, SceneViewer.scene);
             myGround.isPickable = false;
-            var groundMaterial = new BABYLON.StandardMaterial("ground", this.scene);
+            var groundMaterial = new BABYLON.StandardMaterial("ground", SceneViewer.scene);
             myGround.position.y;
             myGround.checkCollisions= true;
-            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, this.scene);
+            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, SceneViewer.scene);
             //this.interestPoints = [new BABYLON.Vector3(1.751672367244813,1.94732104969539,0.06579143706881602),new BABYLON.Vector3(0.8125,1.125,-0.5),new BABYLON.Vector3(0,0,0.015625)];
     
             this.interestPoints = [];
@@ -227,13 +238,13 @@ export class SceneViewer {
             this.interestPoints.push(interest2);
     
             this.currentTarget = 0;
-            //this.camera.useFramingBehavior = true;
+            //SceneViewer.camera.useFramingBehavior = true;
     
     
             let ease = (whichprop, targetval, speed) => {
                 var ease = new BABYLON.CubicEase();
                 ease.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
-                BABYLON.Animation.CreateAndStartAnimation('at4', this.camera, whichprop, speed, 120, this.camera[whichprop], targetval, 0, ease);
+                BABYLON.Animation.CreateAndStartAnimation('at4', SceneViewer.camera, whichprop, speed, 120, SceneViewer.camera[whichprop], targetval, 0, ease);
             }
     
             let idleHands = new URL('../media/models/HANDS/duke-hands.png',import.meta.url).pathname;
@@ -256,7 +267,7 @@ export class SceneViewer {
             // })
     
     
-            window["camera"] = this.camera;
+            window["camera"] = SceneViewer.camera;
             this.mainLight = new BABYLON.HemisphericLight('main-light',BABYLON.Vector3.Zero());
             let graphics = new GraphicsConfig();
     
@@ -282,13 +293,13 @@ export class SceneViewer {
             ditherLightnessInput.value = GraphicsConfig.ditherLightenFactor.toString();
             ditherLightnessInput.addEventListener('input',() =>{
                 GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherLightnessInput.value));
-                this.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
+                SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
             })
             let ditherDarknessInput = document.getElementById("dither-darkness-range") as HTMLInputElement;
             ditherDarknessInput.value = GraphicsConfig.ditherDarkenFactor.toString();
             ditherDarknessInput.addEventListener('input',() =>{
                 GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherDarknessInput.value));
-                this.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
+                SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
     
             })
     
@@ -298,22 +309,22 @@ export class SceneViewer {
                 let button = document.createElement("button") as HTMLButtonElement;
                 button.innerText = model;
                 button.addEventListener('click',() =>{
-                    ModelLoader.LoadModel(model,this.scene,true);
+                    ModelLoader.LoadModel(model,SceneViewer.scene,true);
                 })
                 modelArea.appendChild(button);
             })
     
             this.fileLoader = new GLTFFileLoader();
-            this.camera.attachControl()
+            SceneViewer.camera.attachControl()
     
     
     
                 
             this.engine.runRenderLoop(() => {
-                this.scene.render();
+                SceneViewer.scene.render();
             });
         
-            this.scene.onBeforeRenderObservable.add(() => {
+            SceneViewer.scene.onBeforeRenderObservable.add(() => {
     
     
     
@@ -325,12 +336,12 @@ export class SceneViewer {
     
             })
     
-            this.loadedModel = ModelLoader.LoadModel("Scene",this.scene,false);
+            this.loadedModel = ModelLoader.LoadModel("Scene",SceneViewer.scene,false);
     
             var isLocked = false;
 	
             // On click event, request pointer lock
-            this.scene.onPointerDown = function (evt) {
+            SceneViewer.scene.onPointerDown = function (evt) {
                 
                 //true/false check if we're locked, faster than checking pointerlock on each single click.
                 if (!isLocked) {
@@ -343,7 +354,7 @@ export class SceneViewer {
 
             // let modelLoadingComplete = () => {
             //     let cameraTarget = loadedModels[0]
-            //     this.camera.setTarget(cameraTarget);
+            //     SceneViewer.camera.setTarget(cameraTarget);
     
             //     document.addEventListener("keydown", (e) => {
             //         console.log("DOWN")
@@ -353,13 +364,13 @@ export class SceneViewer {
             //             let currentIndex = loadedModels.indexOf(cameraTarget);
             //             if (currentIndex == 0) {
             //                 cameraTarget = loadedModels[loadedModels.length -1];
-            //                 this.camera.setTarget(cameraTarget);
+            //                 SceneViewer.camera.setTarget(cameraTarget);
     
             //             }
             //             else {
             //                 cameraTarget = loadedModels[currentIndex +1]
-            //                 this.camera.setTarget(cameraTarget);
-            //                 this.camera.radius = 3;
+            //                 SceneViewer.camera.setTarget(cameraTarget);
+            //                 SceneViewer.camera.radius = 3;
             //             }
             //         }
             //         if (e.key === 'd') {
@@ -368,12 +379,12 @@ export class SceneViewer {
             //             let currentIndex = loadedModels.indexOf(cameraTarget);
             //             if (currentIndex == loadedModels.length -1) {
             //                 cameraTarget = loadedModels[0];
-            //                 this.camera.setTarget(cameraTarget);
+            //                 SceneViewer.camera.setTarget(cameraTarget);
             //             }
             //             else {
             //                 cameraTarget = loadedModels[currentIndex +1]
-            //                 this.camera.setTarget(cameraTarget);
-            //                 this.camera.radius = 3;
+            //                 SceneViewer.camera.setTarget(cameraTarget);
+            //                 SceneViewer.camera.radius = 3;
             //             }
             //         }
             //     });
@@ -402,13 +413,23 @@ export class SceneViewer {
             //ModelLoader.LoadAllModels(this.scene);
             //this.loadedModel = ModelLoader.LoadModel("Scene",this.scene,true);
 
-            let gameObj = new GameObject("Collectable",this.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            let gameObj = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            gameObj.icon = new URL('../media/images/red-box.png',import.meta.url).pathname;
             let Collectable = new CollectableComponent("Boxy",gameObj);
             gameObj.addComponent(Collectable);
 
+            let collectableBox = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            collectableBox.icon = new URL('../media/images/yellow-box.png',import.meta.url).pathname;
+            let CollectableBoxComp = new CollectableComponent("Boxy",collectableBox);
+            collectableBox.addComponent(CollectableBoxComp);
+            collectableBox.setPosition(new BABYLON.Vector3(5,1,1));
+            let collectMat = new BABYLON.StandardMaterial('myguuyMat');
+            collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
+            collectableBox.mesh.material = collectMat
 
-            let gameObj2 = new GameObject("No Interact",this.scene,BABYLON.MeshBuilder.CreateSphere('Static'),"Static");
-            let gameObj3 = new GameObject("Interactable",this.scene,BABYLON.MeshBuilder.CreateBox('Image Component'),"Interactable");
+
+            let gameObj2 = new GameObject("No Interact",SceneViewer.scene,BABYLON.MeshBuilder.CreateSphere('Static'),"Static");
+            let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'),"Interactable");
             let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
             let images = [img];
             let imageComponent = new ImageComponent(images);
@@ -423,7 +444,7 @@ export class SceneViewer {
 
             let rayHelper :BABYLON.RayHelper;
     
-            let highlightLayer = new BABYLON.HighlightLayer('hl-l',this.scene);
+            let highlightLayer = new BABYLON.HighlightLayer('hl-l',SceneViewer.scene);
             let highlightedMeshes:BABYLON.Mesh[] = [];
             var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
             var rect1 = new GUI.Rectangle();
@@ -470,7 +491,7 @@ export class SceneViewer {
             let activeTarget:GameObject = null;
             let activeComponent:iGameComponent;
 
-            this.scene.onPointerObservable.add((pointerInfo, event) => {
+            SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
 
                 switch(pointerInfo.type) {
     
@@ -489,7 +510,7 @@ export class SceneViewer {
 
                                 if (activeComponent == activeTarget.component) return;
                                 let component = activeTarget.component;
-                                component.use();
+                                component.interact();
                                 activeComponent = activeTarget.component;
 
                             }
@@ -497,7 +518,7 @@ export class SceneViewer {
                             if (activeTarget.type == "Collectable") {
 
                                 let component = activeTarget.component;
-                                component.use();
+                                component.interact();
                                 // Add to Inventory debug.
 
                             }
@@ -509,25 +530,31 @@ export class SceneViewer {
     
             })
     
-            this.scene.registerBeforeRender(() => {
+            SceneViewer.scene.registerBeforeRender(() => {
     
-                this.camera.position.x = hero.position.x;
-                this.camera.position.y = hero.position.y + 1.0;
-                this.camera.position.z = hero.position.z;
-                pointer.position = this.camera.getTarget();
+                SceneViewer.camera.position.x = SceneViewer.heroMesh.position.x;
+                SceneViewer.camera.position.y = SceneViewer.heroMesh.position.y + 1.0;
+                SceneViewer.camera.position.z = SceneViewer.heroMesh.position.z;
+                SceneViewer.pointer.position = SceneViewer.camera.getTarget();
     
-                var forward = this.camera.getTarget().subtract(this.camera.position).normalize();
+                var forward = SceneViewer.camera.getTarget().subtract(SceneViewer.camera.position).normalize();
                 forward.y = 0;
-                var right = BABYLON.Vector3.Cross(forward, this.camera.upVector).normalize();
+                var right = BABYLON.Vector3.Cross(forward, SceneViewer.camera.upVector).normalize();
                 right.y = 0;
                 
+                let sprintSpeed = 15;
                 var SPEED = 15;
                 let f_speed = 0;
                 var s_speed = 0;
                 var u_speed = 0;			
-        
+
                 if (moveForward) {
-                    f_speed = SPEED;
+                    if (sprinting) {
+                        f_speed = SPEED + sprintSpeed
+                    }
+                    else {
+                        f_speed = SPEED;
+                    }
                 }
                 if (moveBackward) {
                     f_speed = -SPEED;
@@ -543,7 +570,7 @@ export class SceneViewer {
                 
 
 
-                var move = (forward.scale(f_speed)).subtract((right.scale(s_speed))).subtract(this.camera.upVector.scale(u_speed));
+                var move = (forward.scale(f_speed)).subtract((right.scale(s_speed))).subtract(SceneViewer.camera.upVector.scale(u_speed));
        
                 heroAggregate.body.setLinearVelocity(new BABYLON.Vector3(move.x,move.y,move.z))
                 // if (jump) {
@@ -564,11 +591,11 @@ export class SceneViewer {
                         rayHelper.dispose();
                     }
                 }, 10);
-                let target = this.camera.getTarget();
-                let ray = BABYLON.Ray.CreateNewFromTo(this.camera.position,target);
+                let target = SceneViewer.camera.getTarget();
+                let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target);
                 ray.length = 100;
 
-                let hit = this.scene.pickWithRay(ray);
+                let hit = SceneViewer.scene.pickWithRay(ray);
                 highlightLayer.removeAllMeshes();
                 if (hit.pickedMesh) {
 
@@ -601,7 +628,7 @@ export class SceneViewer {
                             tag.linkWithMesh(mesh);
                             rect1.linkWithMesh(mesh);
 
-                            if (BABYLON.Vector3.Distance(hero.position, hit.pickedMesh.position) < minDistance) {
+                            if (BABYLON.Vector3.Distance(SceneViewer.heroMesh.position, hit.pickedMesh.position) < minDistance) {
 
                                 if (dukeHands.src !== dukeGrab) {
                                     dukeHands.src = dukeGrab;
@@ -687,13 +714,13 @@ export class SceneViewer {
             }
             `;
         
-            var postProcess = new BABYLON.PostProcess("My custom post process", "custom", ["screenSize", "threshold"], null, 0.25, this.camera);
+            var postProcess = new BABYLON.PostProcess("My custom post process", "custom", ["screenSize", "threshold"], null, 0.25, SceneViewer.camera);
             postProcess.onApply = function (effect) {
                 effect.setFloat2("screenSize", postProcess.width, postProcess.height);
                 effect.setFloat("threshold", 1.0);
             };        
             let colorTable = new URL('./lut-posterized.png',import.meta.url).pathname;
-            //let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,this.camera);
+            //let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,SceneViewer.camera);
     
     
         });

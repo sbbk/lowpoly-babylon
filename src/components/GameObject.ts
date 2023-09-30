@@ -3,33 +3,92 @@ export type GameObjectType = "Interactable" | "Static" | "Collectable"
 export type ComponentType = ImageComponent ;
 import { SceneViewer } from "../babylon/sceneViewer";
 
+export class pInventorySlot {
+
+    name:string;
+    item?:GameObject;
+    visual:HTMLElement;
+    itemIcon:HTMLImageElement;
+
+    constructor() {
+        this.visual = document.createElement('div');
+        this.visual.classList.add('pInventory-slot');
+        this.itemIcon = document.createElement('img');
+        this.visual.appendChild(this.itemIcon);
+        this.init();
+    }
+
+    init() {
+        return this.visual;
+    }
+
+    addItem(item:GameObject) {
+        this.item = item;
+        if (this.item.icon) {
+            this.itemIcon.src = this.item.icon;
+        }
+        else {
+            this.itemIcon.src = new URL('../media/images/thumb.png',import.meta.url).pathname
+        }
+    }
+    removeItem() {
+
+        this.item = null;
+        this.itemIcon.src = "";
+
+    }
+
+}
+
 export class pInventory {
 
     // owner: Add Player Class Later
     max:number = 10;
-    items:GameObject[] = [];
+    amount:number = 0;
+    inventoryVisual:HTMLElement;
+    items:pInventorySlot[];
+
+    constructor() {
+        this.items = [];
+        this.inventoryVisual = document.createElement('div');
+        this.inventoryVisual.classList.add('pInventory');
+        document.body.prepend(this.inventoryVisual)
+        for (let i=0; i<this.max;i++) {
+
+            let slot = new pInventorySlot();
+            this.inventoryVisual.appendChild(slot.visual);
+            this.items.push(slot);
+
+        }
+    }
 
     add(item:GameObject) {
 
-        if (this.items.length - 1 > this.max)
+        if (this.amount >= this.max)
         return
         else {
             console.log("Adding item..",item);
-            this.items.push(item);
-            item.mesh.dispose();
-            // Remove from scene..
+            let nextSlot = this.items[this.amount];
+            nextSlot.addItem(item);
+            this.amount += 1;
             if (item.component.mesh) {
                 console.log(item.component.mesh);
-                item.mesh.dispose()
+                SceneViewer.scene.removeMesh(item.mesh)
             }
             console.log(this.items);
         }
-
     }
 
-    drop(index:number) {
+    remove(index:number) {
 
-        let droppedItem = this.items.splice(index,1);
+        console.log("Removing..",index);
+        console.log("Item",this.items[index].item)
+
+        if (!this.items[index].item) return;
+        this.items[index].item.component.renderToScene(SceneViewer.heroMesh.position.clone());
+        this.items[index].removeItem();
+        this.amount -= 1;
+
 
     }
 
@@ -52,8 +111,16 @@ export interface iGameComponent {
     icon?:string;
     mesh?:BABYLON.Mesh;
     init:() => void;
-    use:() => void;
+    interact:() => void;
     destroy:() => void;
+    renderToScene:(position?:BABYLON.Vector3) => void;
+
+}
+
+export class UsableItem {
+
+    use:() => void;
+    unuse:() => void;
 
 }
 
@@ -73,7 +140,7 @@ export class CollectableComponent implements iGameComponent {
     init() {
 
     }
-    use () {
+    interact () {
 
         if (this.canCollect) {
             SceneViewer.inventory.add(this.gameObject)
@@ -83,12 +150,17 @@ export class CollectableComponent implements iGameComponent {
     destroy() {
 
     }
-    renderToScene() {
+    renderToScene(position?:BABYLON.Vector3) {
 
         if (this.mesh) {
 
             this.gameObject.getScene().addMesh(this.mesh);
-            this.mesh.position = new BABYLON.Vector3(1,2,1)
+            if (!position) {
+                this.mesh.position = new BABYLON.Vector3(1,2,1)
+            }
+            else {
+                this.mesh.position = position;
+            }
             // Debugging for now we are assuming all objects are simple meshes.
 
         }
@@ -112,7 +184,7 @@ export class ImageComponent implements iGameComponent {
 
     }
 
-    use() {
+    interact() {
 
         this.activeUI = document.createElement('img') as HTMLImageElement;
         this.activeUI.src =this.images[0];
@@ -132,6 +204,9 @@ export class ImageComponent implements iGameComponent {
         this.activeUI.remove();
 
     }
+    renderToScene() {
+
+    }
 
 }
 
@@ -142,21 +217,35 @@ export class GameObject extends BABYLON.TransformNode {
     physicsAggregate: BABYLON.PhysicsAggregate;
     type: GameObjectType;
     component: iGameComponent;
-    use:() => void = () => {
+    usable?:UsableItem
+    interact:() => void = () => {
 
     }
 
     constructor(name,scene,mesh,type:GameObjectType) {
         super(name, scene)
         this.mesh = mesh;
+        this.mesh.name = name;
         this.mesh.parent = this;
         this.type = type;
+    }
+
+    getComponent() {
+        return this.component;
     }
 
     loadMesh() {
 
     }
     destroyMesh() {
+
+    }
+
+    makeUsable(useFunction:() => void,unUseFunction:() => void) {
+
+        this.usable = new UsableItem();
+        this.usable.use = useFunction;
+        this.usable.unuse = unUseFunction;
 
     }
 
