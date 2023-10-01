@@ -1,6 +1,7 @@
 // MODEL IMPORTER HELPER
 import * as BABYLON from "@babylonjs/core";
 import { ShaderManager } from "../../babylon/shaders/shaderManager";
+import { SceneViewer } from "../../babylon/sceneViewer";
 
 export type GraphicsConfigParamater = "ditherLightenRatio" | "ditcherDarkenRatio" | "jitterAmplitude" | "hardwareScaling"
 export class GraphicsConfig {
@@ -294,18 +295,13 @@ export namespace ModelLoader {
             }
         }
         let path = importModel(model);
-        let loadedScene : BABYLON.Scene;
-        BABYLON.SceneLoader.Append(path, "", scene, ((node) => {
-            loadedScene = node as BABYLON.Scene;
-            let meshes = loadedScene.meshes;
-            console.log("Loaded Scene",loadedScene);
-            console.log("Meshes",meshes);
-            ModelLoader.LoadedModel = meshes[0];
-            meshes[0].scaling = new BABYLON.Vector3(3,3,-3);
-            //meshes[0].normalizeToUnitCube();
-            
-            meshes.forEach(mesh => {
+        let loadedScene : BABYLON.Scene = null;
+        BABYLON.SceneLoader.LoadAssetContainer(path, "", scene, ((node) => {
 
+            let rootMesh = new BABYLON.Mesh('root')
+            node.meshes.forEach(mesh => {
+                mesh.setParent(rootMesh);
+                mesh.checkCollisions = true;
                 if (!mesh.material) return;
                 if (mesh.material.albedoTexture) {
 
@@ -441,6 +437,30 @@ export namespace ModelLoader {
                     // mesh.material = shader.shaderMaterial;
                 }
             })
+            SceneViewer.scene.addMesh(rootMesh,true);
+            let childMeshes = rootMesh.getChildMeshes();
+            let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+            let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+                    
+            for(let i=0; i<childMeshes.length; i++){
+                let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+                let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+
+                min = BABYLON.Vector3.Minimize(min, meshMin);
+                max = BABYLON.Vector3.Maximize(max, meshMax);
+            }
+
+            rootMesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
+            rootMesh.showBoundingBox = true;
+            
+            // let meshes = loadedScene.meshes;
+            // console.log("Loaded Scene",loadedScene);
+            // console.log("Meshes",meshes);
+            // ModelLoader.LoadedModel = meshes[0];
+            // meshes[0].scaling = new BABYLON.Vector3(3,3,-3);
+            // //meshes[0].normalizeToUnitCube();
+            
+   
 
         }))
         return loadedScene;

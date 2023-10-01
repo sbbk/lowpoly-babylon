@@ -258,7 +258,7 @@ export class GameObject extends BABYLON.TransformNode {
 
     setPosition(position:BABYLON.Vector3) {
 
-        this.position = position;
+        this.mesh.setAbsolutePosition(position);
 
     }
 
