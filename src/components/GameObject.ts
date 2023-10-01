@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core"
 export type GameObjectType = "Interactable" | "Static" | "Collectable"
 export type ComponentType = ImageComponent ;
+import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
 
 export class pInventorySlot {
@@ -73,6 +74,47 @@ export class pInventory {
             this.amount += 1;
             if (item.component.mesh) {
                 console.log(item.component.mesh);
+                let clone = item.component.mesh.clone();
+                SceneViewer.scene.addMesh(clone);
+                clone.isPickable = false;
+                clone.layerMask = 4;
+
+                // Animate
+                let animation = new BABYLON.Animation("rotationAnimation", "rotation.y", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+                let keys = []; keys.push({ frame: 0, value: 0 }); keys.push({ frame: 30, value: Math.PI }); keys.push({ frame: 60, value: 2 * Math.PI });
+                animation.setKeys(keys);
+                clone.animations.push(animation);
+                SceneViewer.scene.beginAnimation(clone,0,60,true);
+
+                let UICamera = new BABYLON.FreeCamera('ui-cam',SceneViewer.camera.position);
+                // var itemCamera = new BABYLON.FreeCamera("item-camera", new BABYLON.Vector3(0, 0, 0), SceneViewer.scene)
+
+                var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui", true, SceneViewer.scene);
+                var text = new GUI.TextBlock(); 
+                text.text = `Found ${item.component.mesh.name}`; advancedTexture.addControl(text);
+
+                let colorTable = new URL('../babylon/lut-posterized.png',import.meta.url).pathname;
+                let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,UICamera);
+
+                UICamera.layerMask = 4;
+                UICamera.target = SceneViewer.camera.target;
+                SceneViewer.camera.setEnabled(false);
+                UICamera.setEnabled(true);
+                SceneViewer.scene.setActiveCameraById(UICamera.id);
+                let scaling = SceneViewer.engine.getHardwareScalingLevel();
+                SceneViewer.engine.setHardwareScalingLevel(4);
+                clone.position = UICamera.position.add(UICamera.getForwardRay().direction.scale(5));
+
+                setTimeout(() => {
+                    clone.dispose();
+                    SceneViewer.scene.setActiveCameraById(SceneViewer.camera.id);
+                    UICamera.dispose();
+                    advancedTexture.dispose();
+                    text.dispose();
+                    SceneViewer.engine.setHardwareScalingLevel(scaling);
+                    colorCorrectionProcess.dispose();
+
+                }, 1000);
                 SceneViewer.scene.removeMesh(item.mesh)
             }
             console.log(this.items);

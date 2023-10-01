@@ -115,13 +115,20 @@ export class Player {
     constructor(scene:BABYLON.Scene) {
         this.scene = scene;
         this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
+        this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
         this.camera.minZ = 0.45;
-        this.camera.speed = 0.55;
-        this.camera.angularSensibility = 4000;
+        this.camera.speed = 2;
+        this.camera.angularSensibility = 7000;
         this.camera.checkCollisions = true;
         this.camera.applyGravity = true;
-        this.camera.ellipsoid = new BABYLON.Vector3(.4, .8, .4);
+        this.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
         this.camera.attachControl();
+
+        // Debugs
+        window["offset"] = this.camera.ellipsoidOffset;
+        window["gravity"] = this.camera.applyGravity;
+        window["collisions"] = this.camera.checkCollisions;
+        window["pSpeed"] = this.camera.speed;
 
         // Hands
         this.handController = new HandController();
@@ -238,7 +245,7 @@ export class SceneViewer {
     static scene:BABYLON.Scene;
     static heroMesh:BABYLON.Mesh;
     static pointer:BABYLON.Mesh;
-    engine:BABYLON.Engine;
+    static engine:BABYLON.Engine;
     static player:Player;
     static camera:BABYLON.FreeCamera;
     mainLight:BABYLON.HemisphericLight;
@@ -255,9 +262,9 @@ export class SceneViewer {
 
     constructor(canvas:HTMLCanvasElement) {
         this.canvas = canvas;
-        this.engine = new BABYLON.Engine(this.canvas);
-        this.engine.setHardwareScalingLevel(1.3);
-        SceneViewer.scene = new BABYLON.Scene(this.engine);
+        SceneViewer.engine = new BABYLON.Engine(this.canvas);
+        SceneViewer.engine.setHardwareScalingLevel(1.3);
+        SceneViewer.scene = new BABYLON.Scene(SceneViewer.engine);
         //SceneViewer.camera = new MainCamera('main-camera',new BABYLON.Vector3(8.88988495700036,5.39056883665061,1.260390443856567));
         //SceneViewer.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
         SceneViewer.inventory = new pInventory();
@@ -295,7 +302,7 @@ export class SceneViewer {
             console.log(GraphicsConfig.hardwareScaling);
             hardwareScalingInput.addEventListener('input',() =>{
                 GraphicsConfig.setValue("hardwareScaling",parseFloat(hardwareScalingInput.value));
-                this.engine.setHardwareScalingLevel(GraphicsConfig.hardwareScaling);
+                SceneViewer.engine.setHardwareScalingLevel(GraphicsConfig.hardwareScaling);
                 console.log(GraphicsConfig.hardwareScaling);
             })
     
@@ -323,7 +330,7 @@ export class SceneViewer {
     
             this.fileLoader = new GLTFFileLoader();    
                 
-            this.engine.runRenderLoop(() => {
+            SceneViewer.engine.runRenderLoop(() => {
                 SceneViewer.scene.render();
             });
         
@@ -332,7 +339,7 @@ export class SceneViewer {
     
             })
     
-            this.loadedModel = ModelLoader.LoadModel("Scene",SceneViewer.scene,false);
+            this.loadedModel = ModelLoader.LoadModel("doom",SceneViewer.scene,false);
             var isLocked = false;
 	
             // On click event, request pointer lock
@@ -356,21 +363,21 @@ export class SceneViewer {
             collectableBox.icon = new URL('../media/images/yellow-box.png',import.meta.url).pathname;
             let CollectableBoxComp = new CollectableComponent("Boxy",collectableBox);
             collectableBox.addComponent(CollectableBoxComp);
-            collectableBox.setPosition(new BABYLON.Vector3(5,1,1));
             let collectMat = new BABYLON.StandardMaterial('myguuyMat');
             collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
             collectableBox.mesh.material = collectMat
-
-
+            
+            
             let gameObj2 = new GameObject("No Interact",SceneViewer.scene,BABYLON.MeshBuilder.CreateSphere('Static'),"Static");
             let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'),"Interactable");
             let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
             let images = [img];
             let imageComponent = new ImageComponent(images);
             gameObj3.addComponent(imageComponent)
-            gameObj.setPosition(new BABYLON.Vector3(0,1,1))
+            gameObj.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 40.82344504740288))
+            collectableBox.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 38.82344504740288));
             gameObj2.setPosition(new BABYLON.Vector3(0,3,1))
-            gameObj3.setPosition(new BABYLON.Vector3(3,1,1));
+            gameObj3.setPosition(new BABYLON.Vector3(16.738227838967664, 4.510000029802313, 40.82344504740288));
             let mat = new BABYLON.StandardMaterial('myguuyMat');
             mat.diffuseColor = new BABYLON.Color3(1,0,0);
             gameObj.mesh.material = mat;

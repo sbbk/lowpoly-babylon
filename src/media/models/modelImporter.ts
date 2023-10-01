@@ -51,14 +51,15 @@ export namespace ModelLoader {
     const monitor = new URL ('./monitor/mesh.gltf',import.meta.url).pathname;
     const trestle = new URL ('./trestle/mesh.gltf',import.meta.url).pathname;
     const cityScene = new URL ('./city_scene.glb',import.meta.url).pathname;
+    const doom = new URL ('doom-entryway.glb',import.meta.url).pathname;
     export var LoadedModels:BABYLON.AbstractMesh[] = [];
     export var LoadedModel:BABYLON.AbstractMesh;
 
-    export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" | "Monitor" | "TrestleTable";
+    export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" | "Monitor" | "TrestleTable" | "doom";
 
     export function generateList():models[] {
         
-        let models = ["CrashBandicoot","dva","CheesePlant","MetalCabinet","Maschine","Monitor","TrestleTable"] as models[];
+        let models = ["CrashBandicoot","dva","CheesePlant","MetalCabinet","Maschine","Monitor","TrestleTable","doom"] as models[];
         return models;
 
     }
@@ -68,6 +69,8 @@ export namespace ModelLoader {
         switch(model) {
             case "Scene":
                 return scene;
+            case "doom":
+                return doom;
             case "CityScene":
                 return cityScene
             case "CrashBandicoot":
@@ -301,6 +304,7 @@ export namespace ModelLoader {
             let rootMesh = new BABYLON.Mesh('root')
             node.meshes.forEach(mesh => {
                 mesh.setParent(rootMesh);
+                mesh.isPickable = false;
                 mesh.checkCollisions = true;
                 if (!mesh.material) return;
                 if (mesh.material.albedoTexture) {
@@ -451,7 +455,9 @@ export namespace ModelLoader {
             }
 
             rootMesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
-            rootMesh.showBoundingBox = true;
+            rootMesh.showBoundingBox = false;
+            rootMesh.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
+
             
             // let meshes = loadedScene.meshes;
             // console.log("Loaded Scene",loadedScene);
