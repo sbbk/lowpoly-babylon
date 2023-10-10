@@ -1,8 +1,9 @@
 import * as BABYLON from "@babylonjs/core"
-export type GameObjectType = "Interactable" | "Static" | "Collectable"
+export type GameObjectType = "Interactable" | "Static" | "Collectable" | "Talkable"
 export type ComponentType = ImageComponent ;
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
+import { PitchShifter } from "../audio/tonePlayer";
 
 export class pInventorySlot {
 
@@ -152,6 +153,7 @@ export interface iGameComponent {
     name:string;
     icon?:string;
     mesh?:BABYLON.Mesh;
+    canInteract:boolean;
     init:() => void;
     interact:() => void;
     destroy:() => void;
@@ -170,6 +172,7 @@ export class CollectableComponent implements iGameComponent {
 
     name:string = "Collectable";
     canCollect:boolean = true;
+    canInteract: boolean = true;
     mesh?:BABYLON.Mesh;
     gameObject:GameObject;
 
@@ -212,10 +215,134 @@ export class CollectableComponent implements iGameComponent {
 
 }
 
+export class ConversationComponent implements iGameComponent {
+
+    name:string = "Conversation";
+    conversationLines:string[];
+    canInteract: boolean = true;
+    mesh:BABYLON.Mesh;
+    active:boolean = false;
+    timeout:number
+    talker:PitchShifter;
+    constructor(conversationLines:string[],mesh) {
+        this.conversationLines = conversationLines;
+        this.mesh = mesh;
+        this.timeout = 1500;
+        this.talker = new PitchShifter();
+    }
+
+    init() {
+
+    }
+
+    calculatePixel(mesh:BABYLON.Mesh) {
+
+        const temp = new BABYLON.Vector3();
+        const vertices = mesh.getBoundingInfo().boundingBox.vectorsWorld;
+        const viewport = SceneViewer.camera.viewport.toGlobal(SceneViewer.engine.getRenderWidth(), SceneViewer.engine.getRenderHeight());
+        let minX = 1e10, minY = 1e10, maxX = -1e10, maxY = -1e10;
+        for (const vertex of vertices) {
+            BABYLON.Vector3.ProjectToRef(vertex, BABYLON.Matrix.IdentityReadOnly, SceneViewer.scene.getTransformMatrix(), viewport, temp);
+            if (minX > temp.x) minX = temp.x;
+            if (maxX < temp.x) maxX = temp.x;
+            if (minY > temp.y) minY = temp.y;
+            if (maxY < temp.y) maxY = temp.y;
+        }
+        //console.log("maxX-minX",(maxX-minX));
+        //console.log("maxY-minY",(maxY-minY));
+        return {"x":(maxX-minX), "y":(maxY-minY)}
+    }
+
+    interact() {
+
+        let i = 0;
+        let speak = () => {
+            let screenheight = this.calculatePixel(this.mesh);
+            if (screenheight.y > SceneViewer.engine.getRenderHeight()) {
+                screenheight.y = 0;
+            }
+            this.canInteract = false;
+            SceneViewer.tagBillBoard.setVisible(false);
+    
+            let UITexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+            let backgroundRectangle = new GUI.Rectangle();
+            backgroundRectangle.height = "100px";
+            backgroundRectangle.cornerRadius = 20;
+            backgroundRectangle.color = "white";
+            backgroundRectangle.thickness = 4;
+            backgroundRectangle.background = "black";
+            UITexture.addControl(backgroundRectangle);
+            backgroundRectangle.linkOffsetY = -screenheight.y / 2;
+            backgroundRectangle.isVisible = false;
+            backgroundRectangle.widthInPixels = 0
+        
+            let label = new GUI.TextBlock();
+    
+            label.fontSize = "50px"
+            label.isVisible = false;
+            backgroundRectangle.addControl(label);
+            backgroundRectangle.linkWithMesh(this.mesh);
+    
+        
+            let index = 0;
+    
+            // Define a function that adds one character to the text block
+            let addCharacter = () => {
+                // Get the next character from the full text
+                let char = this.conversationLines[i].charAt(index);
+                backgroundRectangle.widthInPixels = 30 * index;
+                
+                // Append the character to the text block
+                label.text += char;
+            
+                // Increment the index
+                index++;
+            
+                // Check if the index reached the end of the full text
+                if (index >= this.conversationLines[i].length) {
+                    // Clear the interval and stop the function
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        UITexture.dispose();
+                        label.dispose();
+                        SceneViewer.tagBillBoard.setVisible(true);
+                        if (i < this.conversationLines.length -1) {
+                            i++;
+                            speak();
+                        }
+                        else {
+                            this.canInteract = true;
+                        }
+                    }, this.timeout);
+                }
+            };
+            
+            // Define an interval that calls the function every 100 milliseconds
+            let interval = setInterval(addCharacter, 50);
+            setTimeout(() => {            
+                backgroundRectangle.isVisible = true;
+                label.isVisible = true;
+                PitchShifter.playSound();
+            }, 40);
+        }
+        speak();
+
+
+    }
+    destroy() {
+
+    }
+    renderToScene() {
+
+    }
+
+}
+
 export class ImageComponent implements iGameComponent {
 
     name:string = "Image";
     images:string[];
+    canInteract: boolean = true;
     activeUI:HTMLImageElement;
 
     constructor(images:string[]) {
@@ -302,6 +429,9 @@ export class GameObject extends BABYLON.TransformNode {
 
         this.mesh.setAbsolutePosition(position);
 
+    }
+    setScale(scaling:BABYLON.Vector3) {
+        this.mesh.scaling = scaling;
     }
 
     bubbleParent(mesh: BABYLON.Node): BABYLON.Node {
