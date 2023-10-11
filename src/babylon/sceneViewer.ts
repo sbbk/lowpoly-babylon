@@ -549,6 +549,7 @@ export class SceneViewer {
                             let meshes = parent.getChildMeshes();
 
                             meshes.forEach(mesh => {
+                                if (mesh.name == "collider") return;
                                 highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
                             })
 

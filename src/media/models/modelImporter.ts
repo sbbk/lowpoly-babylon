@@ -464,7 +464,35 @@ export namespace ModelLoader {
             max = BABYLON.Vector3.Maximize(max, meshMax);
         }
 
-        root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
+        let width = max.subtract(min);
+
+        let scaling = new BABYLON.Vector3(width.x, width.y, width.z);
+        let mat = new BABYLON.StandardMaterial('mat');
+        mat.alpha = 0.0;
+        mat.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
+        
+        let centerX = (min.x + max.x) / 2;
+        let centerY = (min.y + max.y) / 2;
+        let centerZ = (min.z + max.z) / 2;
+
+        let box = BABYLON.MeshBuilder.CreateBox('collider');
+        box.setParent(root);
+        box.material = mat;
+        box.scaling = scaling;
+        box.material.backFaceCulling = true;
+        box.checkCollisions = true;
+        box.isPickable = false;
+        box.onBeforeRenderObservable.add(() => {
+            SceneViewer.engine.setStencilBuffer(false);
+        });
+
+        // Create a vector from the coordinates
+        let center = new BABYLON.Vector3(centerX, centerY, centerZ);
+        box.setPivotPoint(center)
+
+
+
+        //root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
 
         // // Get the bounding info of the camera
         // var cameraBoundingInfo = camera.getBoundingInfo();
@@ -477,6 +505,8 @@ export namespace ModelLoader {
 
 
         //root.checkCollisions = true;
+        //root.showBoundingBox = true;
+
         //root.showBoundingBox = true;
         resolve(root);
 
