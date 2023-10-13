@@ -5,7 +5,7 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import { ShaderManager } from "./shaders/shaderManager";
 import HavokPhysics from "@babylonjs/havok";
 import * as GUI from "@babylonjs/gui"
-import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent } from "../components/GameObject";
+import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad } from "../components/GameObject";
 
 
 export enum HandMode {
@@ -92,6 +92,17 @@ export class HandController {
 
     }
 
+    setEnabled(value:boolean) {
+        switch(value) {
+            case true:
+                this.handElement.style.display = "block";
+                break;
+            case false:
+                this.handElement.style.display = "none";
+                break;
+        }
+    }
+
     runAnimation(handSource:HandSource) {
 
         if (this.animationRunning == true) return;
@@ -124,6 +135,7 @@ export class Player {
     heroMesh:BABYLON.Mesh;
     heroPhysicsAgregate:BABYLON.PhysicsAggregate;
     pointer:BABYLON.Mesh;
+    currentTarget:GameObject = null;
     handController:HandController;
     constructor(scene:BABYLON.Scene) {
         this.scene = scene;
@@ -175,10 +187,6 @@ export class Player {
         this.pointer.isPickable = false;
 
     }
-
-}
-
-export class HighlightLayer {
 
 }
 
@@ -285,16 +293,17 @@ export class TagBillboard {
 
 }
 
+export type GameMode = "Play" | "Build"
+
 export class SceneViewer {
 
     canvas:HTMLCanvasElement;
     static scene:BABYLON.Scene;
+
     static heroMesh:BABYLON.Mesh;
     static pointer:BABYLON.Mesh;
     static engine:BABYLON.Engine;
     static player:Player;
-    static camera:BABYLON.FreeCamera;
-    mainLight:BABYLON.HemisphericLight;
     fileLoader:GLTFFileLoader;
     loadedModel:BABYLON.Scene
     currentTarget:number;
@@ -306,8 +315,36 @@ export class SceneViewer {
 
     static tagBillBoard:TagBillboard;
 
+    // Game Objects & Components
+    static gameObjects:GameObject[];
+    static activeSynths:string[];
+
+    // Rendering & Utilities
+    static camera:BABYLON.FreeCamera | BABYLON.ArcRotateCamera;
+    mainLight:BABYLON.HemisphericLight;
+    
+    // Highlight Layer.
+    static highlightLayer:BABYLON.HighlightLayer
+    static highlightedMeshes:BABYLON.Mesh[];
+    static highlightDistance:number;
+    static interactDistance:number;
+
     // DEBUG
-    distanceTracker:HTMLElement;
+    static distanceTracker:HTMLElement;
+
+    // Modes & Observers
+    static GameMode:GameMode;
+    static PointerObservableFunction:BABYLON.Observer<BABYLON.PointerInfo>
+    static RegisterBeforeRenderFunction:BABYLON.Observer<BABYLON.Scene>;
+
+    // Build Mode
+    static buildCamera:BABYLON.ArcRotateCamera;
+    static UtilityLayer:BABYLON.UtilityLayerRenderer;
+    static positionGizmo:BABYLON.PositionGizmo;
+    static scaleGizmo:BABYLON.ScaleGizmo;
+    static rotationGizmo:BABYLON.RotationGizmo;
+
+
 
     constructor(canvas:HTMLCanvasElement) {
         this.canvas = canvas;
@@ -319,9 +356,21 @@ export class SceneViewer {
         SceneViewer.inventory = new pInventory();
         SceneViewer.framesPerSecond = 60;
         SceneViewer.gravity = -20;
+        SceneViewer.gameObjects = [];
+        SceneViewer.activeSynths = [];
+        SceneViewer.GameMode = "Play";
+
+        // Highlight Layer & Interaction.
+        SceneViewer.highlightLayer = new BABYLON.HighlightLayer('hl-l',SceneViewer.scene);
+        SceneViewer.highlightedMeshes = [];
+        SceneViewer.highlightDistance = 15;
+        SceneViewer.interactDistance = 10;
+        SceneViewer.distanceTracker = document.getElementById('distance-tracker') as HTMLElement;
+
+
+        window['gameObjects'] = SceneViewer.gameObjects;
 
         // DEBUG
-        this.distanceTracker = document.getElementById('distance-tracker') as HTMLElement;
 
         HavokPhysics().then((havokInstance) => {
 
@@ -333,7 +382,21 @@ export class SceneViewer {
     
             // PLAYER
             SceneViewer.player = new Player(SceneViewer.scene);
+
+            // CAMERAS
             SceneViewer.camera = SceneViewer.player.camera;
+            SceneViewer.buildCamera = new BABYLON.ArcRotateCamera('build-cam',0,0,10,new BABYLON.Vector3(0,0,0));
+            SceneViewer.UtilityLayer = new BABYLON.UtilityLayerRenderer(SceneViewer.scene);
+            SceneViewer.positionGizmo = new BABYLON.PositionGizmo(SceneViewer.UtilityLayer);
+            SceneViewer.scaleGizmo = new BABYLON.ScaleGizmo(SceneViewer.UtilityLayer);
+            SceneViewer.rotationGizmo = new BABYLON.RotationGizmo(SceneViewer.UtilityLayer);
+            SceneViewer.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+            SceneViewer.scaleGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+            SceneViewer.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+
+
+            SceneViewer.setGameMode("Build");
+
 
             // Tag Billboard System
             SceneViewer.tagBillBoard = new TagBillboard(true);
@@ -344,7 +407,7 @@ export class SceneViewer {
             myGround.checkCollisions= true;
             let groundMat = new BABYLON.StandardMaterial('groundmat');
             myGround.material = groundMat;
-            groundMat.alpha = 0.01;
+            //groundMat.alpha = 0.01;
             const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, SceneViewer.scene);
     
             window["camera"] = SceneViewer.camera;
@@ -385,25 +448,23 @@ export class SceneViewer {
     
             this.fileLoader = new GLTFFileLoader();    
                 
+
+
             SceneViewer.engine.runRenderLoop(() => {
                 SceneViewer.scene.render();
             });
-        
-            SceneViewer.scene.onBeforeRenderObservable.add(() => {
+
     
-    
-            })
-    
-            ModelLoader.LoadModel("hallway",SceneViewer.scene,false).then((mesh) => {
-                mesh.scaling = new BABYLON.Vector3(1.8,1.8,1.8);
-            });
+            // ModelLoader.LoadModel("hallway",SceneViewer.scene,false).then((mesh) => {
+            //     mesh.scaling = new BABYLON.Vector3(1.8,1.8,1.8);
+            // });
             var isLocked = false;
 	
             // On click event, request pointer lock
             SceneViewer.scene.onPointerDown = function (evt) {
                 
                 //true/false check if we're locked, faster than checking pointerlock on each single click.
-                if (!isLocked) {
+                if (!isLocked && SceneViewer.GameMode == "Play") {
                     canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
                     if (canvas.requestPointerLock) {
                         canvas.requestPointerLock();
@@ -411,15 +472,26 @@ export class SceneViewer {
                 }
             }
 
-            let gameObj = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            let gameObj = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'));
             gameObj.icon = new URL('../media/images/red-box.png',import.meta.url).pathname;
-            let Collectable = new CollectableComponent("Boxy",gameObj);
+            let Collectable = new CollectableComponent("Boxy","Collectable",gameObj);
             gameObj.addComponent(Collectable);
+            gameObj.setActiveComponent(Collectable);
 
-            let collectableBox = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'),"Collectable");
+            let synthComponent = new SynthComponent();
+            let synthObject = new GameObject("SynthPad",SceneViewer.scene,BABYLON.MeshBuilder.CreateCapsule('Synth'));
+            let synthPad = new SynthPad(synthComponent,"Synth",synthObject,1);
+            synthObject.addComponent(synthPad);
+            synthObject.setActiveComponent(synthPad)
+            synthObject.setPosition(new BABYLON.Vector3(3,0,0))
+
+
+
+            let collectableBox = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'));
             collectableBox.icon = new URL('../media/images/yellow-box.png',import.meta.url).pathname;
-            let CollectableBoxComp = new CollectableComponent("Boxy",collectableBox);
+            let CollectableBoxComp = new CollectableComponent("Boxy","Collectable",collectableBox);
             collectableBox.addComponent(CollectableBoxComp);
+            collectableBox.setActiveComponent(CollectableBoxComp)
             let collectablePhysics = new BABYLON.PhysicsAggregate(collectableBox.mesh, BABYLON.PhysicsShapeType.BOX, { mass: 0.1, restitution: 0.75 }, SceneViewer.scene);
 
 
@@ -428,9 +500,13 @@ export class SceneViewer {
             collectableBox.mesh.material = collectMat
             
             ModelLoader.AppendModel('frog',SceneViewer.scene).then((mesh) => {
-                let gameObj2 = new GameObject("Talk",SceneViewer.scene, mesh,"Talkable");
-                let conversationComponent = new ConversationComponent(['Sometimes I get sad.','But you know..',"I'm just a frog."],gameObj2.mesh);
-                gameObj2.addComponent(conversationComponent)
+                let gameObj2 = new GameObject("Talk",SceneViewer.scene, mesh);
+                let conversationComponent = new ConversationComponent(['Sometimes I get sad.','But you know..',"I'm just a frog."],"Talkable",gameObj2.mesh);
+                let conversationComponent2 = new CollectableComponent('collect-frog',"Collectable",gameObj2);
+                gameObj2.addComponent(conversationComponent);
+                gameObj2.addComponent(conversationComponent2);
+
+                gameObj2.setActiveComponent(conversationComponent2)
                 gameObj2.setPosition(new BABYLON.Vector3(0,2,0))
                 gameObj2.setScale(new BABYLON.Vector3(10,10,10))
                 window.setInterval(() => {
@@ -439,195 +515,27 @@ export class SceneViewer {
             })
 
             ModelLoader.AppendModel('skull',SceneViewer.scene).then((mesh:BABYLON.Mesh) => {
-                let skullObject = new GameObject("Talk",SceneViewer.scene, mesh,"Talkable");
-                let conversationComponent = new ConversationComponent(["Yo lol.","I'm literally a skull.","Why you asking me for?"],skullObject.mesh);
-                skullObject.addComponent(conversationComponent)
+                let skullObject = new GameObject("Talk",SceneViewer.scene, mesh);
+                let conversationComponent = new ConversationComponent(["Yo lol.","I'm literally a skull.","Why you asking me for?"],"Talkable",skullObject.mesh);
+                skullObject.addComponent(conversationComponent);
+                skullObject.setActiveComponent(conversationComponent)
                 skullObject.setPosition(new BABYLON.Vector3(5,0,5))
                 skullObject.setScale(new BABYLON.Vector3(100,100,100));
             })
 
-            let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'),"Interactable");
+            let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'));
             let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
             let images = [img];
-            let imageComponent = new ImageComponent(images);
-            gameObj3.addComponent(imageComponent)
+            let imageComponent = new ImageComponent(images,"Interactable");
+            gameObj3.addComponent(imageComponent);
+            gameObj3.setActiveComponent(imageComponent)
             gameObj.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 40.82344504740288))
             collectableBox.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 38.82344504740288));
             gameObj3.setPosition(new BABYLON.Vector3(16.738227838967664, 4.510000029802313, 40.82344504740288));
             let mat = new BABYLON.StandardMaterial('myguuyMat');
             mat.diffuseColor = new BABYLON.Color3(1,0,0);
             gameObj.mesh.material = mat;
-    
-            let highlightLayer = new BABYLON.HighlightLayer('hl-l',SceneViewer.scene);
-            let highlightedMeshes:BABYLON.Mesh[] = [];
                 
-            let activeTarget:GameObject = null;
-            let activeComponent:iGameComponent;
-
-            SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
-
-                switch(pointerInfo.type) {
-    
-                    case BABYLON.PointerEventTypes.POINTERTAP:
-                        if (activeTarget == null || !activeTarget) {
-                            if (activeComponent) {
-                                activeComponent.destroy();
-                                activeComponent = null;
-                            }
-                            return;
-                        }
-                        if (activeTarget !== null || activeTarget !== undefined) {
-
-                            if (activeTarget.type == "Interactable" || activeTarget.type == "Talkable") {
-
-                                if (!activeTarget.component.canInteract) return;
-                                let component = activeTarget.component;
-                                component.interact();
-                                activeComponent = activeTarget.component;
-
-                            }
-
-                            if (activeTarget.type == "Collectable") {
-
-                                let component = activeTarget.component;
-                                component.interact();
-                                // Add to Inventory debug.
-
-                            }
-
-                        }
-    
-                }
-    
-    
-            })
-    
-            SceneViewer.scene.registerBeforeRender(() => {
-    
-    
-                let bubbleParent = (mesh) => {
-                    
-                    while (mesh.parent !== null) {
-                        mesh = mesh.parent;
-                    }
-                    return mesh;
-                }
-            
-                SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
-
-                let target = SceneViewer.camera.getTarget();
-                let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target);
-                ray.length = 100;
-
-                let hit = SceneViewer.scene.pickWithRay(ray);
-                highlightLayer.removeAllMeshes();
-                if (hit.pickedMesh) {
-                    let highlightDistance = 15;
-                    // DEBUG
-                    // let sphere = BABYLON.MeshBuilder.CreateSphere('sppp',{diameter:0.1});
-                    // sphere.isPickable = false;
-                    // sphere.position = hit.pickedPoint.clone();
-                    let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
-                    this.distanceTracker.innerText = distance.toString();
-                    if (distance > highlightDistance)
-                    return;
-
-                    let mesh = hit.pickedMesh as BABYLON.Mesh;
-                    let foundParent = bubbleParent(mesh);
-                    if (foundParent) {
-                        let gameObject = foundParent as GameObject;
-                        let minDistance = 10;
-                        let canInteract:boolean = false;
-                        if (!gameObject || !gameObject.component) return;
-                        if (gameObject.component.canInteract == false) return;
-
-                        if ( gameObject.type == "Interactable" || gameObject.type == "Collectable" || gameObject.type == "Talkable") {
-
-                            highlightLayer.isEnabled = true;
-                            let parent = mesh.parent;
-                            if (!parent) return;
-                            let meshes = parent.getChildMeshes();
-
-                            meshes.forEach(mesh => {
-                                if (mesh.name == "collider") return;
-                                highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
-                            })
-
-                            // LINK WITH MESH
-                            SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.name);
-                            if (BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint) < minDistance) {
-
-                                switch(gameObject.type) {
-                                    case "Collectable":
-                                        SceneViewer.player.handController.setHandMode(HandMode.grab,0);
-                                        canInteract = true;
-                                        activeTarget = gameObject;
-                                        break;
-                                    case "Talkable":
-                                        SceneViewer.player.handController.setHandMode(HandMode.cash,0);
-                                        canInteract = true;
-                                        activeTarget = gameObject;
-                                        break;
-                                    default:
-                                        SceneViewer.player.handController.setHandMode(HandMode.grab,0);
-                                        canInteract = true;
-                                        activeTarget = gameObject;
-                                        break;
-
-                                }
-                            }
-                            else {
-                                SceneViewer.player.handController.setHandMode(HandMode.idle,0);
-                                canInteract = false;
-                                activeTarget = null;
-                            }
-
-
-                        }
-                    }
-
-           
-  
-                    // Lets try spawning random text thing.
-                    //let textPlane = BABYLON.MeshBuilder.CreatePlane('text-plane',{size:2},this.scene);
-                    // let cube = BABYLON.MeshBuilder.CreateBox('box');
-                    // cube.isPickable = false;
-      
-    
-                    // textPlane.material = new BABYLON.StandardMaterial('mat');
-                    // let textPlaneMat = new BABYLON.BackgroundMaterial('text-mat');
-                    // textPlane.material = textPlaneMat;
-                    // let planeTex = new BABYLON.DynamicTexture('text-tex',this.scene);
-                    // textPlaneMat.diffuseTexture = planeTex;
-                    // textPlaneMat.diffuseTexture.hasAlpha = true;
-                    // textPlaneMat.alphaMode = 6;
-    
-                    // let ctx = planeTex.getContext();
-                    // ctx.font = '20px Lato';
-                    // let canvas = document.createElement("canvas");
-                    // let context = canvas.getContext("2d");
-                    // context.font = ctx.font;
-                    // let text = mesh.name;
-                    // planeTex.drawText(text,0,0,ctx.font,'white',"transparent",true,true)
-    
-    
-
-                }
-                if (!hit.pickedMesh) {
-                    
-                    activeTarget = null;
-                    SceneViewer.tagBillBoard.setVisible(false);
-
-                    SceneViewer.player.handController.setHandMode(HandMode.idle,0,false);
-                    if (highlightedMeshes.length > 0) {
-                        highlightedMeshes.forEach(mesh => {
-                            highlightLayer.removeMesh(mesh);
-                        })
-                    }
-                    highlightLayer.isEnabled = false;
-                } 
-            });
-    
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES
                 precision highp float;
@@ -652,7 +560,7 @@ export class SceneViewer {
             }
             `;
         
-            var postProcess = new BABYLON.PostProcess("My custom post process", "custom", ["screenSize", "threshold"], null, 0.25, SceneViewer.camera);
+            var postProcess = new BABYLON.PostProcess("My custom post process", "custom", ["screenSize", "threshold"], null, 0.25, SceneViewer.player.camera);
             postProcess.onApply = function (effect) {
                 effect.setFloat2("screenSize", postProcess.width, postProcess.height);
                 effect.setFloat("threshold", 1.0);
@@ -663,6 +571,307 @@ export class SceneViewer {
     
         });
 
-        
+        let playToggle = document.getElementById('play-mode');
+        let buildToggle = document.getElementById('build-mode');
+        playToggle.addEventListener('click',() => {
+            SceneViewer.setGameMode("Play");
+        })
+        buildToggle.addEventListener('click',() => {
+            SceneViewer.setGameMode("Build");
+        })
+
     }
+
+    static setGameMode(mode:GameMode) {
+
+        // Remove existing game mode observers.
+        if (SceneViewer.PointerObservableFunction !== null) {
+            console.log("Hit Pointer")
+            SceneViewer.scene.onPointerObservable.remove(SceneViewer.PointerObservableFunction);
+        }
+        if (!SceneViewer.registerPlayerBeforeRenderFunction !== null) {
+            console.log("Hit Render");
+            SceneViewer.scene.onBeforeRenderObservable.remove(SceneViewer.RegisterBeforeRenderFunction)
+        }
+
+        switch(mode) {
+            case "Play":
+                SceneViewer.UtilityLayer.shouldRender = false;
+                SceneViewer.camera = SceneViewer.player.camera;
+                SceneViewer.scene.activeCamera = SceneViewer.player.camera;
+                SceneViewer.registerPlayerPointers();
+                SceneViewer.registerPlayerBeforeRenderFunction();
+                SceneViewer.player.handController.setEnabled(true);
+                break;
+            case "Build":
+                SceneViewer.UtilityLayer.shouldRender = true;
+                SceneViewer.camera = SceneViewer.buildCamera;
+                SceneViewer.scene.activeCamera = SceneViewer.buildCamera;
+                SceneViewer.scene.setActiveCameraById(SceneViewer.buildCamera.id);
+                SceneViewer.registerBuildPointers();
+                SceneViewer.registerBuildBeforeRenderFunction();
+                if (SceneViewer.tagBillBoard) {
+                    SceneViewer.tagBillBoard.setVisible(false);
+                }
+                SceneViewer.player.handController.setEnabled(false);
+                break;
+            }
+            
+        SceneViewer.GameMode = mode;
+        SceneViewer.camera.attachControl(true);
+
+    }
+
+    static registerPlayerPointers() {
+        let playerActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
+
+            // DEBUGS.
+            let activeTargetTracker = document.getElementById('active-target-tracker');
+            if (SceneViewer.player.currentTarget) {
+                activeTargetTracker.innerText = SceneViewer.player.currentTarget.activeComponent.type;
+            }
+            let activeComponent:iGameComponent;
+
+            switch(pointerInfo.type) {
+
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
+                        // Not sure if this does much now, check back later.
+                        if (activeComponent) {
+                            activeComponent.destroy();
+                            activeComponent = null;
+                        }
+                        return;
+                    }
+                    if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
+
+                        // Return if we can't interact right now.
+                        if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
+                        console.log(SceneViewer.player.currentTarget)
+
+                        console.log(SceneViewer.player.currentTarget.activeComponent.type)
+
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable") {
+                            SceneViewer.player.currentTarget.activeComponent.interact();
+                            activeComponent = SceneViewer.player.currentTarget.activeComponent;
+                        }
+
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Collectable") {
+                            SceneViewer.player.currentTarget.activeComponent.interact();
+                        }
+
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Synth") {
+                            SceneViewer.player.currentTarget.activeComponent.interact();
+                            SceneViewer.activeSynths.push(SceneViewer.player.currentTarget.id);
+                        }
+                    }
+
+                break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    // End any synths anyway..
+                    for (let i=0;i<SceneViewer.activeSynths.length;i++) {
+
+                        let foundGameObject = SceneViewer.findGameObject(SceneViewer.activeSynths[i]);
+                        if (foundGameObject) {
+                            foundGameObject.activeComponent.endInteract();
+                            SceneViewer.activeSynths.splice(i)
+                        }
+
+                    }
+                    if (!SceneViewer.player.currentTarget) return;
+                    if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
+                        SceneViewer.player.currentTarget.activeComponent.endInteract();
+                    }
+
+                break;
+            }
+
+
+        })
+        SceneViewer.PointerObservableFunction = playerActions;
+    }
+
+    static registerBuildPointers() {
+        let buildActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
+
+            // DEBUGS.
+            let activeTargetTracker = document.getElementById('active-target-tracker');
+
+            let bubbleParent = (mesh) => {
+                while (mesh.parent !== null) {
+                    mesh = mesh.parent;
+                }
+                return mesh;
+            }
+
+            switch(pointerInfo.type) {
+
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    console.log(pointerInfo.pickInfo);
+                    console.log(pointerInfo.pickInfo.pickedMesh)
+                    if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
+
+                        var pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                        let foundParent = bubbleParent(pickedMesh);
+                        SceneViewer.positionGizmo.attachedNode = null;
+                        SceneViewer.scaleGizmo.attachedNode = null
+                        SceneViewer.rotationGizmo.attachedNode = null
+                        SceneViewer.positionGizmo.attachedNode = foundParent;
+                        SceneViewer.scaleGizmo.attachedNode = foundParent;
+                        SceneViewer.rotationGizmo.attachedNode = foundParent;
+                        activeTargetTracker.innerText = foundParent.name;
+
+                    }
+            }
+        })
+        
+        SceneViewer.PointerObservableFunction = buildActions;
+    }
+
+    static registerBuildBeforeRenderFunction() {
+
+        let renderLoop = SceneViewer.scene.onBeforeRenderObservable.add(() => {
+            let bubbleParent = (mesh) => {
+                while (mesh.parent !== null) {
+                    mesh = mesh.parent;
+                }
+                return mesh;
+            }
+        
+            // Clear highlights
+            SceneViewer.highlightLayer.removeAllMeshes();
+
+            SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
+            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target); ray.length = 100;
+            let hit = SceneViewer.scene.pickWithRay(ray);
+
+            if (hit.pickedMesh) {
+
+                let mesh = hit.pickedMesh as BABYLON.Mesh;
+                let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
+                SceneViewer.distanceTracker.innerText = distance.toString();
+                
+                // We're not even within highlight distance.
+                if (distance > SceneViewer.highlightDistance)
+                return;
+
+                // Look for a parent game object.
+                let foundParent = bubbleParent(mesh);
+                if (foundParent) {
+                    let gameObject = foundParent as GameObject;
+                }
+            }
+        })
+
+        SceneViewer.RegisterBeforeRenderFunction = renderLoop
+
+    }
+
+    static registerPlayerBeforeRenderFunction() {
+        let renderLoop = SceneViewer.scene.onBeforeRenderObservable.add(() => {
+    
+            let bubbleParent = (mesh) => {
+                while (mesh.parent !== null) {
+                    mesh = mesh.parent;
+                }
+                return mesh;
+            }
+        
+            // Clear highlights
+            SceneViewer.highlightLayer.removeAllMeshes();
+
+            SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
+            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target); ray.length = 100;
+            let hit = SceneViewer.scene.pickWithRay(ray);
+
+            if (hit.pickedMesh) {
+
+                let mesh = hit.pickedMesh as BABYLON.Mesh;
+                let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
+                SceneViewer.distanceTracker.innerText = distance.toString();
+                
+                // We're not even within highlight distance.
+                if (distance > SceneViewer.highlightDistance)
+                return;
+
+                // Look for a parent game object.
+                let foundParent = bubbleParent(mesh);
+                if (foundParent) {
+                    let gameObject = foundParent as GameObject;
+                    if (!gameObject || !gameObject.activeComponent) return;
+
+                    // Are we allowed to interact?
+                    if (gameObject.activeComponent.canInteract == false) return;
+
+                    // Arbitrary for now but check against types of game objects to see if they're of an interactable type.
+                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth") {
+
+                        if (!mesh.parent) return;
+                        let meshes = mesh.parent.getChildMeshes();
+                        
+                        // Highlight all the meshes in the game object.
+                        SceneViewer.highlightLayer.isEnabled = true;
+                        meshes.forEach(mesh => {
+                            if (mesh.name == "collider") return;
+                            SceneViewer.highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
+                        })
+
+                        // Add the billboard tag.
+                        SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.activeComponent.name);
+                        if (BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint) < SceneViewer.interactDistance) {
+
+                            switch(gameObject.activeComponent.type) {
+                                case "Collectable":
+                                    SceneViewer.player.handController.setHandMode(HandMode.grab,0);
+                                    SceneViewer.player.currentTarget = gameObject;
+                                    break;
+                                case "Talkable":
+                                    SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject;
+                                    break;
+                                case "Synth":
+                                    SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                default:
+                                    SceneViewer.player.handController.setHandMode(HandMode.grab,0);
+                                    SceneViewer.player.currentTarget = gameObject;
+                                    break;
+
+                            }
+                        }
+                        else {
+                            SceneViewer.player.handController.setHandMode(HandMode.idle,0);
+                            SceneViewer.player.currentTarget = null;
+                        }
+
+
+                    }
+                }
+
+            }
+            if (!hit.pickedMesh) {
+                
+                SceneViewer.player.currentTarget = null;
+                SceneViewer.tagBillBoard.setVisible(false);
+
+                SceneViewer.player.handController.setHandMode(HandMode.idle,0,false);
+                if (SceneViewer.highlightedMeshes.length > 0) {
+                    SceneViewer.highlightedMeshes.forEach(mesh => {
+                        SceneViewer.highlightLayer.removeMesh(mesh);
+                    })
+                }
+                SceneViewer.highlightLayer.isEnabled = false;
+            } 
+        });
+        SceneViewer.RegisterBeforeRenderFunction = renderLoop
+    }
+
+    static findGameObject(id:string) {
+
+        let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.id === id);
+        return foundObject;
+
+    }
+
 }

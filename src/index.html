@@ -12,11 +12,15 @@
         bottom: 0;
         right: 512px;
         height: 512px;
-        overflow: hidden;">
+        overflow: hidden;
+        user-select: none;
+        pointer-events: none;">
             <img id="duke-hands" style="height:100%;">
         </div>
         <canvas id="main-canvas"></canvas>
         <div id="ui-area">
+            <button id="play-mode">Play Mode</button>
+            <button id="build-mode">Build Mode</button>
             <h2>Render Settings</h2>
             <label class="input-label" for="hardware-scaling-range">Hardware Scaling</label>
             <input class="ranger" type="range" id="hardware-scaling-range" min="0.7" max="10" step="0.1">
@@ -34,6 +38,8 @@
             <h2>Distance</h2>
             <h4 id="distance-tracker"></h4>
             <h4 id="parent-tracker"></h4>
+            <h4>Active Target <span id="active-target-tracker"></span></h4>
+
         </div>
 
     </div>

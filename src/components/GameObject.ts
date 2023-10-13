@@ -1,9 +1,13 @@
 import * as BABYLON from "@babylonjs/core"
-export type GameObjectType = "Interactable" | "Static" | "Collectable" | "Talkable"
+export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image"
 export type ComponentType = ImageComponent ;
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
 import { PitchShifter } from "../audio/tonePlayer";
+import * as Tone from "tone"
+import { v4 as uuidv4 } from 'uuid';
+
+
 
 export class pInventorySlot {
 
@@ -73,9 +77,9 @@ export class pInventory {
             let nextSlot = this.items[this.amount];
             nextSlot.addItem(item);
             this.amount += 1;
-            if (item.component.mesh) {
-                console.log(item.component.mesh);
-                let clone = item.component.mesh.clone();
+            if (item.getComponent("Collectable").mesh) {
+                console.log(item.getComponent("Collectable").mesh);
+                let clone = item.getComponent("Collectable").mesh.clone();
                 SceneViewer.scene.addMesh(clone);
                 clone.isPickable = false;
                 clone.layerMask = 4;
@@ -92,7 +96,7 @@ export class pInventory {
 
                 var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui", true, SceneViewer.scene);
                 var text = new GUI.TextBlock(); 
-                text.text = `Found ${item.component.mesh.name}`; advancedTexture.addControl(text);
+                text.text = `Found ${item.getComponent("Collectable").mesh.name}`; advancedTexture.addControl(text);
 
                 let colorTable = new URL('../babylon/lut-posterized.png',import.meta.url).pathname;
                 let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,UICamera);
@@ -127,8 +131,9 @@ export class pInventory {
         console.log("Removing..",index);
         console.log("Item",this.items[index].item)
 
+
         if (!this.items[index].item) return;
-        this.items[index].item.component.renderToScene(SceneViewer.heroMesh.position.clone());
+        this.items[index].item.getComponent("Collectable").renderToScene(SceneViewer.heroMesh.position.clone());
         this.items[index].removeItem();
         this.amount -= 1;
 
@@ -151,11 +156,14 @@ export class pInventory {
 export interface iGameComponent {
 
     name:string;
+    id:string;
+    type: GameComponentType;
     icon?:string;
     mesh?:BABYLON.Mesh;
     canInteract:boolean;
     init:() => void;
     interact:() => void;
+    endInteract:() => void;
     destroy:() => void;
     renderToScene:(position?:BABYLON.Vector3) => void;
 
@@ -168,18 +176,120 @@ export class UsableItem {
 
 }
 
+export class SynthPad implements iGameComponent {
+
+    name:string;
+    id:string;
+    type: GameComponentType;
+    mesh:BABYLON.Mesh;
+    canInteract: boolean = true;
+    synthComponent:SynthComponent;
+    index:number;
+
+
+    constructor(synthComponent:SynthComponent,type:GameComponentType,mesh,index:number) {
+        this.mesh = mesh;
+        this.synthComponent = synthComponent;
+        this.index = index;
+        this.name = `synthpad-${this.index}`;
+        this.type = type;
+        this.id = uuidv4()
+    }
+    init() {
+
+
+    }
+    interact() {
+        this.synthComponent.playNote(this.index)
+    }
+    endInteract() {
+        this.synthComponent.stop()
+    }
+    destroy() {
+
+    }
+    renderToScene() {
+
+
+    }
+}
+
+export class SynthComponent {
+
+    name:string;
+    mesh:BABYLON.Mesh;
+    canInteract: boolean;
+    octave:string = "3";
+    UPPER = (parseInt(this.octave) + 1).toString();
+    notes = [`C${this.octave}`,`C#${this.octave}`,`D${this.octave}`,`D#${this.octave}`,`E${this.octave}`,`F${this.octave}`,`F#${this.octave}`,`G${this.octave}`,`G#${this.octave}`,`A${this.octave}`,`A#${this.octave}`,`B${this.octave}`,`C${this.UPPER}`,`C#${this.UPPER}`,`D${this.UPPER}`,`D#${this.UPPER}`];
+    synth:Tone.Synth;
+
+    constructor() {
+        this.synth = new Tone.Synth().toDestination();
+    }
+    
+    async playNote(index:number) {
+    
+        await Tone.start();
+        let note = this.notes[index];
+        let now = Tone.now();
+        this.synth.triggerAttack(note, now);
+    }
+    stop() {
+        let now = Tone.now();
+        this.synth.triggerRelease(now);
+    }
+
+}
+
+export class SequencerComponent implements iGameComponent {
+    
+    name: string;
+    id:string
+    type:GameComponentType;
+    icon?: string;
+    mesh?: BABYLON.Mesh;
+    canInteract: boolean;
+    sequence:Tone.Sequence
+
+    constructor(type:GameComponentType) {
+        this.type = type;
+        this.id = uuidv4()
+    }
+
+    init()  {
+        let sequence = new Tone.Sequence()
+    }
+    interact() {
+        
+    };
+    endInteract() {}
+
+    destroy() {
+        
+    };
+    renderToScene(position?: BABYLON.Vector3) {
+        
+    };
+
+}
+
 export class CollectableComponent implements iGameComponent {
 
     name:string = "Collectable";
+    id:string;
+    type:GameComponentType;
     canCollect:boolean = true;
     canInteract: boolean = true;
     mesh?:BABYLON.Mesh;
     gameObject:GameObject;
 
-    constructor(name:string,gameObject:GameObject) {
+    constructor(name:string,type:GameComponentType,gameObject:GameObject) {
+        this.id = uuidv4()
         this.gameObject = gameObject
         this.mesh = gameObject.mesh as BABYLON.Mesh;
         this.name = name;
+        this.type = type;
     }
 
     init() {
@@ -192,6 +302,8 @@ export class CollectableComponent implements iGameComponent {
         }
 
     }
+    endInteract() {}
+
     destroy() {
 
     }
@@ -218,14 +330,18 @@ export class CollectableComponent implements iGameComponent {
 export class ConversationComponent implements iGameComponent {
 
     name:string = "Conversation";
+    id:string;
+    type:GameComponentType;
     conversationLines:string[];
     canInteract: boolean = true;
     mesh:BABYLON.Mesh;
     active:boolean = false;
     timeout:number
     talker:PitchShifter;
-    constructor(conversationLines:string[],mesh) {
+    constructor(conversationLines:string[],type:GameComponentType,mesh) {
+        this.id = uuidv4()
         this.conversationLines = conversationLines;
+        this.type = type;
         this.mesh = mesh;
         this.timeout = 1500;
         this.talker = new PitchShifter();
@@ -329,6 +445,8 @@ export class ConversationComponent implements iGameComponent {
 
 
     }
+    endInteract() {}
+
     destroy() {
 
     }
@@ -341,12 +459,16 @@ export class ConversationComponent implements iGameComponent {
 export class ImageComponent implements iGameComponent {
 
     name:string = "Image";
+    id:string;
+    type:GameComponentType;
     images:string[];
     canInteract: boolean = true;
     activeUI:HTMLImageElement;
 
-    constructor(images:string[]) {
+    constructor(images:string[],type:GameComponentType) {
+        this.id = uuidv4()
         this.images = images;
+        this.type = type;
     }
 
     init() {
@@ -368,6 +490,8 @@ export class ImageComponent implements iGameComponent {
         document.body.prepend(this.activeUI);
 
     }
+    endInteract() {}
+
     destroy() {
 
         this.activeUI.remove();
@@ -381,26 +505,30 @@ export class ImageComponent implements iGameComponent {
 
 export class GameObject extends BABYLON.TransformNode {
 
+    id:string;
     mesh: BABYLON.Mesh | BABYLON.AbstractMesh;
     icon?:string;
     physicsAggregate: BABYLON.PhysicsAggregate;
-    type: GameObjectType;
-    component: iGameComponent;
+    components: iGameComponent[];
+    activeComponent:iGameComponent;
     usable?:UsableItem
     interact:() => void = () => {
 
     }
 
-    constructor(name,scene,mesh,type:GameObjectType) {
-        super(name, scene)
+    constructor(name,scene,mesh) {
+        super(name, scene);
+        this.id = uuidv4();
         this.mesh = mesh;
         this.mesh.name = name;
         this.mesh.parent = this;
-        this.type = type;
+        this.components = [];
+        SceneViewer.gameObjects.push(this);
     }
 
-    getComponent() {
-        return this.component;
+    getComponent(type:GameComponentType) {
+        let component = this.components.find(gameComponent => gameComponent.type === type);
+        return component;
     }
 
     loadMesh() {
@@ -420,14 +548,23 @@ export class GameObject extends BABYLON.TransformNode {
 
     addComponent(component:iGameComponent) {
 
-        this.component = component;
+        this.components.push(component);
         component.init();
+
+    }
+
+    setActiveComponent(component:iGameComponent) {
+
+        let foundComponent = this.components.find(gameComponent => gameComponent.id === component.id);
+        if (foundComponent) {
+            this.activeComponent = foundComponent
+        }
 
     }
 
     setPosition(position:BABYLON.Vector3) {
 
-        this.mesh.setAbsolutePosition(position);
+        this.setAbsolutePosition(position);
 
     }
     setScale(scaling:BABYLON.Vector3) {
