@@ -5,7 +5,10 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import { ShaderManager } from "./shaders/shaderManager";
 import HavokPhysics from "@babylonjs/havok";
 import * as GUI from "@babylonjs/gui"
-import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad } from "../components/GameObject";
+import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad, OneLineConversation } from "../components/GameObject";
+import { QuestSystem } from "../components/Quest"
+import { ItemFactory } from "../items/ItemFactory";
+const items = require("../items/items.json");
 
 
 export enum HandMode {
@@ -137,6 +140,7 @@ export class Player {
     pointer:BABYLON.Mesh;
     currentTarget:GameObject = null;
     handController:HandController;
+    activeQuests:number[] = [];
     constructor(scene:BABYLON.Scene) {
         this.scene = scene;
         this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
@@ -295,11 +299,59 @@ export class TagBillboard {
 
 export type GameMode = "Play" | "Build"
 
+export interface ParsedGameObject {
+
+    id:string,
+    // position:string[];
+    // rotation:string[];
+    // scale:string[];
+
+}
+
+export class GameObjectParser {
+
+    static gatheredData:ParsedGameObject[] = [];
+
+    static exportData() {
+
+        //console.log(SceneViewer.gameObjects);
+        console.log("Length",SceneViewer.gameObjects.length);
+        console.log("All:",SceneViewer.gameObjects)
+
+        SceneViewer.gameObjects.forEach(object => {
+            console.log("Name",object.name)
+            console.log("ID",object.id)
+
+            let gameObjectData:ParsedGameObject = {
+                id: object.id,
+                // position:[SceneViewer.gameObjects[i].position.x.toString(),SceneViewer.gameObjects[i].position.y.toString(),SceneViewer.gameObjects[i].position.z.toString()],
+                // rotation: [SceneViewer.gameObjects[i].rotation.x.toString(),SceneViewer.gameObjects[i].rotation.y.toString(),SceneViewer.gameObjects[i].rotation.z.toString()],
+                // scale: [SceneViewer.gameObjects[i].scaling.x.toString(),SceneViewer.gameObjects[i].scaling.y.toString(),SceneViewer.gameObjects[i].scaling.z.toString()]
+            };
+
+            GameObjectParser.gatheredData.push(gameObjectData);
+
+            // Gonna have to wait til we're on a server.
+
+        })
+
+
+    }
+    
+    static readData() {
+
+
+
+    }
+
+}
+
 export class SceneViewer {
 
-    canvas:HTMLCanvasElement;
+    static canvas:HTMLCanvasElement;
     static scene:BABYLON.Scene;
 
+    static questManager:QuestSystem.QuestManager;
     static heroMesh:BABYLON.Mesh;
     static pointer:BABYLON.Mesh;
     static engine:BABYLON.Engine;
@@ -334,6 +386,7 @@ export class SceneViewer {
 
     // Modes & Observers
     static GameMode:GameMode;
+    static DisablePointerLock:boolean = false;
     static PointerObservableFunction:BABYLON.Observer<BABYLON.PointerInfo>
     static RegisterBeforeRenderFunction:BABYLON.Observer<BABYLON.Scene>;
 
@@ -347,8 +400,8 @@ export class SceneViewer {
 
 
     constructor(canvas:HTMLCanvasElement) {
-        this.canvas = canvas;
-        SceneViewer.engine = new BABYLON.Engine(this.canvas);
+        SceneViewer.canvas = canvas;
+        SceneViewer.engine = new BABYLON.Engine(SceneViewer.canvas);
         SceneViewer.engine.setHardwareScalingLevel(1.3);
         SceneViewer.scene = new BABYLON.Scene(SceneViewer.engine);
         //SceneViewer.camera = new MainCamera('main-camera',new BABYLON.Vector3(8.88988495700036,5.39056883665061,1.260390443856567));
@@ -359,6 +412,7 @@ export class SceneViewer {
         SceneViewer.gameObjects = [];
         SceneViewer.activeSynths = [];
         SceneViewer.GameMode = "Play";
+        SceneViewer.questManager = new QuestSystem.QuestManager();
 
         // Highlight Layer & Interaction.
         SceneViewer.highlightLayer = new BABYLON.HighlightLayer('hl-l',SceneViewer.scene);
@@ -395,7 +449,7 @@ export class SceneViewer {
             SceneViewer.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
 
 
-            SceneViewer.setGameMode("Build");
+            SceneViewer.setGameMode("Play");
 
 
             // Tag Billboard System
@@ -454,6 +508,10 @@ export class SceneViewer {
                 SceneViewer.scene.render();
             });
 
+            window.addEventListener("resize", function () {
+                SceneViewer.engine.resize();
+            });
+
     
             // ModelLoader.LoadModel("hallway",SceneViewer.scene,false).then((mesh) => {
             //     mesh.scaling = new BABYLON.Vector3(1.8,1.8,1.8);
@@ -464,7 +522,7 @@ export class SceneViewer {
             SceneViewer.scene.onPointerDown = function (evt) {
                 
                 //true/false check if we're locked, faster than checking pointerlock on each single click.
-                if (!isLocked && SceneViewer.GameMode == "Play") {
+                if (!isLocked && SceneViewer.GameMode == "Play" && SceneViewer.DisablePointerLock == false) {
                     canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
                     if (canvas.requestPointerLock) {
                         canvas.requestPointerLock();
@@ -472,69 +530,86 @@ export class SceneViewer {
                 }
             }
 
-            let gameObj = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'));
-            gameObj.icon = new URL('../media/images/red-box.png',import.meta.url).pathname;
-            let Collectable = new CollectableComponent("Boxy","Collectable",gameObj);
-            gameObj.addComponent(Collectable);
-            gameObj.setActiveComponent(Collectable);
+            // let synthComponent = new SynthComponent();
+            // let synthObject = new GameObject("SynthPad",SceneViewer.scene,BABYLON.MeshBuilder.CreateCapsule('Synth'));
+            // let synthPad = new SynthPad(synthComponent,"Synth",synthObject,1);
+            // synthObject.addComponent(synthPad);
+            // synthObject.setActiveComponent(synthPad)
+            // synthObject.setPosition(new BABYLON.Vector3(3,0,0))
 
-            let synthComponent = new SynthComponent();
-            let synthObject = new GameObject("SynthPad",SceneViewer.scene,BABYLON.MeshBuilder.CreateCapsule('Synth'));
-            let synthPad = new SynthPad(synthComponent,"Synth",synthObject,1);
-            synthObject.addComponent(synthPad);
-            synthObject.setActiveComponent(synthPad)
-            synthObject.setPosition(new BABYLON.Vector3(3,0,0))
+            // let collectMat = new BABYLON.StandardMaterial('myguuyMat');
+            // collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
+            // collectableBox.mesh.material = collectMat
 
-
-
-            let collectableBox = new GameObject("Collectable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Collectable'));
-            collectableBox.icon = new URL('../media/images/yellow-box.png',import.meta.url).pathname;
-            let CollectableBoxComp = new CollectableComponent("Boxy","Collectable",collectableBox);
-            collectableBox.addComponent(CollectableBoxComp);
-            collectableBox.setActiveComponent(CollectableBoxComp)
-            let collectablePhysics = new BABYLON.PhysicsAggregate(collectableBox.mesh, BABYLON.PhysicsShapeType.BOX, { mass: 0.1, restitution: 0.75 }, SceneViewer.scene);
-
-
-            let collectMat = new BABYLON.StandardMaterial('myguuyMat');
-            collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
-            collectableBox.mesh.material = collectMat
+            ItemFactory.ItemBuilder.createItem(0).then((vinylObject) => {});
+            ItemFactory.ItemBuilder.createItem(1).then((frogMan) => {})
             
-            ModelLoader.AppendModel('frog',SceneViewer.scene).then((mesh) => {
-                let gameObj2 = new GameObject("Talk",SceneViewer.scene, mesh);
-                let conversationComponent = new ConversationComponent(['Sometimes I get sad.','But you know..',"I'm just a frog."],"Talkable",gameObj2.mesh);
-                let conversationComponent2 = new CollectableComponent('collect-frog',"Collectable",gameObj2);
-                gameObj2.addComponent(conversationComponent);
-                gameObj2.addComponent(conversationComponent2);
+            // ModelLoader.AppendModel('skull',SceneViewer.scene).then((mesh:BABYLON.Mesh) => {
+            //     let skullObject = new GameObject(10,"Talk",SceneViewer.scene, mesh);
 
-                gameObj2.setActiveComponent(conversationComponent2)
-                gameObj2.setPosition(new BABYLON.Vector3(0,2,0))
-                gameObj2.setScale(new BABYLON.Vector3(10,10,10))
-                window.setInterval(() => {
-                    gameObj2.mesh.rotation.y += 0.01;
-                },10)
-            })
+            //     let conversation = [
+            //         {
+            //             "id": "0",
+            //             "speaker": "npc",
+            //             "text": ["Hello, how are you today?","Champ?"],
+            //             "target":"1"
+            //         },
+            //         {
+            //             "id": "1",
+            //             "speaker": "player",
+            //             "choices": [
+            //                 {
+            //                     "text": "And you?",
+            //                     "target": "5"
+            //                 },
+            //                 {
+            //                     "text": "Got any quests?",
+            //                     "target": "6"
+            //                 },
+            //                 {
+            //                     "text": "Can I ask you something?",
+            //                     "target": "7"
+            //                 }
+            //             ]
+            //         },
+            //         {
+            //             "id": "5",
+            //             "speaker": "npc",
+            //             "text": ["I'm good too, thanks for asking."]
+            //         },
+            //         {
+            //             "id": "6",
+            //             "speaker": "npc",
+            //             "text": ["I sure do. Can you find my records for me?"],
+            //             "actionName":"QuestSystem:AssignCollectQuest",
+            //             "actionData":0
+            //         },
+            //         {
+            //             "id": "7",
+            //             "speaker": "npc",
+            //             "text": ["Sure, what do you want to know?"]
+            //         }
+            //     ]
 
-            ModelLoader.AppendModel('skull',SceneViewer.scene).then((mesh:BABYLON.Mesh) => {
-                let skullObject = new GameObject("Talk",SceneViewer.scene, mesh);
-                let conversationComponent = new ConversationComponent(["Yo lol.","I'm literally a skull.","Why you asking me for?"],"Talkable",skullObject.mesh);
-                skullObject.addComponent(conversationComponent);
-                skullObject.setActiveComponent(conversationComponent)
-                skullObject.setPosition(new BABYLON.Vector3(5,0,5))
-                skullObject.setScale(new BABYLON.Vector3(100,100,100));
-            })
+            //     let conversationComponent = new ConversationComponent(conversation,"Talkable",skullObject.mesh);
+            //     skullObject.addComponent(conversationComponent);
+            //     skullObject.setActiveComponent(conversationComponent)
+            //     skullObject.setPosition(new BABYLON.Vector3(5,0,5))
+            //     skullObject.setScale(new BABYLON.Vector3(100,100,100));
+            // })
 
-            let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'));
-            let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
-            let images = [img];
-            let imageComponent = new ImageComponent(images,"Interactable");
-            gameObj3.addComponent(imageComponent);
-            gameObj3.setActiveComponent(imageComponent)
-            gameObj.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 40.82344504740288))
-            collectableBox.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 38.82344504740288));
-            gameObj3.setPosition(new BABYLON.Vector3(16.738227838967664, 4.510000029802313, 40.82344504740288));
-            let mat = new BABYLON.StandardMaterial('myguuyMat');
-            mat.diffuseColor = new BABYLON.Color3(1,0,0);
-            gameObj.mesh.material = mat;
+            // let gameObj3 = new GameObject("Interactable",SceneViewer.scene,BABYLON.MeshBuilder.CreateBox('Image Component'));
+            // let img = new URL('../media/images/thumb.png',import.meta.url).pathname;
+            // let images = [img];
+            // let imageComponent = new ImageComponent(images,"Interactable");
+            // gameObj3.addComponent(imageComponent);
+            // gameObj3.setActiveComponent(imageComponent)
+            // gameObj.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 40.82344504740288))
+            // collectableBox.setPosition(new BABYLON.Vector3(19.738227838967664, 4.510000029802313, 38.82344504740288));
+            // gameObj3.setPosition(new BABYLON.Vector3(16.738227838967664, 4.510000029802313, 40.82344504740288));
+            // let mat = new BABYLON.StandardMaterial('myguuyMat');
+            // mat.diffuseColor = new BABYLON.Color3(1,0,0);
+            // gameObj.mesh.material = mat;
                 
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES
@@ -580,17 +655,39 @@ export class SceneViewer {
             SceneViewer.setGameMode("Build");
         })
 
+        let exportButton = document.getElementById('export-json');
+        exportButton.addEventListener('click',() => {
+            GameObjectParser.exportData();
+        })
+
+    }
+
+    static disablePointerLock(value:boolean) {
+
+        if (value == true) {
+            SceneViewer.DisablePointerLock = true;
+            document.exitPointerLock();
+        }
+        else if(value == false) {
+            SceneViewer.DisablePointerLock = false;
+            //true/false check if we're locked, faster than checking pointerlock on each single click.
+            if (SceneViewer.GameMode == "Play" && SceneViewer.DisablePointerLock == false) {
+                SceneViewer.canvas.requestPointerLock = SceneViewer.canvas.requestPointerLock || SceneViewer.canvas.msRequestPointerLock || SceneViewer.canvas.mozRequestPointerLock || SceneViewer.canvas.webkitRequestPointerLock;
+            if (SceneViewer.canvas.requestPointerLock) {
+                SceneViewer.canvas.requestPointerLock();
+            }
+        }
+        }
+
     }
 
     static setGameMode(mode:GameMode) {
 
         // Remove existing game mode observers.
         if (SceneViewer.PointerObservableFunction !== null) {
-            console.log("Hit Pointer")
             SceneViewer.scene.onPointerObservable.remove(SceneViewer.PointerObservableFunction);
         }
         if (!SceneViewer.registerPlayerBeforeRenderFunction !== null) {
-            console.log("Hit Render");
             SceneViewer.scene.onBeforeRenderObservable.remove(SceneViewer.RegisterBeforeRenderFunction)
         }
 
@@ -651,7 +748,7 @@ export class SceneViewer {
 
                         console.log(SceneViewer.player.currentTarget.activeComponent.type)
 
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable") {
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable" || SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation") {
                             SceneViewer.player.currentTarget.activeComponent.interact();
                             activeComponent = SceneViewer.player.currentTarget.activeComponent;
                         }
@@ -692,10 +789,23 @@ export class SceneViewer {
     }
 
     static registerBuildPointers() {
+
+        let posX = document.getElementById("posx") as HTMLInputElement;
+        let posY = document.getElementById("posy") as HTMLInputElement;
+        let posZ = document.getElementById("posz") as HTMLInputElement;
+        let rotX = document.getElementById("rotx") as HTMLInputElement;
+        let rotY = document.getElementById("roty") as HTMLInputElement;
+        let rotZ = document.getElementById("rotz") as HTMLInputElement;
+        let scaX = document.getElementById("scax") as HTMLInputElement;
+        let scaY = document.getElementById("scay") as HTMLInputElement;
+        let scaZ = document.getElementById("scaz") as HTMLInputElement;
+        
         let buildActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
 
             // DEBUGS.
             let activeTargetTracker = document.getElementById('active-target-tracker');
+            let activeComponentTracker = document.getElementById('active-component-tracker');
+            let componentDetailArea = document.getElementById('component-details-area');
 
             let bubbleParent = (mesh) => {
                 while (mesh.parent !== null) {
@@ -706,13 +816,13 @@ export class SceneViewer {
 
             switch(pointerInfo.type) {
 
-                case BABYLON.PointerEventTypes.POINTERDOWN:
+                case BABYLON.PointerEventTypes.POINTERTAP:
                     console.log(pointerInfo.pickInfo);
                     console.log(pointerInfo.pickInfo.pickedMesh)
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
 
                         var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                        let foundParent = bubbleParent(pickedMesh);
+                        let foundParent = bubbleParent(pickedMesh) as GameObject;
                         SceneViewer.positionGizmo.attachedNode = null;
                         SceneViewer.scaleGizmo.attachedNode = null
                         SceneViewer.rotationGizmo.attachedNode = null
@@ -720,7 +830,38 @@ export class SceneViewer {
                         SceneViewer.scaleGizmo.attachedNode = foundParent;
                         SceneViewer.rotationGizmo.attachedNode = foundParent;
                         activeTargetTracker.innerText = foundParent.name;
+                        activeComponentTracker.innerText = foundParent.activeComponent.type;
+                        
 
+                        // MOVE ALL THIS SHIT.
+                        componentDetailArea.innerHTML = "";
+                        switch(foundParent.activeComponent.type) {
+
+                            case "Talkable":
+                                let component = foundParent.activeComponent as ConversationComponent;
+                                component.conversationLines.forEach(line => {
+                                    let lineElem = document.createElement('h5');
+                                    lineElem.textContent = line;
+                                    componentDetailArea.appendChild(lineElem);
+                                })
+                                break;
+                        }
+
+                        posX.value = foundParent.position.x.toString()
+                        posY.value = foundParent.position.y.toString()
+                        posZ.value = foundParent.position.z.toString()
+                        rotX.value = foundParent.rotation.x.toString()
+                        rotY.value = foundParent.rotation.y.toString()
+                        rotZ.value = foundParent.rotation.z.toString()
+                        scaX.value = foundParent.scaling.x.toString()
+                        scaY.value = foundParent.scaling.y.toString()
+                        scaZ.value = foundParent.scaling.z.toString()
+
+                    }
+                    else {
+                        SceneViewer.positionGizmo.attachedNode = null;
+                        SceneViewer.scaleGizmo.attachedNode = null
+                        SceneViewer.rotationGizmo.attachedNode = null
                     }
             }
         })

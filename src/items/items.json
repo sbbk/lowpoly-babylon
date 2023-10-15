@@ -1,0 +1,77 @@
+[
+    {
+        "id":"0",
+        "name":"Record",
+        "mesh":"VinylSingle",
+        "icon":null,
+        "position":[0,2,0],
+        "scale":[0.6,0.6,0.6],
+        "rotation":[0,0,-1.6],
+        "components": [
+            {
+                "name":"Collectable",
+                "active":true,
+                "rotate":true
+            }
+        ]
+    },
+    {
+        "id":"1",
+        "name":"Frogman",
+        "mesh":"frog",
+        "icon":null,
+        "position":[2,2,0],
+        "scale":[10,10,10],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"Talkable",
+                "active":true,
+                "conversation":[
+                    {
+                        "id": "0",
+                        "speaker": "npc",
+                        "text": ["Hello, how are you today?","Champ?"],
+                        "target":"1"
+                    },
+                    {
+                        "id": "1",
+                        "speaker": "player",
+                        "choices": [
+                            {
+                                "text": "And you?",
+                                "target": "5"
+                            },
+                            {
+                                "text": "Got any quests?",
+                                "target": "6"
+                            },
+                            {
+                                "text": "Can I ask you something?",
+                                "target": "7"
+                            }
+                        ]
+                    },
+                    {
+                        "id": "5",
+                        "speaker": "npc",
+                        "text": ["I'm good too, thanks for asking."]
+                    },
+                    {
+                        "id": "6",
+                        "speaker": "npc",
+                        "text": ["I sure do. Can you find my records for me?"],
+                        "actionName":"QuestSystem:AssignCollectQuest",
+                        "actionData":0
+                    },
+                    {
+                        "id": "7",
+                        "speaker": "npc",
+                        "text": ["Sure, what do you want to know?"]
+                    }
+                ]
+            }
+        ]
+    }
+
+]

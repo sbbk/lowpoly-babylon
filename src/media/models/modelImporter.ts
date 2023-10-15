@@ -57,10 +57,12 @@ export namespace ModelLoader {
     const boxMan = new URL ('box-man.glb',import.meta.url).pathname;
     const hallWay = new URL ('hallway.glb',import.meta.url).pathname;
     const skull = new URL ('skull.glb',import.meta.url).pathname;
+    const vinylSingle = new URL('./items/vinyl-single.glb',import.meta.url).pathname;
     export var LoadedModels:BABYLON.AbstractMesh[] = [];
     export var LoadedModel:BABYLON.AbstractMesh;
 
-    export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" | "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull";
+    export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
+    "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle";
 
     export function generateList():models[] {
         
@@ -76,6 +78,8 @@ export namespace ModelLoader {
                 return scene;
             case "skull":
                 return skull;
+            case "VinylSingle":
+                return vinylSingle;
             case "hallway":
                 return hallWay;
             case "boxMan":
@@ -309,11 +313,9 @@ export namespace ModelLoader {
         let path = importModel(model);
         let loadedScene;
         var root = new BABYLON.Mesh("root", scene);
-        BABYLON.SceneLoader.Append(path, "", scene, ((node) => {
 
-        loadedScene = node as BABYLON.Scene;
-        let meshes = loadedScene.meshes;
-        ModelLoader.LoadedModel = meshes[0];
+        BABYLON.SceneLoader.ImportMesh("",path, "", scene, ((meshes) => {
+
         //meshes[0].normalizeToUnitCube();
         meshes.forEach(mesh => {
             if (!mesh.material) return;
@@ -491,23 +493,10 @@ export namespace ModelLoader {
         box.setPivotPoint(center)
 
 
+        root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
 
-        //root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
-
-        // // Get the bounding info of the camera
-        // var cameraBoundingInfo = camera.getBoundingInfo();
-
-        // // Get the bounding info of the root mesh
-        // var rootBoundingInfo = root.getBoundingInfo();
-
-        // // Check if they intersect
-        // var intersect = cameraBoundingInfo.intersects(rootBoundingInfo);
-
-
-        //root.checkCollisions = true;
-        //root.showBoundingBox = true;
-
-        //root.showBoundingBox = true;
+        root.checkCollisions = true;
+        root.showBoundingBox = false;
         resolve(root);
 
     }))
@@ -531,7 +520,7 @@ export namespace ModelLoader {
 
             node.meshes.forEach(mesh => {
                 mesh.setParent(rootMesh);
-                mesh.isPickable = false;
+                //mesh.isPickable = false;
                 mesh.checkCollisions = true;
                 if (!mesh.material) return;
                 if (mesh.material.albedoTexture) {

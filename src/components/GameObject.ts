@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core"
-export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image"
+export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image" | "OneLineConversation"
 export type ComponentType = ImageComponent ;
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
@@ -78,49 +78,49 @@ export class pInventory {
             nextSlot.addItem(item);
             this.amount += 1;
             if (item.getComponent("Collectable").mesh) {
-                console.log(item.getComponent("Collectable").mesh);
-                let clone = item.getComponent("Collectable").mesh.clone();
-                SceneViewer.scene.addMesh(clone);
-                clone.isPickable = false;
-                clone.layerMask = 4;
+                // console.log(item.getComponent("Collectable").mesh);
+                // let clone = item.getComponent("Collectable").mesh.clone();
+                // SceneViewer.scene.addMesh(clone);
+                // clone.isPickable = false;
+                // clone.layerMask = 4;
 
-                // Animate
-                let animation = new BABYLON.Animation("rotationAnimation", "rotation.y", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
-                let keys = []; keys.push({ frame: 0, value: 0 }); keys.push({ frame: 30, value: Math.PI }); keys.push({ frame: 60, value: 2 * Math.PI });
-                animation.setKeys(keys);
-                clone.animations.push(animation);
-                SceneViewer.scene.beginAnimation(clone,0,60,true);
+                // // Animate
+                // let animation = new BABYLON.Animation("rotationAnimation", "rotation.y", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+                // let keys = []; keys.push({ frame: 0, value: 0 }); keys.push({ frame: 30, value: Math.PI }); keys.push({ frame: 60, value: 2 * Math.PI });
+                // animation.setKeys(keys);
+                // clone.animations.push(animation);
+                // SceneViewer.scene.beginAnimation(clone,0,60,true);
 
-                let UICamera = new BABYLON.FreeCamera('ui-cam',SceneViewer.camera.position);
-                // var itemCamera = new BABYLON.FreeCamera("item-camera", new BABYLON.Vector3(0, 0, 0), SceneViewer.scene)
+                // let UICamera = new BABYLON.FreeCamera('ui-cam',SceneViewer.camera.position);
+                // // var itemCamera = new BABYLON.FreeCamera("item-camera", new BABYLON.Vector3(0, 0, 0), SceneViewer.scene)
 
-                var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui", true, SceneViewer.scene);
-                var text = new GUI.TextBlock(); 
-                text.text = `Found ${item.getComponent("Collectable").mesh.name}`; advancedTexture.addControl(text);
+                // var advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("ui", true, SceneViewer.scene);
+                // var text = new GUI.TextBlock(); 
+                // text.text = `Found ${item.getComponent("Collectable").mesh.name}`; advancedTexture.addControl(text);
 
-                let colorTable = new URL('../babylon/lut-posterized.png',import.meta.url).pathname;
-                let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,UICamera);
+                // let colorTable = new URL('../babylon/lut-posterized.png',import.meta.url).pathname;
+                // let colorCorrectionProcess = new BABYLON.ColorCorrectionPostProcess("color-correction",colorTable,1.0,UICamera);
 
-                UICamera.layerMask = 4;
-                UICamera.target = SceneViewer.camera.target;
-                SceneViewer.camera.setEnabled(false);
-                UICamera.setEnabled(true);
-                SceneViewer.scene.setActiveCameraById(UICamera.id);
-                let scaling = SceneViewer.engine.getHardwareScalingLevel();
-                SceneViewer.engine.setHardwareScalingLevel(4);
-                clone.position = UICamera.position.add(UICamera.getForwardRay().direction.scale(5));
+                // UICamera.layerMask = 4;
+                // UICamera.target = SceneViewer.camera.target;
+                // SceneViewer.camera.setEnabled(false);
+                // UICamera.setEnabled(true);
+                // SceneViewer.scene.setActiveCameraById(UICamera.id);
+                // let scaling = SceneViewer.engine.getHardwareScalingLevel();
+                // SceneViewer.engine.setHardwareScalingLevel(4);
+                // clone.position = UICamera.position.add(UICamera.getForwardRay().direction.scale(5));
 
-                setTimeout(() => {
-                    clone.dispose();
-                    SceneViewer.scene.setActiveCameraById(SceneViewer.camera.id);
-                    UICamera.dispose();
-                    advancedTexture.dispose();
-                    text.dispose();
-                    SceneViewer.engine.setHardwareScalingLevel(scaling);
-                    colorCorrectionProcess.dispose();
+                // setTimeout(() => {
+                //     clone.dispose();
+                //     SceneViewer.scene.setActiveCameraById(SceneViewer.camera.id);
+                //     UICamera.dispose();
+                //     advancedTexture.dispose();
+                //     text.dispose();
+                //     SceneViewer.engine.setHardwareScalingLevel(scaling);
+                //     colorCorrectionProcess.dispose();
 
-                }, 1000);
-                SceneViewer.scene.removeMesh(item.mesh)
+                // }, 1000);
+                SceneViewer.scene.removeMesh(item.mesh,true)
             }
             console.log(this.items);
         }
@@ -243,7 +243,7 @@ export class SynthComponent {
 }
 
 export class SequencerComponent implements iGameComponent {
-    
+
     name: string;
     id:string
     type:GameComponentType;
@@ -298,7 +298,9 @@ export class CollectableComponent implements iGameComponent {
     interact () {
 
         if (this.canCollect) {
-            SceneViewer.inventory.add(this.gameObject)
+            SceneViewer.inventory.add(this.gameObject);
+            const collectEvent = new CustomEvent("ItemCollected", { detail: { id:this.gameObject.id } })
+            document.dispatchEvent(collectEvent);
         }
 
     }
@@ -324,10 +326,226 @@ export class CollectableComponent implements iGameComponent {
 
     }
 
-
 }
 
 export class ConversationComponent implements iGameComponent {
+
+    name:string = "Conversation";
+    id:string;
+    type:GameComponentType;
+    conversationLines:any;
+    majorIndex:number = 0;
+    minorIndex:number = 0;
+    canInteract: boolean = true;
+    mesh:BABYLON.Mesh;
+    active:boolean = false;
+    timeout:number
+    talker:PitchShifter;
+    constructor(conversationLines:Object,type:GameComponentType,mesh) {
+        this.id = uuidv4()
+        this.conversationLines = conversationLines;
+        this.type = type;
+        this.mesh = mesh;
+        this.timeout = 1500;
+        this.talker = new PitchShifter();
+    }
+
+    init() {
+
+    }
+
+    calculatePixel(mesh:BABYLON.Mesh) {
+
+        const temp = new BABYLON.Vector3();
+        const vertices = mesh.getBoundingInfo().boundingBox.vectorsWorld;
+        const viewport = SceneViewer.camera.viewport.toGlobal(SceneViewer.engine.getRenderWidth(), SceneViewer.engine.getRenderHeight());
+        let minX = 1e10, minY = 1e10, maxX = -1e10, maxY = -1e10;
+        for (const vertex of vertices) {
+            BABYLON.Vector3.ProjectToRef(vertex, BABYLON.Matrix.IdentityReadOnly, SceneViewer.scene.getTransformMatrix(), viewport, temp);
+            if (minX > temp.x) minX = temp.x;
+            if (maxX < temp.x) maxX = temp.x;
+            if (minY > temp.y) minY = temp.y;
+            if (maxY < temp.y) maxY = temp.y;
+        }
+        //console.log("maxX-minX",(maxX-minX));
+        //console.log("maxY-minY",(maxY-minY));
+        return {"x":(maxX-minX), "y":(maxY-minY)}
+    }
+
+    interact() {
+
+
+        let speak = () => {
+
+            console.log("SPEAK");
+            let screenheight = this.calculatePixel(this.mesh);
+            if (screenheight.y > SceneViewer.engine.getRenderHeight()) {
+                screenheight.y = 0;
+            }
+            this.canInteract = false;
+            SceneViewer.tagBillBoard.setVisible(false);
+    
+            let UITexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+            let backgroundRectangle = new GUI.Rectangle();
+            backgroundRectangle.height = "100px";
+            backgroundRectangle.cornerRadius = 20;
+            backgroundRectangle.color = "white";
+            backgroundRectangle.thickness = 4;
+            backgroundRectangle.background = "black";
+            UITexture.addControl(backgroundRectangle);
+            backgroundRectangle.linkOffsetY = -screenheight.y / 2;
+            backgroundRectangle.isVisible = false;
+            backgroundRectangle.widthInPixels = 0
+        
+            let label = new GUI.TextBlock();
+    
+            label.fontSize = "50px"
+            label.isVisible = false;
+            backgroundRectangle.addControl(label);
+            backgroundRectangle.linkWithMesh(this.mesh);
+
+            async function delay(ms) {
+                // return await for better async stack trace support in case of errors.
+                return await new Promise(resolve => setTimeout(resolve, ms));
+              }
+
+            let writeText = async (text:string[]) => {
+
+                backgroundRectangle.isVisible = true;
+                label.isVisible = true;
+
+                for (let i=0;i < text.length;i++) {
+
+                    label.text = "";
+                    let index = 0;
+                    PitchShifter.playSound();
+                    while (index < text[i].length) {
+                        let char = text[i].charAt(index);
+                        backgroundRectangle.widthInPixels = 50 * index;
+                        // Append the character to the text block
+                        label.text += char;
+                        index++;
+                        await delay(50);
+                    }
+                    await delay(500);
+                }
+
+
+                await delay(500);
+            }
+            
+
+            let traverse = async (node) => {
+                // print the node's text
+                // if the node has choices, print them and wait for user input
+                if (node.text) {
+                    await writeText(node.text);
+                }
+                if (node.actionName) {
+
+                    let conversationAction = new CustomEvent(node.actionName, { detail: { data:node.actionData } })
+                    document.dispatchEvent(conversationAction);
+
+                }
+                if (node.choices && node.choices.length > 0) {
+
+                    SceneViewer.disablePointerLock(true);
+
+                    let advancedTexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+                    let panel = new GUI.StackPanel();    
+                    advancedTexture.addControl(panel);     
+
+                    for (let i = 0; i < node.choices.length; i++) {
+                        // print the choice's text with a number
+                        console.log((i + 1) + ". " + node.choices[i].text);
+                        let button = GUI.Button.CreateSimpleButton("but", node.choices[i].text);
+                        button.width = "500px";
+                        button.fontSize = "50px"
+                        button.height = "100px";
+                        button.color = "white";
+                        button.background = "green";
+                        panel.addControl(button);   
+
+                        let i1 = i + 1;
+
+                        button.onPointerClickObservable.add(() => {
+
+                            SceneViewer.disablePointerLock(false);
+                            panel.dispose();
+                            button.dispose();
+
+                            let asInt = i1;
+                            let target = node.choices[asInt - 1].target;
+                            // find the node with the matching id in the data tree
+                            let next = this.conversationLines.find(function (element) {
+                            return element.id === target;
+                            });
+                            // recursively traverse the next node
+                            if (next) {
+                                traverse(next);
+                            }
+                            else {
+                                // Conversation ended..
+                                this.canInteract = true;
+                                backgroundRectangle.isVisible = false;
+                                label.isVisible = false;
+                            }
+                        })
+                    }
+                }
+                else {
+                    
+                    // User isn't making a selection.. continue on.
+                    if (node.target) {
+                        // If the node has a target. Continue to that branch.
+                        var next = this.conversationLines.find(function (element) {
+                            return element.id === node.target;
+                          });
+                          // recursively traverse the next node
+                          if (next) {
+                              traverse(next);
+                          }
+                    }
+                    // Else Conversation has ended..
+                    else {
+                        this.canInteract = true;
+                        backgroundRectangle.isVisible = false;
+                        label.isVisible = false;
+                    }
+                }
+              }
+
+              traverse(this.conversationLines[0]);
+
+              // Define an interval that calls the function every 100 milliseconds
+
+
+
+
+
+            // Define an interval that calls the function every 100 milliseconds
+            // setTimeout(() => {            
+            //     backgroundRectangle.isVisible = true;
+            //     label.isVisib    
+            //     PitchShifter.playSound();
+            // }, 40);
+        }
+        speak();
+
+
+    }
+    endInteract() {}
+
+    destroy() {
+
+    }
+    renderToScene() {
+
+    }
+
+}
+
+export class OneLineConversation implements iGameComponent {
 
     name:string = "Conversation";
     id:string;
@@ -456,6 +674,7 @@ export class ConversationComponent implements iGameComponent {
 
 }
 
+
 export class ImageComponent implements iGameComponent {
 
     name:string = "Image";
@@ -505,6 +724,7 @@ export class ImageComponent implements iGameComponent {
 
 export class GameObject extends BABYLON.TransformNode {
 
+    uid:string;
     id:string;
     mesh: BABYLON.Mesh | BABYLON.AbstractMesh;
     icon?:string;
@@ -516,9 +736,10 @@ export class GameObject extends BABYLON.TransformNode {
 
     }
 
-    constructor(name,scene,mesh) {
+    constructor(id,name,scene,mesh) {
         super(name, scene);
-        this.id = uuidv4();
+        this.id = id;
+        this.uid = uuidv4();
         this.mesh = mesh;
         this.mesh.name = name;
         this.mesh.parent = this;
@@ -560,6 +781,10 @@ export class GameObject extends BABYLON.TransformNode {
             this.activeComponent = foundComponent
         }
 
+    }
+
+    setRotation(rotation:BABYLON.Vector3) {
+        this.mesh.rotation = rotation;
     }
 
     setPosition(position:BABYLON.Vector3) {

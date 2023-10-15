@@ -1,0 +1,9 @@
+[
+    {
+        "id":0,
+        "type":"Collect",
+        "name":"Collect the records",
+        "itemID":0,
+        "total":5
+    }
+]
