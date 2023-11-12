@@ -3,15 +3,16 @@
         "id":"0",
         "name":"Record",
         "mesh":"VinylSingle",
+        "interactable":true,
         "icon":null,
-        "position":[0,2,0],
+        "position":[5,10,0],
         "scale":[0.6,0.6,0.6],
         "rotation":[0,0,-1.6],
         "components": [
             {
-                "name":"Collectable",
-                "active":true,
-                "rotate":true
+                "name":"Physics",
+                "mass":5,
+                "active":true
             }
         ]
     },
@@ -19,6 +20,7 @@
         "id":"1",
         "name":"Frogman",
         "mesh":"frog",
+        "interactable":true,
         "icon":null,
         "position":[2,2,0],
         "scale":[10,10,10],
@@ -60,7 +62,7 @@
                     {
                         "id": "6",
                         "speaker": "npc",
-                        "text": ["I sure do. Can you find my records for me?"],
+                        "text": ["Can you find my records for me?"],
                         "actionName":"QuestSystem:AssignCollectQuest",
                         "actionData":0
                     },

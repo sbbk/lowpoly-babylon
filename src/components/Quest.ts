@@ -37,14 +37,14 @@ export namespace QuestSystem {
                                 if (node.id == quest.itemID) {
                                     
                                     let gameObjectNode = node as GameObject;
-                                    let UICamera = new BABYLON.FreeCamera('ui-cam',new BABYLON.Vector3(gameObjectNode.mesh.getAbsolutePosition().x,gameObjectNode.mesh.getAbsolutePosition().y,gameObjectNode.mesh.getAbsolutePosition().z -3));
-
+                                    let UICamera = new BABYLON.FreeCamera('ui-cam',new BABYLON.Vector3(gameObjectNode.mesh.getAbsolutePosition().x -1,gameObjectNode.mesh.getAbsolutePosition().y,gameObjectNode.mesh.getAbsolutePosition().z));
+                                    UICamera.target = gameObjectNode.position;
                                     UICamera.layerMask = 4;
                                     UICamera.target = gameObjectNode.mesh.position;
                                     SceneViewer.camera.setEnabled(false);
                                     UICamera.setEnabled(true);
                                     SceneViewer.scene.setActiveCameraById(UICamera.id);
-
+                                    debugger;
                                     setTimeout(() => {
                                         SceneViewer.scene.setActiveCameraById(SceneViewer.camera.id);
                                         UICamera.dispose();

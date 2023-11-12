@@ -459,6 +459,7 @@ export namespace ModelLoader {
         let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
                 
         for(let i=0; i<childMeshes.length; i++){
+            childMeshes[i].isPickable = false;
             let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
             let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
 
@@ -483,7 +484,7 @@ export namespace ModelLoader {
         box.scaling = scaling;
         box.material.backFaceCulling = true;
         box.checkCollisions = true;
-        box.isPickable = false;
+        box.isPickable = true;
         box.onBeforeRenderObservable.add(() => {
             SceneViewer.engine.setStencilBuffer(false);
         });
@@ -496,8 +497,9 @@ export namespace ModelLoader {
         root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
 
         root.checkCollisions = true;
-        root.showBoundingBox = false;
+        root.showBoundingBox = true;
         resolve(root);
+        return box;
 
     }))
 })

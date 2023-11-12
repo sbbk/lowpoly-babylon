@@ -138,6 +138,7 @@ export class Player {
     heroMesh:BABYLON.Mesh;
     heroPhysicsAgregate:BABYLON.PhysicsAggregate;
     pointer:BABYLON.Mesh;
+    pickupZone:BABYLON.Mesh;
     currentTarget:GameObject = null;
     handController:HandController;
     activeQuests:number[] = [];
@@ -182,6 +183,12 @@ export class Player {
         // this.heroMesh.position.y = 1.0;
         // this.heroMesh.position.z = 0.0;
         //this.heroPhysicsAgregate = new BABYLON.PhysicsAggregate(SceneViewer.heroMesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, SceneViewer.scene);
+
+        this.pickupZone = BABYLON.MeshBuilder.CreateSphere('pickup');
+        this.pickupZone.parent = this.camera;
+        this.pickupZone.position.z = 1;
+        this.pickupZone.visibility = 0;
+        this.pickupZone.isPickable = false;
 
         this.pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, this.scene, false, BABYLON.Mesh.DOUBLESIDE);
         // move the sphere upward 1/2 of its height
@@ -369,6 +376,7 @@ export class SceneViewer {
 
     // Game Objects & Components
     static gameObjects:GameObject[];
+    static activeComponent:iGameComponent;
     static activeSynths:string[];
 
     // Rendering & Utilities
@@ -727,30 +735,30 @@ export class SceneViewer {
             if (SceneViewer.player.currentTarget) {
                 activeTargetTracker.innerText = SceneViewer.player.currentTarget.activeComponent.type;
             }
-            let activeComponent:iGameComponent;
 
             switch(pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                     if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
                         // Not sure if this does much now, check back later.
-                        if (activeComponent) {
-                            activeComponent.destroy();
-                            activeComponent = null;
-                        }
+                        // if (activeComponent) {
+                        //     activeComponent.destroy();
+                        //     activeComponent = null;
+                        // }
                         return;
                     }
+                    // Cancel out if we already have something active.. prevent stacking.
+                    if (SceneViewer.activeComponent) return;
+
+                    // If there's something to interact with continue..
                     if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
 
                         // Return if we can't interact right now.
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
-                        console.log(SceneViewer.player.currentTarget)
 
-                        console.log(SceneViewer.player.currentTarget.activeComponent.type)
-
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable" || SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation") {
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable" || SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" || SceneViewer.player.currentTarget.activeComponent.type == "Physics") {
                             SceneViewer.player.currentTarget.activeComponent.interact();
-                            activeComponent = SceneViewer.player.currentTarget.activeComponent;
+                            SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
                         }
 
                         if (SceneViewer.player.currentTarget.activeComponent.type == "Collectable") {
@@ -775,11 +783,11 @@ export class SceneViewer {
                         }
 
                     }
-                    if (!SceneViewer.player.currentTarget) return;
-                    if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
-                        SceneViewer.player.currentTarget.activeComponent.endInteract();
+                    if (SceneViewer.activeComponent) {
+                        SceneViewer.activeComponent.endInteract();
+                        SceneViewer.activeComponent = null;
                     }
-
+    
                 break;
             }
 
@@ -928,7 +936,8 @@ export class SceneViewer {
             if (hit.pickedMesh) {
 
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
-                let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
+                console.log("Hit")
+                let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
                 SceneViewer.distanceTracker.innerText = distance.toString();
                 
                 // We're not even within highlight distance.
@@ -938,14 +947,16 @@ export class SceneViewer {
                 // Look for a parent game object.
                 let foundParent = bubbleParent(mesh);
                 if (foundParent) {
+                    console.log("Found parent",foundParent);
                     let gameObject = foundParent as GameObject;
+                    console.log("Active Component?",foundParent.activeComponent)
                     if (!gameObject || !gameObject.activeComponent) return;
-
+                    console.log("Can interact?",gameObject.activeComponent.canInteract);
                     // Are we allowed to interact?
                     if (gameObject.activeComponent.canInteract == false) return;
 
                     // Arbitrary for now but check against types of game objects to see if they're of an interactable type.
-                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth") {
+                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth" || gameObject.activeComponent.type == "Physics") {
 
                         if (!mesh.parent) return;
                         let meshes = mesh.parent.getChildMeshes();
@@ -971,6 +982,10 @@ export class SceneViewer {
                                     SceneViewer.player.currentTarget = gameObject;
                                     break;
                                 case "Synth":
+                                    SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                case "Physics":
                                     SceneViewer.player.handController.setHandMode(HandMode.cash,0);
                                     SceneViewer.player.currentTarget = gameObject
                                     break;

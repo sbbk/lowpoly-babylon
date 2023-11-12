@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core"
-export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image" | "OneLineConversation"
+export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image" | "OneLineConversation" | "Physics"
 export type ComponentType = ImageComponent ;
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
@@ -70,8 +70,7 @@ export class pInventory {
 
     add(item:GameObject) {
 
-        if (this.amount >= this.max)
-        return
+        if (this.amount >= this.max) return
         else {
             console.log("Adding item..",item);
             let nextSlot = this.items[this.amount];
@@ -258,7 +257,7 @@ export class SequencerComponent implements iGameComponent {
     }
 
     init()  {
-        let sequence = new Tone.Sequence()
+        //let sequence = new Tone.Sequence().
     }
     interact() {
         
@@ -674,6 +673,64 @@ export class OneLineConversation implements iGameComponent {
 
 }
 
+export class PhysicsComponent implements iGameComponent {
+
+    name:string = "Physics";
+    id:string;
+    type:GameComponentType;
+    canInteract: boolean = true;
+    physicsAggregate:BABYLON.PhysicsAggregate;
+    mass:number;
+    mesh:BABYLON.Mesh;
+    parent:GameObject;
+    setPhysicsState: () => void
+    constructor(type:GameComponentType,mesh:BABYLON.Mesh,mass:number) {
+        this.id = uuidv4()
+        this.type = type;
+        this.mesh = mesh;
+        this.mass = mass;
+        this.parent = this.mesh.parent as GameObject;
+        this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.2 }, SceneViewer.scene);
+        this.physicsAggregate.body.disablePreStep = false;
+        this.setPhysicsState = () => {
+            // var camVel = SceneViewer.camera.getDirection(new BABYLON.Vector3(0, 0, 1)).scale(SceneViewer.camera.speed);
+            // this.physicsAggregate.body.setLinearVelocity(camVel);
+            // this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
+            this.mesh.rotation = new BABYLON.Vector3(0,0,0)
+            this.physicsAggregate.body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
+            this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
+            SceneViewer.camera.getForwardRay(1)
+            this.mesh.position.y = SceneViewer.player.pickupZone.absolutePosition.y;
+            this.mesh.position.z = SceneViewer.player.pickupZone.absolutePosition.z;
+        }
+    }
+    init() {}
+    interact() {
+        this.physicsAggregate.body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
+        this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
+        this.mesh.parent = SceneViewer.player.pickupZone as BABYLON.Mesh
+        this.mesh.position.y = SceneViewer.player.pickupZone.absolutePosition.y;
+        this.mesh.position.z = SceneViewer.player.pickupZone.absolutePosition.z +1;
+        this.physicsAggregate.body.disablePreStep = false;
+        this.physicsAggregate.body.setMassProperties({mass:0})
+
+        SceneViewer.scene.registerBeforeRender(this.setPhysicsState)
+    }
+    endInteract() {
+        this.mesh.parent = this.parent;
+        this.physicsAggregate.body.disablePreStep = true;
+        this.physicsAggregate.body.setMassProperties({mass:this.mass})
+        SceneViewer.scene.unregisterBeforeRender(this.setPhysicsState)
+    }
+    destroy() {
+
+    }
+    renderToScene(position?: BABYLON.Vector3) {
+
+    };
+
+}
+
 
 export class ImageComponent implements iGameComponent {
 
@@ -732,11 +789,12 @@ export class GameObject extends BABYLON.TransformNode {
     components: iGameComponent[];
     activeComponent:iGameComponent;
     usable?:UsableItem
+    interactable:boolean;
     interact:() => void = () => {
 
     }
 
-    constructor(id,name,scene,mesh) {
+    constructor(id,name,scene,mesh,interactable) {
         super(name, scene);
         this.id = id;
         this.uid = uuidv4();
@@ -744,6 +802,7 @@ export class GameObject extends BABYLON.TransformNode {
         this.mesh.name = name;
         this.mesh.parent = this;
         this.components = [];
+        this.interactable = interactable;
         SceneViewer.gameObjects.push(this);
     }
 

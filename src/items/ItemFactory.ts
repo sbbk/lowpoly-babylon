@@ -1,6 +1,6 @@
 import { ModelLoader } from "../media/models/modelImporter";
 import { SceneViewer } from "../babylon/sceneViewer";
-import { CollectableComponent, GameObject, GameComponentType, OneLineConversation, ConversationComponent } from "../components/GameObject";
+import { CollectableComponent, GameObject, GameComponentType, OneLineConversation, ConversationComponent, PhysicsComponent } from "../components/GameObject";
 import * as BABYLON from "@babylonjs/core"
 
 const items = require("../items/items.json");
@@ -9,6 +9,7 @@ export namespace ItemFactory {
 
     export class ItemBuilder {
 
+        
         static async createItem(index:number):Promise<GameObject> {
 
             let itemToBuild = items[index];
@@ -23,7 +24,7 @@ export namespace ItemFactory {
             
             let mesh = await ModelLoader.AppendModel(itemToBuild.mesh,SceneViewer.scene) as BABYLON.Mesh;
             // Create Game Object
-            let gameObject = new GameObject(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh);
+            let gameObject = new GameObject(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh,itemToBuild.interactable);
 
             // Setup Icons
             if (itemToBuild.icon) {
@@ -48,6 +49,10 @@ export namespace ItemFactory {
                         break;
                     case "Talkable":
                         gameComponent = new ConversationComponent(component.conversation,"Talkable",gameObject.mesh);
+                        break;
+                    case "Physics":
+                        gameComponent = new PhysicsComponent("Physics",mesh,1);
+                        break;
 
                 }
 
