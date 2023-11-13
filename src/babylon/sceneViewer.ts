@@ -421,7 +421,7 @@ export class SceneViewer {
         //SceneViewer.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
         SceneViewer.inventory = new pInventory();
         SceneViewer.framesPerSecond = 60;
-        SceneViewer.gravity = -20;
+        SceneViewer.gravity = -100;
         SceneViewer.gameObjects = [];
         SceneViewer.activeSynths = [];
         SceneViewer.GameMode = "Play";
@@ -445,7 +445,7 @@ export class SceneViewer {
             SceneViewer.havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
             SceneViewer.scene.gravity = new BABYLON.Vector3(0,SceneViewer.gravity / SceneViewer.framesPerSecond,0)
             SceneViewer.scene.collisionsEnabled = true;
-            SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -.75, 0),SceneViewer.havokPlugin);
+            SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0),SceneViewer.havokPlugin);
     
             // PLAYER
             SceneViewer.player = new Player(SceneViewer.scene);
@@ -469,13 +469,16 @@ export class SceneViewer {
             SceneViewer.tagBillBoard = new TagBillboard(true);
 
 
-            var myGround = BABYLON.MeshBuilder.CreateGround("myGround", {width: 200, height: 200}, SceneViewer.scene);
+            var myGround = BABYLON.MeshBuilder.CreateBox('ground',{width:100,depth:100,height:2});
+            myGround.position.y = -2;
             myGround.isPickable = false;
             myGround.checkCollisions= true;
             let groundMat = new BABYLON.StandardMaterial('groundmat');
             myGround.material = groundMat;
             //groundMat.alpha = 0.01;
-            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0 }, SceneViewer.scene);
+            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10 }, SceneViewer.scene);
+            groundAggregate.body.setCollisionCallbackEnabled(true);
+
     
             window["camera"] = SceneViewer.camera;
             this.mainLight = new BABYLON.HemisphericLight('main-light',BABYLON.Vector3.Zero());
@@ -830,8 +833,6 @@ export class SceneViewer {
             switch(pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERTAP:
-                    console.log(pointerInfo.pickInfo);
-                    console.log(pointerInfo.pickInfo.pickedMesh)
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
 
                         var pickedMesh = pointerInfo.pickInfo.pickedMesh;
@@ -945,7 +946,6 @@ export class SceneViewer {
             if (hit.pickedMesh) {
 
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
-                console.log("Hit")
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
                 SceneViewer.distanceTracker.innerText = distance.toString();
                 
@@ -956,11 +956,8 @@ export class SceneViewer {
                 // Look for a parent game object.
                 let foundParent = bubbleParent(mesh);
                 if (foundParent) {
-                    console.log("Found parent",foundParent);
                     let gameObject = foundParent as GameObject;
-                    console.log("Active Component?",foundParent.activeComponent)
                     if (!gameObject || !gameObject.activeComponent) return;
-                    console.log("Can interact?",gameObject.activeComponent.canInteract);
                     // Are we allowed to interact?
                     if (gameObject.activeComponent.canInteract == false) return;
 

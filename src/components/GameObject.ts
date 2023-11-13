@@ -683,35 +683,26 @@ export class PhysicsComponent implements iGameComponent {
     mass:number;
     mesh:BABYLON.Mesh;
     parent:GameObject;
+
     setPhysicsState: () => void
     constructor(type:GameComponentType,mesh:BABYLON.Mesh,mass:number) {
-        let pickupDebug = document.getElementById("pickupPos") as HTMLElement;
-        let meshPosDebug = document.getElementById("pickupMeshPos") as HTMLElement;
         this.id = uuidv4()
         this.type = type;
         this.mesh = mesh;
         this.mass = mass;
         this.parent = this.mesh.parent as GameObject;
-        this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.2 }, SceneViewer.scene);
+        this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.01,friction:30 }, SceneViewer.scene);
         this.physicsAggregate.body.disablePreStep = false;
         this.setPhysicsState = () => {
-            this.mesh.rotation = new BABYLON.Vector3(0,0,0)
-            this.physicsAggregate.body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
-            this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
-            this.mesh.setAbsolutePosition(SceneViewer.player.pickupZone.absolutePosition);            
-
-            pickupDebug.innerText = SceneViewer.player.pickupZone.absolutePosition.toString();
-            meshPosDebug.innerText = this.mesh.absolutePosition.toString();
+            this.physicsAggregate.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition,BABYLON.Quaternion.Identity())       
         }
     }
     init() {}
     interact() {
         this.physicsAggregate.body.disablePreStep = false;
-        this.physicsAggregate.body.setMassProperties({mass:0})
-        SceneViewer.scene.registerBeforeRender(this.setPhysicsState)
+        SceneViewer.scene.registerBeforeRender(this.setPhysicsState);
     }
     endInteract() {
-        //this.mesh.parent = this.parent;
         this.physicsAggregate.body.disablePreStep = true;
         this.physicsAggregate.body.setMassProperties({mass:this.mass})
         SceneViewer.scene.unregisterBeforeRender(this.setPhysicsState)
