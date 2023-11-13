@@ -685,6 +685,8 @@ export class PhysicsComponent implements iGameComponent {
     parent:GameObject;
     setPhysicsState: () => void
     constructor(type:GameComponentType,mesh:BABYLON.Mesh,mass:number) {
+        let pickupDebug = document.getElementById("pickupPos") as HTMLElement;
+        let meshPosDebug = document.getElementById("pickupMeshPos") as HTMLElement;
         this.id = uuidv4()
         this.type = type;
         this.mesh = mesh;
@@ -693,31 +695,23 @@ export class PhysicsComponent implements iGameComponent {
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.2 }, SceneViewer.scene);
         this.physicsAggregate.body.disablePreStep = false;
         this.setPhysicsState = () => {
-            // var camVel = SceneViewer.camera.getDirection(new BABYLON.Vector3(0, 0, 1)).scale(SceneViewer.camera.speed);
-            // this.physicsAggregate.body.setLinearVelocity(camVel);
-            // this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
             this.mesh.rotation = new BABYLON.Vector3(0,0,0)
             this.physicsAggregate.body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
             this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
-            SceneViewer.camera.getForwardRay(1)
-            this.mesh.position.y = SceneViewer.player.pickupZone.absolutePosition.y;
-            this.mesh.position.z = SceneViewer.player.pickupZone.absolutePosition.z;
+            this.mesh.setAbsolutePosition(SceneViewer.player.pickupZone.absolutePosition);            
+
+            pickupDebug.innerText = SceneViewer.player.pickupZone.absolutePosition.toString();
+            meshPosDebug.innerText = this.mesh.absolutePosition.toString();
         }
     }
     init() {}
     interact() {
-        this.physicsAggregate.body.setLinearVelocity(new BABYLON.Vector3(0,0,0));
-        this.physicsAggregate.body.setAngularVelocity(new BABYLON.Vector3(0,0,0));
-        this.mesh.parent = SceneViewer.player.pickupZone as BABYLON.Mesh
-        this.mesh.position.y = SceneViewer.player.pickupZone.absolutePosition.y;
-        this.mesh.position.z = SceneViewer.player.pickupZone.absolutePosition.z +1;
         this.physicsAggregate.body.disablePreStep = false;
         this.physicsAggregate.body.setMassProperties({mass:0})
-
         SceneViewer.scene.registerBeforeRender(this.setPhysicsState)
     }
     endInteract() {
-        this.mesh.parent = this.parent;
+        //this.mesh.parent = this.parent;
         this.physicsAggregate.body.disablePreStep = true;
         this.physicsAggregate.body.setMassProperties({mass:this.mass})
         SceneViewer.scene.unregisterBeforeRender(this.setPhysicsState)

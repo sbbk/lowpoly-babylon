@@ -185,8 +185,13 @@ export class Player {
         //this.heroPhysicsAgregate = new BABYLON.PhysicsAggregate(SceneViewer.heroMesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, SceneViewer.scene);
 
         this.pickupZone = BABYLON.MeshBuilder.CreateSphere('pickup');
+        let pickupmat = new BABYLON.StandardMaterial('pmat');
+        pickupmat.diffuseColor = new BABYLON.Color3(1,0,0);
+        this.pickupZone.material = pickupmat;
         this.pickupZone.parent = this.camera;
-        this.pickupZone.position.z = 1;
+        this.pickupZone.position.z = 3;
+        this.pickupZone.position.y = 0;
+        this.pickupZone.position.x = 0;
         this.pickupZone.visibility = 0;
         this.pickupZone.isPickable = false;
 
@@ -830,40 +835,44 @@ export class SceneViewer {
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
 
                         var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                        let foundParent = bubbleParent(pickedMesh) as GameObject;
                         SceneViewer.positionGizmo.attachedNode = null;
                         SceneViewer.scaleGizmo.attachedNode = null
                         SceneViewer.rotationGizmo.attachedNode = null
-                        SceneViewer.positionGizmo.attachedNode = foundParent;
-                        SceneViewer.scaleGizmo.attachedNode = foundParent;
-                        SceneViewer.rotationGizmo.attachedNode = foundParent;
-                        activeTargetTracker.innerText = foundParent.name;
-                        activeComponentTracker.innerText = foundParent.activeComponent.type;
+                        SceneViewer.positionGizmo.attachedNode = pickedMesh;
+                        SceneViewer.scaleGizmo.attachedNode = pickedMesh;
+                        SceneViewer.rotationGizmo.attachedNode = pickedMesh;
                         
+                        let foundParent = bubbleParent(pickedMesh) as GameObject;
+                        if (foundParent) {
 
-                        // MOVE ALL THIS SHIT.
-                        componentDetailArea.innerHTML = "";
-                        switch(foundParent.activeComponent.type) {
-
-                            case "Talkable":
-                                let component = foundParent.activeComponent as ConversationComponent;
-                                component.conversationLines.forEach(line => {
-                                    let lineElem = document.createElement('h5');
-                                    lineElem.textContent = line;
-                                    componentDetailArea.appendChild(lineElem);
-                                })
-                                break;
+                            activeTargetTracker.innerText = foundParent.name;
+                            activeComponentTracker.innerText = foundParent.activeComponent.type;
+                            
+    
+                            // MOVE ALL THIS SHIT.
+                            componentDetailArea.innerHTML = "";
+                            switch(foundParent.activeComponent.type) {
+    
+                                case "Talkable":
+                                    let component = foundParent.activeComponent as ConversationComponent;
+                                    component.conversationLines.forEach(line => {
+                                        let lineElem = document.createElement('h5');
+                                        lineElem.textContent = line;
+                                        componentDetailArea.appendChild(lineElem);
+                                    })
+                                    break;
+                            }
                         }
 
-                        posX.value = foundParent.position.x.toString()
-                        posY.value = foundParent.position.y.toString()
-                        posZ.value = foundParent.position.z.toString()
-                        rotX.value = foundParent.rotation.x.toString()
-                        rotY.value = foundParent.rotation.y.toString()
-                        rotZ.value = foundParent.rotation.z.toString()
-                        scaX.value = foundParent.scaling.x.toString()
-                        scaY.value = foundParent.scaling.y.toString()
-                        scaZ.value = foundParent.scaling.z.toString()
+                        posX.value = pickedMesh.position.x.toString()
+                        posY.value = pickedMesh.position.y.toString()
+                        posZ.value = pickedMesh.position.z.toString()
+                        rotX.value = pickedMesh.rotation.x.toString()
+                        rotY.value = pickedMesh.rotation.y.toString()
+                        rotZ.value = pickedMesh.rotation.z.toString()
+                        scaX.value = pickedMesh.scaling.x.toString()
+                        scaY.value = pickedMesh.scaling.y.toString()
+                        scaZ.value = pickedMesh.scaling.z.toString()
 
                     }
                     else {
