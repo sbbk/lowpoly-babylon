@@ -1,6 +1,6 @@
 import { ModelLoader } from "../media/models/modelImporter";
 import { SceneViewer } from "../babylon/sceneViewer";
-import { CollectableComponent, GameObject, GameComponentType, OneLineConversation, ConversationComponent, PhysicsComponent } from "../components/GameObject";
+import { CollectableComponent, GameObject, GameComponentType, OneLineConversation, ConversationComponent, PhysicsComponent, SocketStringComponent } from "../components/GameObject";
 import * as BABYLON from "@babylonjs/core"
 
 const items = require("../items/items.json");
@@ -22,7 +22,14 @@ export namespace ItemFactory {
             //     mesh = BABYLON.MeshBuilder.CreateBox(itemToBuild.name);
             // }
             
-            let mesh = await ModelLoader.AppendModel(itemToBuild.mesh,SceneViewer.scene) as BABYLON.Mesh;
+            let mesh : BABYLON.Mesh;
+            if (itemToBuild.mesh) {
+               mesh = await ModelLoader.AppendModel(itemToBuild.mesh,SceneViewer.scene) as BABYLON.Mesh
+            }
+            else {
+                mesh = new BABYLON.Mesh('container-mesh');
+            }
+
             // Create Game Object
             let gameObject = new GameObject(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh,itemToBuild.interactable);
 
@@ -52,6 +59,9 @@ export namespace ItemFactory {
                         break;
                     case "Physics":
                         gameComponent = new PhysicsComponent("Physics",mesh,1);
+                        break;
+                    case "SocketString":
+                        gameComponent = new SocketStringComponent('SocketString',mesh);
                         break;
 
                 }

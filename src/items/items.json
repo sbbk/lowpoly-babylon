@@ -74,6 +74,21 @@
                 ]
             }
         ]
+    },
+    {
+        "id":"2",
+        "name" :"BallSocket",
+        "interactable":true,
+        "icon":null,
+        "position":[5,10,0],
+        "scale":[0.6,0.6,0.6],
+        "rotation":[0,0,-1.6],
+        "components": [
+            {
+                "name": "SocketString",
+                "active":true
+            }
+        ]
     }
 
 ]

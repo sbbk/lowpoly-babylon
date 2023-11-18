@@ -5,9 +5,10 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import { ShaderManager } from "./shaders/shaderManager";
 import HavokPhysics from "@babylonjs/havok";
 import * as GUI from "@babylonjs/gui"
-import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad, OneLineConversation } from "../components/GameObject";
+import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad, OneLineConversation, PhysicsComponent } from "../components/GameObject";
 import { QuestSystem } from "../components/Quest"
 import { ItemFactory } from "../items/ItemFactory";
+import { SocketRope } from "../components/gameObjects/socketRope";
 const items = require("../items/items.json");
 
 
@@ -148,7 +149,7 @@ export class Player {
         //this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
         this.camera.minZ = 0.45;
         this.camera.speed = 0.6;
-        this.camera.angularSensibility = 7000;
+        this.camera.angularSensibility = 9000;
         this.camera.checkCollisions = true;
         this.camera.applyGravity = true;
         this.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
@@ -421,7 +422,7 @@ export class SceneViewer {
         //SceneViewer.camera.setTarget(new BABYLON.Vector3(7.892032691165552,5.355046364537239,1.205354059244245))
         SceneViewer.inventory = new pInventory();
         SceneViewer.framesPerSecond = 60;
-        SceneViewer.gravity = -100;
+        SceneViewer.gravity = -30;
         SceneViewer.gameObjects = [];
         SceneViewer.activeSynths = [];
         SceneViewer.GameMode = "Play";
@@ -436,6 +437,7 @@ export class SceneViewer {
 
 
         window['gameObjects'] = SceneViewer.gameObjects;
+        window['scene'] = SceneViewer.scene;
 
         // DEBUG
 
@@ -470,7 +472,7 @@ export class SceneViewer {
 
 
             var myGround = BABYLON.MeshBuilder.CreateBox('ground',{width:100,depth:100,height:2});
-            myGround.position.y = -2;
+            myGround.position.y = -20;
             myGround.isPickable = false;
             myGround.checkCollisions= true;
             let groundMat = new BABYLON.StandardMaterial('groundmat');
@@ -558,7 +560,12 @@ export class SceneViewer {
             // collectableBox.mesh.material = collectMat
 
             ItemFactory.ItemBuilder.createItem(0).then((vinylObject) => {});
-            ItemFactory.ItemBuilder.createItem(1).then((frogMan) => {})
+            // ItemFactory.ItemBuilder.createItem(1).then((frogMan) => {});
+            ItemFactory.ItemBuilder.createItem(2);
+
+        
+
+            //let socketRope = new SocketRope();
             
             // ModelLoader.AppendModel('skull',SceneViewer.scene).then((mesh:BABYLON.Mesh) => {
             //     let skullObject = new GameObject(10,"Talk",SceneViewer.scene, mesh);
@@ -929,11 +936,18 @@ export class SceneViewer {
     static registerPlayerBeforeRenderFunction() {
         let renderLoop = SceneViewer.scene.onBeforeRenderObservable.add(() => {
     
-            let bubbleParent = (mesh) => {
-                while (mesh.parent !== null) {
-                    mesh = mesh.parent;
+            function findGameObjectParent(mesh: BABYLON.AbstractMesh): GameObject | null {
+                // If the mesh has no parent, return null
+                if (!mesh.parent) {
+                  return null;
                 }
-                return mesh;
+                // If the parent is an instance of GameObject, return it
+                console.warn(mesh.parent.name)
+                if (mesh.parent instanceof GameObject) {
+                return mesh.parent as GameObject;
+                }
+                // Otherwise, recursively call the function with the parent as the argument
+                return findGameObjectParent(mesh.parent as BABYLON.AbstractMesh);
             }
         
             // Clear highlights
@@ -954,7 +968,8 @@ export class SceneViewer {
                 return;
 
                 // Look for a parent game object.
-                let foundParent = bubbleParent(mesh);
+                let foundParent = findGameObjectParent(mesh);
+                console.log("Found",foundParent);
                 if (foundParent) {
                     let gameObject = foundParent as GameObject;
                     if (!gameObject || !gameObject.activeComponent) return;
@@ -962,7 +977,7 @@ export class SceneViewer {
                     if (gameObject.activeComponent.canInteract == false) return;
 
                     // Arbitrary for now but check against types of game objects to see if they're of an interactable type.
-                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth" || gameObject.activeComponent.type == "Physics") {
+                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth" || gameObject.activeComponent.type == "Physics" || gameObject.activeComponent.type == "SocketString") {
 
                         if (!mesh.parent) return;
                         let meshes = mesh.parent.getChildMeshes();
