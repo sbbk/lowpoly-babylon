@@ -683,6 +683,7 @@ export class PhysicsComponent implements iGameComponent {
     mass: number;
     mesh: BABYLON.Mesh;
     parent: GameObject;
+    gravityFactor:number;
 
     setPhysicsState: () => void
     constructor(type: GameComponentType, mesh: BABYLON.Mesh, mass: number) {
@@ -693,12 +694,14 @@ export class PhysicsComponent implements iGameComponent {
         this.parent = this.mesh.parent as GameObject;
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.01, friction: 30 }, SceneViewer.scene);
         this.physicsAggregate.body.disablePreStep = false;
+        this.gravityFactor = this.physicsAggregate.body.getGravityFactor();
         this.setPhysicsState = () => {
             this.physicsAggregate.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition, BABYLON.Quaternion.Identity())
         }
     }
     init() { }
     interact() {
+        this.lock(false);
         this.physicsAggregate.body.disablePreStep = false;
         SceneViewer.scene.registerBeforeRender(this.setPhysicsState);
     }
@@ -706,6 +709,23 @@ export class PhysicsComponent implements iGameComponent {
         this.physicsAggregate.body.disablePreStep = true;
         this.physicsAggregate.body.setMassProperties({ mass: this.mass })
         SceneViewer.scene.unregisterBeforeRender(this.setPhysicsState)
+    }
+    lock(on:boolean) {
+
+        if (on) {
+            this.physicsAggregate.body.disablePreStep = true;
+            this.physicsAggregate.body.setMassProperties({mass:0});
+            this.physicsAggregate.body.setGravityFactor(0);
+            this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+
+        }
+        else {
+            this.physicsAggregate.body.disablePreStep = false;
+            this.physicsAggregate.body.setMassProperties({mass:this.mass});
+            this.physicsAggregate.body.setGravityFactor(this.gravityFactor);
+            this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
+        }
+
     }
     destroy() {
 
@@ -730,9 +750,9 @@ export class SocketStringComponent implements iGameComponent {
     setPhysicsState: () => void
     constructor(type: GameComponentType, mesh: BABYLON.Mesh) {
 
-        const NUM_SEGMENTS = 10;
+        const NUM_SEGMENTS = 30;
         const ANCHOR_SIZE = 1;
-        const SEG_HEIGHT = 1;
+        const SEG_HEIGHT = 0.2;
         const SEG_DIAMETER = .05;
         const SEG_MASS = 1;
         const BALL_DIAMETER = 2;
@@ -743,6 +763,7 @@ export class SocketStringComponent implements iGameComponent {
         ropeMat.emissiveColor = new BABYLON.Color3(0, 0, 1);
 
         let ball1 = BABYLON.CreateSphere("weight", { diameter: BALL_DIAMETER }, SceneViewer.scene);
+        ball1.scaling = new BABYLON.Vector3(0.2,0.2,0.2)
         ball1.position.y = -ANCHOR_SIZE / 2 - NUM_SEGMENTS * SEG_HEIGHT - BALL_DIAMETER / 2;
         let ball1Mat = new BABYLON.StandardMaterial('ball1mat');
         ball1Mat.diffuseColor = new BABYLON.Color3(1, 0, 0)
@@ -831,6 +852,7 @@ export class SocketStringComponent implements iGameComponent {
         }
         // heavy thing at bottom
         let ball = BABYLON.CreateSphere("weight", { diameter: BALL_DIAMETER }, SceneViewer.scene);
+        ball.scaling = new BABYLON.Vector3(0.2,0.2,0.2)
         ball.position.y = -ANCHOR_SIZE / 2 - NUM_SEGMENTS * SEG_HEIGHT - BALL_DIAMETER / 2;
         let ball2Mat = new BABYLON.StandardMaterial('ball1mat');
         ball2Mat.diffuseColor = new BABYLON.Color3(0, 1, 0)
@@ -856,6 +878,34 @@ export class SocketStringComponent implements iGameComponent {
         );
 
         segments[NUM_SEGMENTS - 1].physicsBody.addConstraint(phsyicsComponent.physicsAggregate.body, joint);
+
+        let socket = BABYLON.MeshBuilder.CreateBox('socketbox');
+        socket.position = new BABYLON.Vector3(3,0-18,0)
+        let socketMat = new BABYLON.StandardMaterial('socketmat');
+        socketMat.diffuseColor = new BABYLON.Color3(0,0,1);
+        socket.material = socketMat;
+        socket.visibility = 0.5;
+        socket.isPickable = false;
+
+        const intersect = () => {
+            if (socket.intersectsMesh(ball,true)) {
+                ball2Mat.diffuseColor = new BABYLON.Color3(1, 1, 0);
+                phsyicsComponent.physicsAggregate.body.setTargetTransform(socket.absolutePosition, BABYLON.Quaternion.Identity())
+                phsyicsComponent.lock(true);
+                SceneViewer.scene.unregisterAfterRender(intersect);
+
+            }
+            if (socket.intersectsMesh(ball1,true)) {
+                ball1Mat.diffuseColor = new BABYLON.Color3(1, 1, 0)
+                phsyicsComponent1.physicsAggregate.body.setTargetTransform(socket.absolutePosition, BABYLON.Quaternion.Identity());
+                phsyicsComponent.lock(true);
+                SceneViewer.scene.unregisterAfterRender(intersect);
+
+            }
+        }
+
+        SceneViewer.scene.registerBeforeRender(intersect)
+
 
     }
     init() {

@@ -563,8 +563,6 @@ export class SceneViewer {
             // ItemFactory.ItemBuilder.createItem(1).then((frogMan) => {});
             ItemFactory.ItemBuilder.createItem(2);
 
-        
-
             //let socketRope = new SocketRope();
             
             // ModelLoader.AppendModel('skull',SceneViewer.scene).then((mesh:BABYLON.Mesh) => {
