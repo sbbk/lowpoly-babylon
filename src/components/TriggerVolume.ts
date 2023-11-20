@@ -7,13 +7,13 @@ import { SceneViewer } from "../babylon/sceneViewer";
 
 export class TriggerVolume implements iGameComponent {
 
-    name:string = "Button";
+    name:string = "Trigger";
     id:string;
     rootMesh:BABYLON.Mesh;
     mesh:BABYLON.Mesh;
     aggregate:BABYLON.PhysicsAggregate;
     mat:BABYLON.StandardMaterial // Debug remove later... or figure diff way
-    type:GameComponentType = "Button";
+    type:GameComponentType = "Trigger";
     canInteract: boolean;
     trigger:EventTrigger;
     label:string
@@ -32,7 +32,7 @@ export class TriggerVolume implements iGameComponent {
         this.mat = new BABYLON.StandardMaterial('button-mat');
         this.mat.diffuseColor = new BABYLON.Color3(1,0,1);
         this.mesh.material = this.mat;
-        this.canInteract = false;
+        this.canInteract = true;
         this.label = label;
         this.id = uuidv4();
         this.disabled = false;
@@ -45,11 +45,11 @@ export class TriggerVolume implements iGameComponent {
 
         SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
             
-            if (this.disabled) {
-                this.disabledSFX.play();
-                return;
-            }
             if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh)) {
+                console.log("Intersect")
+                if (this.disabled) {
+                    return;
+                }
                 this.disabled = true;
                 this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
                 this.fire();            
@@ -79,6 +79,7 @@ export class TriggerVolume implements iGameComponent {
 
     }
     fire() {
+        console.log("Fire",this.trigger);
         if (this.trigger) this.trigger.fire();
         this.fireSFX.play();
     }

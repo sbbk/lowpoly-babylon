@@ -226,6 +226,7 @@ export class SceneViewer {
             Prefab.CreatePrefab(3);
             Prefab.CreatePrefab(5);
             Prefab.CreatePrefab(6);
+            Prefab.CreatePrefab(7);
 
             //let socketRope = new SocketRope();
             

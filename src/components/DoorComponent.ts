@@ -144,14 +144,14 @@ export class DoorComponent implements iGameComponent {
     }
     enable() {
 
-        //this.open();
+        this.open();
         this.enableSFX.play();
         this.enabled = true;
 
     }
     disable() {
 
-        //this.close();
+        this.close();
         this.disableSFX.play();
         this.enabled = false;
 
