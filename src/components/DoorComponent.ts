@@ -16,6 +16,7 @@ export class DoorComponent implements iGameComponent {
     isOpen:boolean;
     canInteract: boolean;
     mesh:BABYLON.Mesh;
+    material:BABYLON.StandardMaterial;
     text:string;
     height:number;
     enabled:boolean;
@@ -50,9 +51,9 @@ export class DoorComponent implements iGameComponent {
 
         
         // DEBUG COLOUR
-        let mat = new BABYLON.StandardMaterial('doormat');
-        mat.diffuseColor = new BABYLON.Color3(1,0,0);
-        this.mesh.material = mat;
+        this.material = new BABYLON.StandardMaterial('doormat');
+        this.material.diffuseColor = new BABYLON.Color3(0,1,0);
+        this.mesh.material = this.material;
 
         let pivot:BABYLON.Vector3;
         switch(this.openDirection) {
@@ -144,16 +145,18 @@ export class DoorComponent implements iGameComponent {
     }
     enable() {
 
-        this.open();
+        // this.open();
         this.enableSFX.play();
         this.enabled = true;
+        this.material.diffuseColor = new BABYLON.Color3(0,1,0);
 
     }
     disable() {
 
-        this.close();
+        // this.close();
         this.disableSFX.play();
         this.enabled = false;
+        this.material.diffuseColor = new BABYLON.Color3(1,0,0);
 
     }
     renderToScene(position?: BABYLON.Vector3) {

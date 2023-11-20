@@ -30,7 +30,7 @@ export class TriggerVolume implements iGameComponent {
         this.mesh = BABYLON.MeshBuilder.CreateBox('button');
         this.mesh.parent = this.rootMesh;
         this.mat = new BABYLON.StandardMaterial('button-mat');
-        this.mat.diffuseColor = new BABYLON.Color3(1,0,1);
+        this.mat.diffuseColor = new BABYLON.Color3(0,1,0);
         this.mesh.material = this.mat;
         this.canInteract = true;
         this.label = label;
@@ -55,7 +55,7 @@ export class TriggerVolume implements iGameComponent {
                 this.fire();            
                 await delayFunc(this.timeoutMS);
                 this.disabled = false;
-                this.mat.diffuseColor = new BABYLON.Color3(1,0,1)
+                this.mat.diffuseColor = new BABYLON.Color3(0,1,0)
 
             }
             
