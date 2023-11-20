@@ -15,7 +15,14 @@ export class SocketStringComponent implements iGameComponent {
     mass: number;
     mesh: BABYLON.Mesh;
     parent: GameObject;
+    enabled:boolean = true;
 
+    enable() {
+
+    }
+    disable() {
+        
+    }
     setPhysicsState: () => void
     constructor(type: GameComponentType, mesh: BABYLON.Mesh) {
 

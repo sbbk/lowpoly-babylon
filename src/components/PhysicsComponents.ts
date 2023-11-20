@@ -17,6 +17,7 @@ export class PhysicsComponent implements iGameComponent {
     parent: GameObject;
     gravityFactor:number;
     collideSFX: BABYLON.Sound
+    enabled:boolean = true;
 
     setPhysicsState: () => void
     constructor(type: GameComponentType, mesh: BABYLON.Mesh, mass: number) {
@@ -76,6 +77,12 @@ export class PhysicsComponent implements iGameComponent {
     }
     destroy() {
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
     renderToScene(position?: BABYLON.Vector3) {
 

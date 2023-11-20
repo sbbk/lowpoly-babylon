@@ -4,7 +4,7 @@ import { Prefab } from "../data/prefabs/CreatePrefab";
 import * as BABYLON from "@babylonjs/core"
 import { delayFunc } from "../utility/utilities";
 
-export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE"
+export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE" | "TOGGLE"
 export type triggerTypes = "Component" | "Spawn"
 
 export interface EventTrigger {
@@ -34,10 +34,22 @@ export namespace EventHandler {
                     this.targetComponent.interact();
                     break;
                 case "ENABLE":
-                    this.targetComponent.canInteract = true;
+                    this.targetComponent.enable();
                     break;
+                case "TOGGLE":
+                    console.log("Enabled:",this.targetComponent.enabled)
+                    switch(this.targetComponent.enabled) {
+                        case true:
+                            this.targetComponent.disable();
+                            break;
+                        case false:
+                            this.targetComponent.enable();
+                            break;
+                    }
+                    break;
+
                 case "DISABLE":
-                    this.targetComponent.canInteract = false;
+                    this.targetComponent.disable();
                     break;
                 case "KILL":
                     this.targetComponent.destroy();

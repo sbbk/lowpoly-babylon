@@ -501,7 +501,7 @@ export namespace ModelLoader {
         root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
 
         root.checkCollisions = true;
-        root.showBoundingBox = true;
+        //root.showBoundingBox = true;
         resolve(root);
         return box;
 

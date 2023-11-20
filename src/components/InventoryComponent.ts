@@ -138,6 +138,12 @@ export class pInventory {
     init() {
 
     }
+    enable() {
+
+    }
+    disable() {
+        
+    }
     update() {
 
     }

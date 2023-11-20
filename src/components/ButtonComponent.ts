@@ -1,9 +1,9 @@
-import { Vector3 } from "@babylonjs/core";
 import { GameComponentType, iGameComponent } from "./GameObject";
 import * as BABYLON from "@babylonjs/core";
-import { EventHandler, EventTrigger } from "../triggers/EventTrigger";
+import { EventTrigger } from "../triggers/EventTrigger";
 import { v4 as uuidv4 } from 'uuid';
 import { delayFunc } from "../utility/utilities";
+import { SceneViewer } from "../babylon/sceneViewer";
 
 export class ButtonComponent implements iGameComponent {
 
@@ -17,8 +17,13 @@ export class ButtonComponent implements iGameComponent {
     trigger:EventTrigger;
     label:string
     timeoutMS:number;
+    disabled:boolean;
+    fireSFX:BABYLON.Sound;
+    disabledSFX:BABYLON.Sound;
+    enabled:boolean = true;
 
     constructor(trigger:EventTrigger,rootMesh:BABYLON.Mesh,timeoutMS:number,label?:string) {
+        this.id = uuidv4();
         this.trigger = trigger;
         this.rootMesh = rootMesh
         this.timeoutMS = timeoutMS
@@ -28,8 +33,10 @@ export class ButtonComponent implements iGameComponent {
         this.mat.diffuseColor = new BABYLON.Color3(1,0,1);
         this.mesh.material = this.mat;
         this.canInteract = true;
+        this.disabled = false;
         this.label = label;
-        this.id = uuidv4();
+        this.fireSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/button/button-default.wav',import.meta.url).pathname,SceneViewer.scene);
+        this.disabledSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/button/button-fail.wav',import.meta.url).pathname,SceneViewer.scene);
     }
 
     init() {}
@@ -45,21 +52,30 @@ export class ButtonComponent implements iGameComponent {
     onCollide() {
 
     }
+    enable() {
+
+    }
+    disable() {
+        
+    }
     async interact() {
 
-        if (!this.canInteract) return;
+        if (this.disabled) {
+            this.disabledSFX.play();
+            return;
+        };
         this.fire();
-        this.canInteract = false;
+        this.disabled = true;
         this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
         await delayFunc(this.timeoutMS);
         this.mat.diffuseColor = new BABYLON.Color3(1,0,1)
-        this.canInteract = true;
+        this.disabled = false;
 
 
     }
     fire() {
-        console.log("Trigger",this.trigger);
         if (this.trigger) this.trigger.fire();
+        this.fireSFX.play();
     }
     endInteract() {
 

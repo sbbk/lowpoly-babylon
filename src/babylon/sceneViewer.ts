@@ -90,7 +90,7 @@ export class SceneViewer {
         SceneViewer.highlightDistance = 15;
         SceneViewer.interactDistance = 10;
         SceneViewer.distanceTracker = document.getElementById('distance-tracker') as HTMLElement;
-
+        this.initSkyBox();
 
         window['gameObjects'] = SceneViewer.gameObjects;
         window['scene'] = SceneViewer.scene;
@@ -216,8 +216,8 @@ export class SceneViewer {
             // collectableBox.mesh.material = collectMat
 
             Prefab.CreatePrefab(0).then((vinylObject) => {});
-            // Prefab.CreatePrefab(1).then((frogMan) => {});
-            //Prefab.CreatePrefab(2);
+            Prefab.CreatePrefab(1).then((frogMan) => {});
+            Prefab.CreatePrefab(2);
 
             // let onionLimit = 50;
             // for (let i=0; i < onionLimit;i++) {
@@ -346,6 +346,17 @@ export class SceneViewer {
         })
 
     }
+
+    private initSkyBox() {
+        if (!SceneViewer.scene) {
+            // console.error("No Scene found to add a Skybox to!");
+            return undefined;
+        }
+        const skyboxTex = new URL('../media/skybox/environment_gray.dds', import.meta.url).pathname;
+        const hdrTexture = BABYLON.CubeTexture.CreateFromPrefilteredData(skyboxTex, SceneViewer.scene);
+        const currentSkybox = SceneViewer.scene.createDefaultSkybox(hdrTexture, true, 1000.0, 0.6, true);
+    }
+
 
     static disablePointerLock(value:boolean) {
 

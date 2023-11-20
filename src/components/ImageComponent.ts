@@ -6,6 +6,7 @@ export class ImageComponent implements iGameComponent {
     name: string = "Image";
     id: string;
     type: GameComponentType;
+    enabled:boolean = true;
     images: string[];
     canInteract: boolean = true;
     activeUI: HTMLImageElement;
@@ -41,6 +42,12 @@ export class ImageComponent implements iGameComponent {
 
         this.activeUI.remove();
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
     renderToScene() {
 

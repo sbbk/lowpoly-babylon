@@ -16,6 +16,8 @@ export class OneLineConversation implements iGameComponent {
     active: boolean = false;
     timeout: number
     talker: PitchShifter;
+    enabled:boolean = true;
+
     constructor(conversationLines: string[], type: GameComponentType, mesh) {
         this.id = uuidv4()
         this.conversationLines = conversationLines;
@@ -127,6 +129,12 @@ export class OneLineConversation implements iGameComponent {
 
     destroy() {
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
     renderToScene() {
 

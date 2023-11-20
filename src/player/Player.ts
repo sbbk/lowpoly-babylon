@@ -48,8 +48,9 @@ export class Player {
         };
 
         // Hero mesh.
-        // this.heroMesh = BABYLON.Mesh.CreateBox('hero', 2.0, SceneViewer.scene, false, BABYLON.Mesh.FRONTSIDE);
-        // this.heroMesh.isPickable = false;
+        this.heroMesh = BABYLON.Mesh.CreateBox('hero-mesh', 2.0, scene, false, BABYLON.Mesh.FRONTSIDE);
+        this.heroMesh.isPickable = false;
+        this.heroMesh.parent = this.camera;
         // this.heroMesh.position.x = 0.0;
         // this.heroMesh.position.y = 1.0;
         // this.heroMesh.position.z = 0.0;

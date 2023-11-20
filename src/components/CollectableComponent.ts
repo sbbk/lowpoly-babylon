@@ -12,6 +12,7 @@ export class CollectableComponent implements iGameComponent {
     canInteract: boolean = true;
     mesh?: BABYLON.Mesh;
     gameObject: GameObject;
+    enabled:boolean = true;
 
     constructor(name: string, type: GameComponentType, gameObject: GameObject) {
         this.id = uuidv4()
@@ -37,6 +38,12 @@ export class CollectableComponent implements iGameComponent {
 
     destroy() {
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
     renderToScene(position?: BABYLON.Vector3) {
 

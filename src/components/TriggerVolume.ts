@@ -18,6 +18,10 @@ export class TriggerVolume implements iGameComponent {
     trigger:EventTrigger;
     label:string
     timeoutMS:number;
+    disabled:boolean;
+    fireSFX:BABYLON.Sound;
+    disabledSFX:BABYLON.Sound;
+    enabled:boolean = true;
 
     constructor(trigger:EventTrigger,rootMesh:BABYLON.Mesh,timeoutMS:number,label?:string) {
         this.trigger = trigger;
@@ -28,36 +32,34 @@ export class TriggerVolume implements iGameComponent {
         this.mat = new BABYLON.StandardMaterial('button-mat');
         this.mat.diffuseColor = new BABYLON.Color3(1,0,1);
         this.mesh.material = this.mat;
-        this.canInteract = true;
+        this.canInteract = false;
         this.label = label;
         this.id = uuidv4();
+        this.disabled = false;
+        this.fireSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/button/button-default.wav',import.meta.url).pathname,SceneViewer.scene);
+        this.disabledSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/button/button-fail.wav',import.meta.url).pathname,SceneViewer.scene);
 
-        //this.mesh.intersectsMesh(SceneViewer.player.pickupZone)
+        setTimeout(() => {
+            this.canInteract = true;
+        }, 1000);
 
-        // this.aggregate = new BABYLON.PhysicsAggregate(this.rootMesh,BABYLON.PhysicsShapeType.BOX,{mass:0});
-        // this.aggregate.body.setMotionType(0)
-        // SceneViewer.havokPlugin.setCollisionCallbackEnabled(this.aggregate.body,true);
-        // this.aggregate.body.getCollisionObservable().add(async(collisionEvent) => {
-        //     console.log("Collision Start")
-        //     if (this.canInteract == false) return;
-        //     if (collisionEvent.type == "COLLISION_STARTED") {
-        //         this.canInteract = false;
-        //         this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
-        //         await delayFunc(this.timeoutMS);
-        //         this.fire();
-        //     }
-        // })
-        // this.aggregate.body.getCollisionEndedObservable().add(async(collisionEvent) => {
+        SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
+            
+            if (this.disabled) {
+                this.disabledSFX.play();
+                return;
+            }
+            if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh)) {
+                this.disabled = true;
+                this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
+                this.fire();            
+                await delayFunc(this.timeoutMS);
+                this.disabled = false;
+                this.mat.diffuseColor = new BABYLON.Color3(1,0,1)
 
-        //     console.log("Collision End")
-        //     await delayFunc(this.timeoutMS);
-        //     this.canInteract = true;
-        //     this.mat.diffuseColor = new BABYLON.Color3(1,0,1)
-
-        // })
-
-
-
+            }
+            
+        })
     }
 
     init() {}
@@ -77,11 +79,17 @@ export class TriggerVolume implements iGameComponent {
 
     }
     fire() {
-        console.log("Trigger",this.trigger);
         if (this.trigger) this.trigger.fire();
+        this.fireSFX.play();
     }
     endInteract() {
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
 
 }

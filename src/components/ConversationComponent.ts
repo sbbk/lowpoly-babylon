@@ -18,6 +18,8 @@ export class ConversationComponent implements iGameComponent {
     active: boolean = false;
     timeout: number
     talker: PitchShifter;
+    enabled:boolean = true;
+
     constructor(conversationLines: Object, type: GameComponentType, mesh) {
         this.id = uuidv4()
         this.conversationLines = conversationLines;
@@ -210,6 +212,12 @@ export class ConversationComponent implements iGameComponent {
         speak();
 
 
+    }
+    enable() {
+
+    }
+    disable() {
+        
     }
     endInteract() { }
 

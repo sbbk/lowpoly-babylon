@@ -2,7 +2,6 @@ import * as BABYLON from "@babylonjs/core"
 export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "Trigger";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
-import { UsableItem } from "./UsableItemComponent";
 
 
 export interface iGameComponent {
@@ -14,10 +13,13 @@ export interface iGameComponent {
     mesh?: BABYLON.Mesh;
     label?:string;
     canInteract: boolean;
+    enabled:boolean;
     init: () => void;
     interact: () => void;
     endInteract: () => void;
     destroy: () => void;
+    enable:() => void;
+    disable:() => void;
     renderToScene: (position?: BABYLON.Vector3) => void;
 
 }
@@ -31,7 +33,6 @@ export class GameObject extends BABYLON.TransformNode {
     physicsAggregate: BABYLON.PhysicsAggregate;
     components: iGameComponent[];
     activeComponent: iGameComponent;
-    usable?: UsableItem
     interactable: boolean;
     interact: () => void = () => {
 
@@ -58,14 +59,6 @@ export class GameObject extends BABYLON.TransformNode {
 
     }
     destroyMesh() {
-
-    }
-
-    makeUsable(useFunction: () => void, unUseFunction: () => void) {
-
-        this.usable = new UsableItem();
-        this.usable.use = useFunction;
-        this.usable.unuse = unUseFunction;
 
     }
 

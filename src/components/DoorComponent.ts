@@ -1,6 +1,7 @@
 import { GameComponentType, GameObject, iGameComponent } from "./GameObject";
 import * as BABYLON from "@babylonjs/core"
 import { v4 as uuidv4 } from 'uuid';
+import { SceneViewer } from "../babylon/sceneViewer";
 
 export type openDirection = "left" | "right" | "up" | "down";
 export type openType = "slide" | "swing";
@@ -17,10 +18,15 @@ export class DoorComponent implements iGameComponent {
     mesh:BABYLON.Mesh;
     text:string;
     height:number;
-    locked:boolean;
+    enabled:boolean;
     width:number;
     depth:number;
     rootMesh:BABYLON.Mesh;
+    interactSFX:BABYLON.Sound;
+    disabledSFX:BABYLON.Sound;
+    enableSFX:BABYLON.Sound;
+    disableSFX:BABYLON.Sound;
+
 
     constructor(openDirection:openDirection,openType:openType,rootMesh:BABYLON.Mesh,id?:string) {
 
@@ -33,10 +39,15 @@ export class DoorComponent implements iGameComponent {
         this.openType = openType
         this.isOpen = false;
         this.canInteract = true;
+        this.enabled = false;
         this.rootMesh = rootMesh;
         this.mesh = BABYLON.MeshBuilder.CreateBox('door',{width:this.width,height:this.height,depth:this.depth});
         this.mesh.parent = this.rootMesh;
-        
+        this.interactSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-interact-1.wav',import.meta.url).pathname,SceneViewer.scene);
+        this.disabledSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-disabled-1.wav',import.meta.url).pathname,SceneViewer.scene);
+        this.enableSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-enable-1.wav',import.meta.url).pathname,SceneViewer.scene);
+        this.disableSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-disable-1.wav',import.meta.url).pathname,SceneViewer.scene);
+
         
         // DEBUG COLOUR
         let mat = new BABYLON.StandardMaterial('doormat');
@@ -94,6 +105,7 @@ export class DoorComponent implements iGameComponent {
                 break;
         }
         this.isOpen = true;
+        this.interactSFX.play();
     }
     close() {
 
@@ -102,6 +114,7 @@ export class DoorComponent implements iGameComponent {
                 this.mesh.position = new BABYLON.Vector3(0,0,0);
         }
         this.isOpen = false;
+        this.interactSFX.play();
     }
 
     init() {
@@ -109,6 +122,10 @@ export class DoorComponent implements iGameComponent {
     }
     interact() {
 
+        if (!this.enabled) {
+            this.disabledSFX.play();
+            return;
+        }
         switch(this.isOpen) {
             case true:
                 this.close();
@@ -117,13 +134,26 @@ export class DoorComponent implements iGameComponent {
                 this.open();
                 break;
         }
-
     }
     endInteract() {
 
     }
 
     destroy() {
+
+    }
+    enable() {
+
+        //this.open();
+        this.enableSFX.play();
+        this.enabled = true;
+
+    }
+    disable() {
+
+        //this.close();
+        this.disableSFX.play();
+        this.enabled = false;
 
     }
     renderToScene(position?: BABYLON.Vector3) {

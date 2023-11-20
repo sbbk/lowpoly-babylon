@@ -120,13 +120,14 @@
             {
                 "name":"Physics",
                 "mass":10,
-                "active":true
+                "active":true,
+                "label":"Onion"
             }
         ]
     },
     {
         "id":"5",
-        "name":"Button",
+        "name":"Trigger",
         "interactable":true,
         "icon":null,
         "position":[-3,-18,0],
@@ -164,10 +165,10 @@
                 "name":"Button",
                 "active":true,
                 "timeout":"200",
-                "label":"Open Door",
+                "label":"Door Lock",
                 "trigger" : {
                     "triggerType" : "Component",
-                    "eventType" : "USE",
+                    "eventType" : "TOGGLE",
                     "targetId" : "main_entry_door"
                 }
             }
