@@ -1,6 +1,6 @@
 import * as Tone from "tone"
 import * as BABYLON from "@babylonjs/core"
-import { SceneViewer } from "../babylon/sceneViewer";
+import { SceneViewer } from "../../babylon/sceneViewer";
 
 export class PitchShifter {
 

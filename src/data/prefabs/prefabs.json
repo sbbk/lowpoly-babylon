@@ -89,6 +89,89 @@
                 "active":true
             }
         ]
+    },
+    {
+        "id":"3",
+        "uid":"main_entry_door",
+        "name" : "Door",
+        "interactable":true,
+        "icon":null,
+        "position":[8,-18,0],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],    
+        "components": [
+            {
+                "name":"Door",
+                "id":"main_entry_door",
+                "active":true
+            }
+        ]
+    },
+    {
+        "id":"4",
+        "name":"Onion",
+        "mesh":"Onion",
+        "interactable":true,
+        "icon":null,
+        "position":[10,10,0],
+        "scale":[2,2,2],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"Physics",
+                "mass":10,
+                "active":true
+            }
+        ]
+    },
+    {
+        "id":"5",
+        "name":"Button",
+        "interactable":true,
+        "icon":null,
+        "position":[-3,-18,0],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"Button",
+                "active":true,
+                "timeout":"10000",
+                "label":"Spawn Onions",
+                "trigger" : {
+                    "triggerType" : "Spawn",
+                    "eventType" : "SPAWN",
+                    "prefabIndex": "4",
+                    "position":[10,10,0],
+                    "scale":[1,1,1],
+                    "rotation":[0,0,0],
+                    "delay": "10",
+                    "amount" : "30"
+                }
+            }
+        ]
+    },
+    {
+        "id":"6",
+        "name":"Button",
+        "interactable":true,
+        "icon":null,
+        "position":[7,-18, 2],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"Button",
+                "active":true,
+                "timeout":"200",
+                "label":"Open Door",
+                "trigger" : {
+                    "triggerType" : "Component",
+                    "eventType" : "USE",
+                    "targetId" : "main_entry_door"
+                }
+            }
+        ]
     }
 
 ]

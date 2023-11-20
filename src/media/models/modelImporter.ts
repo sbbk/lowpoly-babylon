@@ -58,11 +58,13 @@ export namespace ModelLoader {
     const hallWay = new URL ('hallway.glb',import.meta.url).pathname;
     const skull = new URL ('skull.glb',import.meta.url).pathname;
     const vinylSingle = new URL('./items/vinyl-single.glb',import.meta.url).pathname;
+    const onion = new URL('./items/onion.glb',import.meta.url).pathname;
+
     export var LoadedModels:BABYLON.AbstractMesh[] = [];
     export var LoadedModel:BABYLON.AbstractMesh;
 
     export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
-    "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle";
+    "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion";
 
     export function generateList():models[] {
         
@@ -78,6 +80,8 @@ export namespace ModelLoader {
                 return scene;
             case "skull":
                 return skull;
+            case "Onion":
+                return onion;
             case "VinylSingle":
                 return vinylSingle;
             case "hallway":
@@ -677,7 +681,7 @@ export namespace ModelLoader {
             // }
 
             // rootMesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
-            rootMesh.showBoundingBox = false;      
+            rootMesh.showBoundingBox = true;      
             //rootMesh.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
             resolve(rootMesh);
 

@@ -1,363 +1,19 @@
 import * as BABYLON from "@babylonjs/core"
-import { jsx } from "@vertx/jsx";
 import { GLTFFileLoader } from "@babylonjs/loaders";
-import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
-import { ShaderManager } from "./shaders/shaderManager";
+import { GraphicsConfig } from "../media/models/modelImporter";
 import HavokPhysics from "@babylonjs/havok";
-import * as GUI from "@babylonjs/gui"
-import { CollectableComponent, iGameComponent, GameObject, ImageComponent, pInventory, ConversationComponent, SynthComponent, SynthPad, OneLineConversation, PhysicsComponent } from "../components/GameObject";
 import { QuestSystem } from "../components/Quest"
-import { ItemFactory } from "../items/ItemFactory";
-import { SocketRope } from "../components/gameObjects/socketRope";
-const items = require("../items/items.json");
-
-
-export enum HandMode {
-    idle = "idle",
-    grab = "grab",
-    cash = "cash"
-}
-
-export interface HandSource {
-
-    name:string;
-    src:string;
-    width:number;
-    height:number;
-    frames:number;
-
-}
-
-export class HandController {
-
-    idle = {
-        name:'idle',
-        src:new URL('../media/models/HANDS/duke-hands.png',import.meta.url).pathname,
-        width:2560,
-        height:512,
-        frames:4 // Starts at 0
-    } as HandSource;
-    
-    grab = {
-        name:'grab',
-        src:new URL('../media/models/HANDS/duke-grab.png',import.meta.url).pathname,
-        width:512,
-        height:512,
-        frames:0 // Starts at 0
-    } as HandSource;
-
-    cash = {
-        name:'cash',
-        src:new URL('../media/models/HANDS/duke-cash.png',import.meta.url).pathname,
-        width:512,
-        height:768,
-        frames:0 // Starts at 0
-    } as HandSource;
-
-    frameRate:number = 100; // ms
-    handElement = document.getElementById('duke-hands') as HTMLImageElement;
-    mode:HandMode;
-    animationRunning:boolean = false;
-
-    setHandMode(mode:HandMode,frame:number,animate?:boolean) {
-
-        if (mode == this.mode) return;
-        if (!animate || animate == undefined) animate = false;
-        if (animate == true && this.animationRunning == true) return;
-
-        switch(mode) {
-
-            case HandMode.idle:
-                this.mode = mode;
-                this.setImg(this.idle,frame,animate)
-                break;
-            case HandMode.grab:
-                this.mode = mode;
-                this.setImg(this.grab,frame,animate);
-                break;
-            case HandMode.cash:
-                this.mode = mode;
-                this.setImg(this.cash,frame,animate);
-
-        }
-
-    }
-    setImg(handSource:HandSource,frame?:number,animate?:boolean) {
-
-        this.handElement.src = handSource.src;
-        this.handElement.style.height = this.handElement.height + 'ox';
-        if (!animate) {
-            let offset = this.handElement.width * frame + 'px'
-            this.handElement.style.transform = `translateX(-${offset})`
-        }
-        else {
-            this.runAnimation(handSource);
-        }
-
-    }
-
-    setEnabled(value:boolean) {
-        switch(value) {
-            case true:
-                this.handElement.style.display = "block";
-                break;
-            case false:
-                this.handElement.style.display = "none";
-                break;
-        }
-    }
-
-    runAnimation(handSource:HandSource) {
-
-        if (this.animationRunning == true) return;
-        this.animationRunning = true;
-        let length = handSource.frames;
-        for (let i=0; i <length; i++) {
-            let rate = i +1;
-            setTimeout(() => {
-                let offset = this.handElement.height * i + 'px'
-                this.handElement.style.transform = `translateX(-${offset})`
-                if (i == length -1) {
-                    this.animationRunning = false;
-                }
-            }, this.frameRate * rate);
-        }
-
-    }
-
-    constructor() {
-        // Set Default
-        this.setHandMode(HandMode.idle,0)
-    }
-
-}
-
-export class Player {
-
-    scene:BABYLON.Scene;
-    camera:BABYLON.FreeCamera;
-    heroMesh:BABYLON.Mesh;
-    heroPhysicsAgregate:BABYLON.PhysicsAggregate;
-    pointer:BABYLON.Mesh;
-    pickupZone:BABYLON.Mesh;
-    currentTarget:GameObject = null;
-    handController:HandController;
-    activeQuests:number[] = [];
-    constructor(scene:BABYLON.Scene) {
-        this.scene = scene;
-        this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
-        //this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
-        this.camera.minZ = 0.45;
-        this.camera.speed = 0.6;
-        this.camera.angularSensibility = 9000;
-        this.camera.checkCollisions = true;
-        this.camera.applyGravity = true;
-        this.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
-        this.camera.attachControl();
-
-        // Debugs
-        window["offset"] = this.camera.ellipsoidOffset;
-        window["gravity"] = this.camera.applyGravity;
-        window["collisions"] = this.camera.checkCollisions;
-        window["pSpeed"] = this.camera.speed;
-
-        // Hands
-        this.handController = new HandController();
-
-        // Define Bindings.
-        this.camera.keysUp.push(87);
-        this.camera.keysLeft.push(65);
-        this.camera.keysDown.push(83);
-        this.camera.keysRight.push(68)
-
-        // Jump
-        document.onkeydown = (e) => {
-
-            if (e.code === "Space") this.camera.cameraDirection.y += 1;
-
-        };
-
-        // Hero mesh.
-        // this.heroMesh = BABYLON.Mesh.CreateBox('hero', 2.0, SceneViewer.scene, false, BABYLON.Mesh.FRONTSIDE);
-        // this.heroMesh.isPickable = false;
-        // this.heroMesh.position.x = 0.0;
-        // this.heroMesh.position.y = 1.0;
-        // this.heroMesh.position.z = 0.0;
-        //this.heroPhysicsAgregate = new BABYLON.PhysicsAggregate(SceneViewer.heroMesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, SceneViewer.scene);
-
-        this.pickupZone = BABYLON.MeshBuilder.CreateSphere('pickup');
-        let pickupmat = new BABYLON.StandardMaterial('pmat');
-        pickupmat.diffuseColor = new BABYLON.Color3(1,0,0);
-        this.pickupZone.material = pickupmat;
-        this.pickupZone.parent = this.camera;
-        this.pickupZone.position.z = 3;
-        this.pickupZone.position.y = 0;
-        this.pickupZone.position.x = 0;
-        this.pickupZone.visibility = 0;
-        this.pickupZone.isPickable = false;
-
-        this.pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, this.scene, false, BABYLON.Mesh.DOUBLESIDE);
-        // move the sphere upward 1/2 of its height
-        this.pointer.position.x = 0.0;
-        this.pointer.position.y = 0.0;
-        this.pointer.position.z = 0.0;
-        this.pointer.isPickable = false;
-
-    }
-
-}
-
-export class TagBillboard {
-
-    enabled:boolean;
-    UITexture:GUI.AdvancedDynamicTexture
-    backgroundRectangle:GUI.Rectangle;
-    label:GUI.TextBlock;
-    meshTag:GUI.Ellipse;
-    connectorLine:GUI.Line;
-
-    constructor(enabled:boolean) {
-        this.enabled = enabled;
-        this.UITexture = GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-        this.backgroundRectangle = new GUI.Rectangle();
-        this.backgroundRectangle.width = 0.3;
-        this.backgroundRectangle.height = "100px";
-        this.backgroundRectangle.cornerRadius = 20;
-        this.backgroundRectangle.color = "Orange";
-        this.backgroundRectangle.thickness = 4;
-        this.backgroundRectangle.background = "green";
-        this.UITexture.addControl(this.backgroundRectangle);
-        this.backgroundRectangle.linkOffsetY = -150;
-    
-        this.label = new GUI.TextBlock();
-        this.label.text = "Sphere";
-        this.label.fontSize = "50px"
-        this.backgroundRectangle.addControl(this.label);
-    
-        this.meshTag = new GUI.Ellipse();
-        this.meshTag.width = "40px";
-        this.meshTag.height = "40px";
-        this.meshTag.color = "Orange";
-        this.meshTag.thickness = 4;
-        this.meshTag.background = "green";
-        this.UITexture.addControl(this.meshTag);
-    
-        this.connectorLine =  new GUI.Line();
-        this.connectorLine.lineWidth = 4;
-        this.connectorLine.color = "Orange";
-        this.connectorLine.y2 = 20;
-        this.connectorLine.linkOffsetY = -20;
-        this.UITexture.addControl(this.connectorLine);
-
-        this.connectorLine.connectedControl = this.backgroundRectangle;  
-
-        this.setVisible(false);
-
-    }
-
-    // TODO: Repeated code in conversation component, needs moving.
-    calculatePixel(mesh:BABYLON.Mesh) {
-        //note: "engine" is your babylonjs engine variable
-        //note: "camera" is the camera variable, optionally you can pass the camera as function parameter (change this function to accept second parameter)
-        const temp = new BABYLON.Vector3();
-        const vertices = mesh.getBoundingInfo().boundingBox.vectorsWorld;
-        const viewport = SceneViewer.camera.viewport.toGlobal(SceneViewer.engine.getRenderWidth(), SceneViewer.engine.getRenderHeight());
-        let minX = 1e10, minY = 1e10, maxX = -1e10, maxY = -1e10;
-        for (const vertex of vertices) {
-            BABYLON.Vector3.ProjectToRef(vertex, BABYLON.Matrix.IdentityReadOnly, SceneViewer.scene.getTransformMatrix(), viewport, temp);
-            if (minX > temp.x) minX = temp.x;
-            if (maxX < temp.x) maxX = temp.x;
-            if (minY > temp.y) minY = temp.y;
-            if (maxY < temp.y) maxY = temp.y;
-        }
-        //console.log("maxX-minX",(maxX-minX));
-        //console.log("maxY-minY",(maxY-minY));
-        let x = (maxX-minX)
-        let y = (maxY-minY);
-        if (y >= SceneViewer.engine.getRenderHeight()) {
-            y = 100;
-        }
-
-        return {"x":x, "y":y}
-    }
-
-    setVisible(value:boolean) {
-        if (this.enabled == false) value = false;
-        this.backgroundRectangle.isVisible = value;
-        this.label.isVisible = value;
-        this.meshTag.isVisible = value;
-        this.connectorLine.isVisible = value
-    }
-
-    linkWithMesh(mesh:BABYLON.Mesh | BABYLON.AbstractMesh,name?:string) {
-
-        if (this.enabled == false) return;
-        if (name) {
-            this.label.text = name;
-        }
-        else {
-            this.label.text = mesh.name;
-        }
-        this.setVisible(true);
-        this.connectorLine.linkWithMesh(mesh);
-        this.meshTag.linkWithMesh(mesh);
-        this.backgroundRectangle.linkWithMesh(mesh);
-        let asMesh = mesh as BABYLON.Mesh
-        let offset = this.calculatePixel(asMesh);   
-        this.backgroundRectangle.linkOffsetY = - offset.y / 2;     
-    }
-
-
-}
+import { Prefab } from "../data/prefabs/CreatePrefab";
+import { GameObject, iGameComponent } from "../components/GameObject";
+import { pInventory } from "../components/InventoryComponent";
+import { ConversationComponent } from "../components/ConversationComponent";
+import { Player } from "../player/Player";
+import { HandMode } from "../player/HandController";
+import { TagBillboard } from "../gui/TagBillboard";
+import { GameObjectParser } from "../data/GameObjectParser";
+const items = require("../data/prefabs/prefabs.json");
 
 export type GameMode = "Play" | "Build"
-
-export interface ParsedGameObject {
-
-    id:string,
-    // position:string[];
-    // rotation:string[];
-    // scale:string[];
-
-}
-
-export class GameObjectParser {
-
-    static gatheredData:ParsedGameObject[] = [];
-
-    static exportData() {
-
-        //console.log(SceneViewer.gameObjects);
-        console.log("Length",SceneViewer.gameObjects.length);
-        console.log("All:",SceneViewer.gameObjects)
-
-        SceneViewer.gameObjects.forEach(object => {
-            console.log("Name",object.name)
-            console.log("ID",object.id)
-
-            let gameObjectData:ParsedGameObject = {
-                id: object.id,
-                // position:[SceneViewer.gameObjects[i].position.x.toString(),SceneViewer.gameObjects[i].position.y.toString(),SceneViewer.gameObjects[i].position.z.toString()],
-                // rotation: [SceneViewer.gameObjects[i].rotation.x.toString(),SceneViewer.gameObjects[i].rotation.y.toString(),SceneViewer.gameObjects[i].rotation.z.toString()],
-                // scale: [SceneViewer.gameObjects[i].scaling.x.toString(),SceneViewer.gameObjects[i].scaling.y.toString(),SceneViewer.gameObjects[i].scaling.z.toString()]
-            };
-
-            GameObjectParser.gatheredData.push(gameObjectData);
-
-            // Gonna have to wait til we're on a server.
-
-        })
-
-
-    }
-    
-    static readData() {
-
-
-
-    }
-
-}
 
 export class SceneViewer {
 
@@ -478,7 +134,7 @@ export class SceneViewer {
             let groundMat = new BABYLON.StandardMaterial('groundmat');
             myGround.material = groundMat;
             //groundMat.alpha = 0.01;
-            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10 }, SceneViewer.scene);
+            const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10, restitution:0.01 }, SceneViewer.scene);
             groundAggregate.body.setCollisionCallbackEnabled(true);
 
     
@@ -559,9 +215,17 @@ export class SceneViewer {
             // collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
             // collectableBox.mesh.material = collectMat
 
-            ItemFactory.ItemBuilder.createItem(0).then((vinylObject) => {});
-            // ItemFactory.ItemBuilder.createItem(1).then((frogMan) => {});
-            ItemFactory.ItemBuilder.createItem(2);
+            Prefab.CreatePrefab(0).then((vinylObject) => {});
+            // Prefab.CreatePrefab(1).then((frogMan) => {});
+            //Prefab.CreatePrefab(2);
+
+            // let onionLimit = 50;
+            // for (let i=0; i < onionLimit;i++) {
+            //     Prefab.CreatePrefab(4);
+            // }
+            Prefab.CreatePrefab(3);
+            Prefab.CreatePrefab(5);
+            Prefab.CreatePrefab(6);
 
             //let socketRope = new SocketRope();
             
@@ -769,7 +433,13 @@ export class SceneViewer {
                         // Return if we can't interact right now.
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
 
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" || SceneViewer.player.currentTarget.activeComponent.type == "Talkable" || SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" || SceneViewer.player.currentTarget.activeComponent.type == "Physics") {
+                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
+                            SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
+                            SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" ||
+                            SceneViewer.player.currentTarget.activeComponent.type == "Physics" ||
+                            SceneViewer.player.currentTarget.activeComponent.type == "Door" ||
+                            SceneViewer.player.currentTarget.activeComponent.type == "Button"
+                        ) {
                             SceneViewer.player.currentTarget.activeComponent.interact();
                             SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
                         }
@@ -781,6 +451,9 @@ export class SceneViewer {
                         if (SceneViewer.player.currentTarget.activeComponent.type == "Synth") {
                             SceneViewer.player.currentTarget.activeComponent.interact();
                             SceneViewer.activeSynths.push(SceneViewer.player.currentTarget.id);
+
+                            console.log(SceneViewer.player.currentTarget);
+                            console.log(SceneViewer.player.currentTarget.activeComponent);
                         }
                     }
 
@@ -940,7 +613,6 @@ export class SceneViewer {
                   return null;
                 }
                 // If the parent is an instance of GameObject, return it
-                console.warn(mesh.parent.name)
                 if (mesh.parent instanceof GameObject) {
                 return mesh.parent as GameObject;
                 }
@@ -967,19 +639,26 @@ export class SceneViewer {
 
                 // Look for a parent game object.
                 let foundParent = findGameObjectParent(mesh);
-                console.log("Found",foundParent);
                 if (foundParent) {
                     let gameObject = foundParent as GameObject;
                     if (!gameObject || !gameObject.activeComponent) return;
                     // Are we allowed to interact?
                     if (gameObject.activeComponent.canInteract == false) return;
-
+                    // TODO: THIS ALL NEEDS TO FUCKING GO. Stop being lazy.
                     // Arbitrary for now but check against types of game objects to see if they're of an interactable type.
-                    if ( gameObject.activeComponent.type == "Interactable" || gameObject.activeComponent.type == "Collectable" || gameObject.activeComponent.type == "Talkable" || gameObject.activeComponent.type == "Synth" || gameObject.activeComponent.type == "Physics" || gameObject.activeComponent.type == "SocketString") {
+                    if ( gameObject.activeComponent.type == "Interactable" || 
+                        gameObject.activeComponent.type == "Collectable" || 
+                        gameObject.activeComponent.type == "Talkable" || 
+                        gameObject.activeComponent.type == "Synth" || 
+                        gameObject.activeComponent.type == "Physics" || 
+                        gameObject.activeComponent.type == "SocketString" ||
+                        gameObject.activeComponent.type == "Door" ||
+                        gameObject.activeComponent.type == "Button"
+                        ) 
+                        {
 
                         if (!mesh.parent) return;
                         let meshes = mesh.parent.getChildMeshes();
-                        
                         // Highlight all the meshes in the game object.
                         SceneViewer.highlightLayer.isEnabled = true;
                         meshes.forEach(mesh => {
@@ -988,7 +667,7 @@ export class SceneViewer {
                         })
 
                         // Add the billboard tag.
-                        SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.activeComponent.name);
+                        SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.activeComponent);
                         if (BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint) < SceneViewer.interactDistance) {
 
                             switch(gameObject.activeComponent.type) {
@@ -1005,6 +684,10 @@ export class SceneViewer {
                                     SceneViewer.player.currentTarget = gameObject
                                     break;
                                 case "Physics":
+                                    SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                case "Door":
                                     SceneViewer.player.handController.setHandMode(HandMode.cash,0);
                                     SceneViewer.player.currentTarget = gameObject
                                     break;
@@ -1045,6 +728,12 @@ export class SceneViewer {
     static findGameObject(id:string) {
 
         let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.id === id);
+        return foundObject;
+
+    }
+    static findGameObjectByUID(id:string) {
+
+        let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.uid === id);
         return foundObject;
 
     }
