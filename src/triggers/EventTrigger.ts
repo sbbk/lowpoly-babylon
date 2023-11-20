@@ -4,7 +4,7 @@ import { Prefab } from "../data/prefabs/CreatePrefab";
 import * as BABYLON from "@babylonjs/core"
 import { delayFunc } from "../utility/utilities";
 
-export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE" | "TOGGLE"
+export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE" | "TOGGLE" | "TOGGLETOFROM"
 export type triggerTypes = "Component" | "Spawn"
 
 export interface EventTrigger {
@@ -20,14 +20,17 @@ export namespace EventHandler {
 
         type: eventType;
         targetComponent: iGameComponent;
+        timer?:number;
 
-        constructor(type: eventType,targetID:string) {
+        constructor(type: eventType,targetID:string,timer?:number) {
             this.type = type;
             let gameObject = SceneViewer.findGameObjectByUID(targetID);
             this.targetComponent = gameObject.activeComponent;
+            if (timer) this.timer = timer;
+            else {this.timer = 1000}
         }
 
-        fire() {
+        async fire() {
 
             switch (this.type) {
                 case "USE":
@@ -37,7 +40,6 @@ export namespace EventHandler {
                     this.targetComponent.enable();
                     break;
                 case "TOGGLE":
-                    console.log("Enabled:",this.targetComponent.enabled)
                     switch(this.targetComponent.enabled) {
                         case true:
                             this.targetComponent.disable();
@@ -47,7 +49,20 @@ export namespace EventHandler {
                             break;
                     }
                     break;
-
+                case "TOGGLETOFROM":
+                    switch(this.targetComponent.enabled) {
+                    case true:
+                        this.targetComponent.disable();
+                        await delayFunc(this.timer);
+                        this.targetComponent.enable();
+                        break;
+                    case false:
+                        this.targetComponent.enable();
+                        await delayFunc(this.timer);
+                        this.targetComponent.disable();
+                        break;
+                }
+                break;
                 case "DISABLE":
                     this.targetComponent.disable();
                     break;

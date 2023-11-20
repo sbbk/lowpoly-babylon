@@ -61,7 +61,7 @@ const items = require("../prefabs/prefabs.json");
                             triggerEvent = new EventHandler.SpawnEventTrigger(trigger.prefabIndex,trigger.position,trigger.rotation,trigger.scale,trigger.delay,trigger.amount)
                             break;
                         case "Component":
-                            triggerEvent = new EventHandler.ComponentEventTrigger(trigger.eventType,trigger.targetId)
+                            triggerEvent = new EventHandler.ComponentEventTrigger(trigger.eventType,trigger.targetId,component.timer)
                         // TODO : Implement Component Trigger
                     }
                 }

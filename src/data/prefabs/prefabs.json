@@ -190,7 +190,8 @@
                 "label":"Open Door",
                 "trigger" : {
                     "triggerType" : "Component",
-                    "eventType" : "TOGGLE",
+                    "eventType" : "TOGGLETOFROM",
+                    "timer": "5000",
                     "targetId" : "main_entry_door"
                 }
             }
