@@ -35,6 +35,7 @@ export class SocketStringComponent implements iGameComponent {
         const BALL_MASS = 10;
         const GRACE_AMOUNT = 4;
         var segments = [];
+        this.mesh = mesh;
 
         let inCM = SEG_HEIGHT * 10;
         let maxinMM = inCM * NUM_SEGMENTS // in MM;
@@ -161,7 +162,7 @@ export class SocketStringComponent implements iGameComponent {
         segments[NUM_SEGMENTS - 1].physicsBody.addConstraint(phsyicsComponent.physicsAggregate.body, joint);
 
         let socket = BABYLON.MeshBuilder.CreateBox('socketbox');
-        socket.position = new BABYLON.Vector3(3,0-18,0)
+        socket.parent = this.mesh;
         let socketMat = new BABYLON.StandardMaterial('socketmat');
         socketMat.diffuseColor = new BABYLON.Color3(0,0,1);
         socket.material = socketMat;

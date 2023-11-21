@@ -12,6 +12,7 @@
             {
                 "name":"Physics",
                 "mass":5,
+                "shape": "Box",
                 "active":true
             }
         ]
@@ -114,12 +115,13 @@
         "interactable":true,
         "icon":null,
         "position":[10,10,0],
-        "scale":[2,2,2],
+        "scale":[1,1,1],
         "rotation":[0,0,0],
         "components": [
             {
                 "name":"Physics",
                 "mass":10,
+                "shape":"Box",
                 "active":true,
                 "label":"Onion"
             }
@@ -194,6 +196,22 @@
                     "timer": "5000",
                     "targetId" : "main_entry_door"
                 }
+            }
+        ]
+    },
+    {
+        "id":"8",
+        "name":"Socket",
+        "mesh":"Monitor",
+        "interactable":true,
+        "icon":null,
+        "position":[4,-19,2],
+        "scale":[2,2,2],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name": "SocketString",
+                "active":true
             }
         ]
     }

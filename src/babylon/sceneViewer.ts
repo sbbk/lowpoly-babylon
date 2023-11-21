@@ -104,7 +104,7 @@ export class SceneViewer {
             SceneViewer.scene.gravity = new BABYLON.Vector3(0,SceneViewer.gravity / SceneViewer.framesPerSecond,0)
             SceneViewer.scene.collisionsEnabled = true;
             SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0),SceneViewer.havokPlugin);
-    
+            SceneViewer.havokPlugin.setTimeStep(1 / SceneViewer.scene.getEngine().getFps());
             // PLAYER
             SceneViewer.player = new Player(SceneViewer.scene);
 
@@ -217,16 +217,17 @@ export class SceneViewer {
 
             Prefab.CreatePrefab(0).then((vinylObject) => {});
             Prefab.CreatePrefab(1).then((frogMan) => {});
-            Prefab.CreatePrefab(2);
+            // Prefab.CreatePrefab(2).then((ballSocket) => {});
 
             // let onionLimit = 50;
             // for (let i=0; i < onionLimit;i++) {
             //     Prefab.CreatePrefab(4);
             // }
-            Prefab.CreatePrefab(3);
+            Prefab.CreatePrefab(3).then((main_entry_door) => {});
             Prefab.CreatePrefab(5);
             Prefab.CreatePrefab(6);
             Prefab.CreatePrefab(7);
+            Prefab.CreatePrefab(8);
 
             //let socketRope = new SocketRope();
             

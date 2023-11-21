@@ -18,6 +18,10 @@ export class PhysicsComponent implements iGameComponent {
     gravityFactor:number;
     collideSFX: BABYLON.Sound
     enabled:boolean = true;
+    lastSpeed:number | null = null;
+    speedCounter:number = 0;
+    isTimingOut:boolean = false;
+    staticTimeout:number = 1000; // ms
 
     setPhysicsState: () => void
     constructor(type: GameComponentType, mesh: BABYLON.Mesh, mass: number) {
@@ -30,16 +34,25 @@ export class PhysicsComponent implements iGameComponent {
         this.physicsAggregate.body.disablePreStep = false;
         this.collideSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/impact/body_medium_impact_soft7.wav',import.meta.url).pathname,SceneViewer.scene);
         SceneViewer.havokPlugin.setCollisionCallbackEnabled(this.physicsAggregate.body,true);
+        SceneViewer.scene.registerBeforeRender(() => {
+            if (this.speedCounter == 3) {
+                this.speedCounter = 0;
+                this.lastSpeed = 0;
+            }
+            this.speedCounter++;
+            this.lastSpeed += this.physicsAggregate.body.getLinearVelocity().length();
+        })
+        
         this.physicsAggregate.body.getCollisionObservable().add((collisionEvent) => {
-
+            this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
                 if (collisionEvent.type == "COLLISION_STARTED") {
-                    console.log("Started")
-                    if (collisionEvent.impulse > 8) {
+                    let speed = collisionEvent.collider.getAngularVelocity().length();
+                    if (this.lastSpeed - speed > 20) {
                         this.collideSFX.play();
                     }
                 }
-
         })
+
         this.gravityFactor = this.physicsAggregate.body.getGravityFactor();
         this.setPhysicsState = () => {
             this.physicsAggregate.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition, BABYLON.Quaternion.Identity())
@@ -52,6 +65,7 @@ export class PhysicsComponent implements iGameComponent {
     interact() {
         this.lock(false);
         this.physicsAggregate.body.disablePreStep = false;
+        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
         SceneViewer.scene.registerBeforeRender(this.setPhysicsState);
     }
     endInteract() {
