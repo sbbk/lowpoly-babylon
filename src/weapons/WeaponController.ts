@@ -3,12 +3,16 @@ import { Player } from "../player/Player";
 import * as BABYLON from "@babylonjs/core";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { ModelLoader } from "../media/models/modelImporter";
+import { Scene } from "babylonjs";
+import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 
 export interface iBaseWeapon {
 
     fire:() => void;
+    stopFire:() => void;
     reload:() => Promise<void>;
     onHit:() => void;
+    onUnequip:() => void;
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
@@ -31,6 +35,8 @@ export class BaseWeapon implements iBaseWeapon {
 
 
     }
+    stopFire:() => void;
+
     async reload() {
 
         // Play anim..
@@ -39,6 +45,8 @@ export class BaseWeapon implements iBaseWeapon {
 
     }
     onHit:() => void;
+    onEquip:() => void;
+    onUnequip:() => void;
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
@@ -54,9 +62,18 @@ export class BaseWeapon implements iBaseWeapon {
 
 export class FlareGun implements BaseWeapon {
 
-    fire:() => void;
+    fire() {
+
+    }
+    stopFire:() => void;
     reload:() => Promise<void>;
     onHit:() => void;
+    onEquip() {
+
+    }
+    onUnequip() {
+        
+    };
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
@@ -75,6 +92,7 @@ export class FlareGun implements BaseWeapon {
         this.mesh = await ModelLoader.AppendModel("FlareGun",SceneViewer.scene) as BABYLON.Mesh;
         this.mesh.parent = SceneViewer.camera;
         this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
+        this.mesh.isPickable = false;
         this.mesh.renderingGroupId = 3;
         let children = this.mesh.getChildMeshes();
         children.forEach(child => {
@@ -84,7 +102,56 @@ export class FlareGun implements BaseWeapon {
         this.mesh.position.y = -2;
         this.mesh.position.x = 0.5;
         this.mesh.rotation.y = -Math.PI / 2;
-        this.mesh.visibility = 0;
+        this.mesh.setEnabled(false);
+    }
+
+}
+
+export class Hand implements BaseWeapon {
+
+    fire() {
+        if (!SceneViewer.player.currentTarget.activeComponent) return;
+        SceneViewer.player.currentTarget.activeComponent.interact()
+    };
+    stopFire() {
+        console.log("Active",SceneViewer.player.currentTarget.activeComponent)
+        SceneViewer.player.currentTarget.activeComponent.endInteract();
+        // SceneViewer.activeComponent = null;
+    }
+    reload:() => Promise<void>;
+    onHit:() => void;
+    onEquip() {
+    }
+    onUnequip() {
+    }
+    projectile:BABYLON.Mesh;
+    reloadTime:number;
+    velocity:number;
+    spread:number;
+    chargeTime:number;
+    currentAmmo:number;
+    maxAmmo:number;
+    clipSize:number;
+    damage:number;
+    mesh:BABYLON.Mesh
+
+    constructor() {
+
+    }
+
+    async init() {
+        this.mesh = await ModelLoader.AppendModel("Knife",SceneViewer.scene) as BABYLON.Mesh;
+        this.mesh.parent = SceneViewer.camera;
+        this.mesh.scaling = new BABYLON.Vector3(4,4,4);
+        this.mesh.renderingGroupId = 3;
+        let children = this.mesh.getChildMeshes();
+        children.forEach(child => {
+            child.renderingGroupId = 3;
+        })
+        this.mesh.position.z = 5.5;
+        this.mesh.position.y = -1;
+        this.mesh.position.x = -1;
+        this.mesh.setEnabled(false);
     }
 
 }
@@ -101,8 +168,11 @@ export class WeaponController {
 
     async init() {
         let flareGun = new FlareGun();
+        let hand = new Hand();
+        this.createKeyBindings();
+        await hand.init();
         await flareGun.init();
-        this.avaiableWeapons = [flareGun];
+        this.avaiableWeapons = [hand,flareGun];
         this.equip(0);
 
     }
@@ -115,10 +185,11 @@ export class WeaponController {
     equip(index:number) {
 
         if (this.equippedWeapon) {
-            this.equippedWeapon.mesh.visibility = 0;
+            this.equippedWeapon.onUnequip();
+            this.equippedWeapon.mesh.setEnabled(false);
         }
         this.equippedWeapon = this.avaiableWeapons[index];
-        this.equippedWeapon.mesh.visibility = 1;
+        this.equippedWeapon.mesh.setEnabled(true);
 
     }
     reload() {
@@ -127,4 +198,33 @@ export class WeaponController {
 
     }
 
+    createKeyBindings() {
+        SceneViewer.scene.onKeyboardObservable.add(async (kbInfo) => {
+                
+            if(kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN) {
+
+                if (kbInfo.event.key == KeyboardShortcuts.Weapons.Weapon0) {
+                    if (!this.avaiableWeapons[0]) return;
+                    this.equip(0);
+                }
+                if (kbInfo.event.key == KeyboardShortcuts.Weapons.Weapon1) {
+                    if (!this.avaiableWeapons[0]) return;
+                    this.equip(1);
+                }
+                if (kbInfo.event.key == KeyboardShortcuts.Weapons.Weapon2) {
+                    if (!this.avaiableWeapons[0]) return;
+                    this.equip(2);
+                }
+                if (kbInfo.event.key == KeyboardShortcuts.Weapons.Weapon3) {
+                    if (!this.avaiableWeapons[0]) return;
+                    this.equip(3);
+                }
+                if (kbInfo.event.key == KeyboardShortcuts.Weapons.Weapon4) {
+                    if (!this.avaiableWeapons[0]) return;
+                    this.equip(4);
+                }
+            }    
+        })
+
+    }
 }

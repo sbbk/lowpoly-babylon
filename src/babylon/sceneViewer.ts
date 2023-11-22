@@ -219,7 +219,7 @@ export class SceneViewer {
 
             // Prefab.CreatePrefab(0).then((vinylObject) => {});
             Prefab.CreatePrefab(1).then((frogMan) => {});
-            // Prefab.CreatePrefab(2).then((ballSocket) => {});
+            Prefab.CreatePrefab(2).then((ballSocket) => {});
 
             // let onionLimit = 50;
             // for (let i=0; i < onionLimit;i++) {
@@ -229,7 +229,7 @@ export class SceneViewer {
             Prefab.CreatePrefab(5);
             Prefab.CreatePrefab(6);
             Prefab.CreatePrefab(7);
-            // Prefab.CreatePrefab(8);
+            Prefab.CreatePrefab(8);
 
             //let socketRope = new SocketRope();
             
@@ -445,49 +445,55 @@ export class SceneViewer {
                     // If there's something to interact with continue..
                     if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
 
-                        // Return if we can't interact right now.
+                        SceneViewer.player.weaponController.equippedWeapon.fire();
+
+                        // // Return if we can't interact right now.
+                        console.log("ACTIVE",SceneViewer.player.currentTarget.activeComponent);
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
 
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
-                            SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
-                            SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" ||
-                            SceneViewer.player.currentTarget.activeComponent.type == "Physics" ||
-                            SceneViewer.player.currentTarget.activeComponent.type == "Door" ||
-                            SceneViewer.player.currentTarget.activeComponent.type == "Button"
-                        ) {
-                            SceneViewer.player.currentTarget.activeComponent.interact();
-                            SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
-                        }
+                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
+                        //     SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
+                        //     SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" ||
+                        //     SceneViewer.player.currentTarget.activeComponent.type == "Physics" ||
+                        //     SceneViewer.player.currentTarget.activeComponent.type == "Door" ||
+                        //     SceneViewer.player.currentTarget.activeComponent.type == "Button"
+                        // ) {
+                        //     SceneViewer.player.currentTarget.activeComponent.interact();
+                        //     SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
+                        // }
 
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Collectable") {
-                            SceneViewer.player.currentTarget.activeComponent.interact();
-                        }
+                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Collectable") {
+                        //     SceneViewer.player.currentTarget.activeComponent.interact();
+                        // }
 
-                        if (SceneViewer.player.currentTarget.activeComponent.type == "Synth") {
-                            SceneViewer.player.currentTarget.activeComponent.interact();
-                            SceneViewer.activeSynths.push(SceneViewer.player.currentTarget.id);
+                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Synth") {
+                        //     SceneViewer.player.currentTarget.activeComponent.interact();
+                        //     SceneViewer.activeSynths.push(SceneViewer.player.currentTarget.id);
 
-                            console.log(SceneViewer.player.currentTarget);
-                            console.log(SceneViewer.player.currentTarget.activeComponent);
-                        }
+                        //     console.log(SceneViewer.player.currentTarget);
+                        //     console.log(SceneViewer.player.currentTarget.activeComponent);
+                        // }
                     }
 
                 break;
                 case BABYLON.PointerEventTypes.POINTERUP:
                     // End any synths anyway..
-                    for (let i=0;i<SceneViewer.activeSynths.length;i++) {
+                    // for (let i=0;i<SceneViewer.activeSynths.length;i++) {
 
-                        let foundGameObject = SceneViewer.findGameObject(SceneViewer.activeSynths[i]);
-                        if (foundGameObject) {
-                            foundGameObject.activeComponent.endInteract();
-                            SceneViewer.activeSynths.splice(i)
-                        }
+                    //     let foundGameObject = SceneViewer.findGameObject(SceneViewer.activeSynths[i]);
+                    //     if (foundGameObject) {
+                    //         foundGameObject.activeComponent.endInteract();
+                    //         SceneViewer.activeSynths.splice(i)
+                    //     }
 
+                    // }
+                    if (!SceneViewer.player.currentTarget) return;
+                    if (!SceneViewer.player.currentTarget.activeComponent) return;
+                    if (SceneViewer.player.currentTarget.activeComponent) {
+                        //SceneViewer.activeComponent.endInteract();
+                        SceneViewer.player.weaponController.equippedWeapon.stopFire();
                     }
-                    if (SceneViewer.activeComponent) {
-                        SceneViewer.activeComponent.endInteract();
-                        SceneViewer.activeComponent = null;
-                    }
+
     
                 break;
             }
