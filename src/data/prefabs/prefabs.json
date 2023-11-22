@@ -149,7 +149,7 @@
                     "scale":[1,1,1],
                     "rotation":[0,0,0],
                     "delay": "10",
-                    "amount" : "30"
+                    "amount" : "5"
                 }
             }
         ]

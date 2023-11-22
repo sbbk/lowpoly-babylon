@@ -41,12 +41,15 @@ export class PhysicsComponent implements iGameComponent {
             }
             this.speedCounter++;
             this.lastSpeed += this.physicsAggregate.body.getLinearVelocity().length();
+            if (this.lastSpeed < 0.001) {
+                this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+            }
         })
         
         this.physicsAggregate.body.getCollisionObservable().add((collisionEvent) => {
             this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-                if (collisionEvent.type == "COLLISION_STARTED") {
-                    let speed = collisionEvent.collider.getAngularVelocity().length();
+                if (collisionEvent.type == "COLLISION_STARTED" && collisionEvent.collider == this.physicsAggregate.body) {
+                    let speed = collisionEvent.collider.getLinearVelocity().length();
                     if (this.lastSpeed - speed > 20) {
                         this.collideSFX.play();
                     }
@@ -63,6 +66,7 @@ export class PhysicsComponent implements iGameComponent {
         
     }
     interact() {
+        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
         this.lock(false);
         this.physicsAggregate.body.disablePreStep = false;
         this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);

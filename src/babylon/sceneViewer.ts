@@ -128,6 +128,8 @@ export class SceneViewer {
 
 
             var myGround = BABYLON.MeshBuilder.CreateBox('ground',{width:100,depth:100,height:2});
+            myGround.renderingGroupId = 0;
+
             myGround.position.y = -20;
             myGround.isPickable = false;
             myGround.checkCollisions= true;
@@ -215,7 +217,7 @@ export class SceneViewer {
             // collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
             // collectableBox.mesh.material = collectMat
 
-            Prefab.CreatePrefab(0).then((vinylObject) => {});
+            // Prefab.CreatePrefab(0).then((vinylObject) => {});
             Prefab.CreatePrefab(1).then((frogMan) => {});
             // Prefab.CreatePrefab(2).then((ballSocket) => {});
 
@@ -227,7 +229,7 @@ export class SceneViewer {
             Prefab.CreatePrefab(5);
             Prefab.CreatePrefab(6);
             Prefab.CreatePrefab(7);
-            Prefab.CreatePrefab(8);
+            // Prefab.CreatePrefab(8);
 
             //let socketRope = new SocketRope();
             

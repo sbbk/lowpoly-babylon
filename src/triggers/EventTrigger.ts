@@ -85,6 +85,7 @@ export namespace EventHandler {
         scale: number[];
         delay: number //
         amount: number;
+        offset:number = 0.5;
         delayFunc = delayFunc
 
         constructor(prefabID: number,
@@ -100,8 +101,9 @@ export namespace EventHandler {
 
         async fire() {
             for (let i=0; i < this.amount; i++) {
-                Prefab.CreatePrefab(this.prefabID, this.position, this.rotation, this.scale);
                 await this.delayFunc(3000);
+                this.position[1] += this.offset
+                Prefab.CreatePrefab(this.prefabID, this.position, this.rotation, this.scale);
             }
         }
     }

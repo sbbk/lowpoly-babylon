@@ -1,6 +1,7 @@
 import * as BABYLON from "@babylonjs/core"
 import { GameObject } from "../components/GameObject";
 import { HandController } from "./HandController";
+import { WeaponController } from "../weapons/WeaponController";
 
 export class Player {
 
@@ -13,11 +14,12 @@ export class Player {
     currentTarget:GameObject = null;
     handController:HandController;
     activeQuests:number[] = [];
+    weaponController:WeaponController;
     constructor(scene:BABYLON.Scene) {
         this.scene = scene;
         this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
         //this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
-        this.camera.minZ = 0.45;
+        this.camera.minZ = 0.1;
         this.camera.speed = 0.6;
         this.camera.angularSensibility = 9000;
         this.camera.checkCollisions = true;
@@ -74,7 +76,7 @@ export class Player {
         this.pointer.position.y = 0.0;
         this.pointer.position.z = 0.0;
         this.pointer.isPickable = false;
-
+        this.weaponController = new WeaponController();
         
 
     }

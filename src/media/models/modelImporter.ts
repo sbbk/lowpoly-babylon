@@ -60,11 +60,15 @@ export namespace ModelLoader {
     const vinylSingle = new URL('./items/vinyl-single.glb',import.meta.url).pathname;
     const onion = new URL('./items/onion.glb',import.meta.url).pathname;
 
+    // Weapons
+    const flareGun = new URL('./flare_gun.glb',import.meta.url).pathname;
+
+
     export var LoadedModels:BABYLON.AbstractMesh[] = [];
     export var LoadedModel:BABYLON.AbstractMesh;
 
     export type models = "Scene" | "CityScene"| "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
-    "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion";
+    "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun";
 
     export function generateList():models[] {
         
@@ -76,6 +80,8 @@ export namespace ModelLoader {
     function importModel(model:models) {
     
         switch(model) {
+            case "FlareGun":
+                return flareGun;
             case "Scene":
                 return scene;
             case "skull":
@@ -502,6 +508,8 @@ export namespace ModelLoader {
 
         root.checkCollisions = true;
         //root.showBoundingBox = true;
+        root.renderingGroupId = 0;
+
         resolve(root);
         return box;
 

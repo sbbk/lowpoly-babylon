@@ -47,6 +47,7 @@ export class HandController {
 
     setHandMode(mode:HandMode,frame:number,animate?:boolean) {
 
+        return;
         if (mode == this.mode) return;
         if (!animate || animate == undefined) animate = false;
         if (animate == true && this.animationRunning == true) return;
