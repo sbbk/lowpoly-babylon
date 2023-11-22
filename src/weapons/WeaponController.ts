@@ -12,6 +12,8 @@ export interface iBaseWeapon {
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
+    spread:number;
+    chargeTime:number;
     currentAmmo:number;
     maxAmmo:number;
     clipSize:number;
@@ -40,6 +42,8 @@ export class BaseWeapon implements iBaseWeapon {
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
+    spread:number;
+    chargeTime:number;
     currentAmmo:number;
     maxAmmo:number;
     clipSize:number;
@@ -56,6 +60,8 @@ export class FlareGun implements BaseWeapon {
     projectile:BABYLON.Mesh;
     reloadTime:number;
     velocity:number;
+    spread:number;
+    chargeTime:number;
     currentAmmo:number;
     maxAmmo:number;
     clipSize:number;
