@@ -110,19 +110,33 @@ export class FlareGun implements BaseWeapon {
 export class Hand implements BaseWeapon {
 
     fire() {
+        console.log("Fire");
+        this.playAnimation(0,false)
         if (!SceneViewer.player.currentTarget.activeComponent) return;
         SceneViewer.player.currentTarget.activeComponent.interact()
     };
     stopFire() {
         console.log("Active",SceneViewer.player.currentTarget.activeComponent)
         SceneViewer.player.currentTarget.activeComponent.endInteract();
+        this.playAnimation(1,true)
         // SceneViewer.activeComponent = null;
     }
     reload:() => Promise<void>;
     onHit:() => void;
     onEquip() {
     }
+    playAnimation(index:number,loop:boolean) {
+        if (!this.animations[index]) return;
+        this.animations[index].play(loop);
+        this.playingAnimation = this.animations[index];
+    }
+    stopPlayingAnimation() {
+        if (!this.playingAnimation) return;
+        this.playingAnimation.stop();
+        this.playingAnimation = null
+    }
     onUnequip() {
+        this.stopPlayingAnimation();
     }
     projectile:BABYLON.Mesh;
     reloadTime:number;
@@ -133,7 +147,9 @@ export class Hand implements BaseWeapon {
     maxAmmo:number;
     clipSize:number;
     damage:number;
-    mesh:BABYLON.Mesh
+    mesh:BABYLON.Mesh;
+    animations:BABYLON.AnimationGroup[];
+    playingAnimation:BABYLON.AnimationGroup;
 
     constructor() {
 
@@ -147,15 +163,20 @@ export class Hand implements BaseWeapon {
         }
         this.mesh = meshContainer;
         this.mesh.parent = SceneViewer.camera;
+        this.animations = container.animationGroups;
+        this.animations.forEach(animation => {
+            animation.enableBlending = true;
+            animation.stop();
+        })
+        this.playAnimation(1,true)
         this.mesh.scaling = new BABYLON.Vector3(4,4,4);
         this.mesh.renderingGroupId = 3;
         let children = this.mesh.getChildMeshes();
         children.forEach(child => {
             child.renderingGroupId = 3;
         })
-        // this.mesh.position.z = 5.5;
-        this.mesh.position.y = -10;
-        // this.mesh.position.x = -1;
+        this.mesh.position.z = 2;
+        this.mesh.position.y = -12;
         this.mesh.setEnabled(false);
     }
 
@@ -183,7 +204,7 @@ export class WeaponController {
     }
 
     fire() {
-
+        console.log("Fire weapon")
         this.equippedWeapon.fire();
 
     }
