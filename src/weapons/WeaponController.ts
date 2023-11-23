@@ -140,7 +140,12 @@ export class Hand implements BaseWeapon {
     }
 
     async init() {
-        this.mesh = await ModelLoader.AppendModel("Knife",SceneViewer.scene) as BABYLON.Mesh;
+        let container = await ModelLoader.AppendGltfContainer("Knife",SceneViewer.scene) as BABYLON.AssetContainer;
+        let meshContainer = new BABYLON.Mesh("GltfContainer");
+        for (let mesh of container.meshes) {
+            meshContainer.addChild(mesh);
+        }
+        this.mesh = meshContainer;
         this.mesh.parent = SceneViewer.camera;
         this.mesh.scaling = new BABYLON.Vector3(4,4,4);
         this.mesh.renderingGroupId = 3;
@@ -148,9 +153,9 @@ export class Hand implements BaseWeapon {
         children.forEach(child => {
             child.renderingGroupId = 3;
         })
-        this.mesh.position.z = 5.5;
-        this.mesh.position.y = -1;
-        this.mesh.position.x = -1;
+        // this.mesh.position.z = 5.5;
+        this.mesh.position.y = -10;
+        // this.mesh.position.x = -1;
         this.mesh.setEnabled(false);
     }
 
