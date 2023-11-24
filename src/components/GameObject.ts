@@ -1,5 +1,6 @@
 import * as BABYLON from "@babylonjs/core"
-export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth" | "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "Trigger";
+export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth"
+| "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
 

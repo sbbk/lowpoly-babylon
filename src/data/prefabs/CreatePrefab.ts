@@ -10,7 +10,9 @@ import { SocketStringComponent } from "../../components/SocketString/SocketStrin
 import { DoorComponent } from "../../components/DoorComponent";
 import { ButtonComponent } from "../../components/ButtonComponent";
 import { EventHandler } from "../../triggers/EventTrigger";
-import { TriggerVolume } from "../../components/TriggerVolume";
+import { DelayedAutoTrigger } from "../../components/DelayedAutoTrigger"
+import { PlayerLoop } from "../../components/AudioSequencer";
+import { IntersectInOutTrigger } from "../../components/IntersectInOutTrigger";
 
 const items = require("../prefabs/prefabs.json");
 
@@ -19,15 +21,6 @@ const items = require("../prefabs/prefabs.json");
         static async CreatePrefab(index:number,position?:number[],rotation?:number[],scale?:number[]):Promise<GameObject> {
 
             let itemToBuild = items[index];
-            // let mesh:BABYLON.Mesh;
-
-            // // Setup mesh if available.. fallback.
-            // if (itemToBuild.mesh) {
-            // }
-            // else {
-            //     mesh = BABYLON.MeshBuilder.CreateBox(itemToBuild.name);
-            // }
-            
             let mesh : BABYLON.Mesh;
             if (itemToBuild.mesh) {
                mesh = await ModelLoader.AppendModel(itemToBuild.mesh,SceneViewer.scene) as BABYLON.Mesh
@@ -36,13 +29,10 @@ const items = require("../prefabs/prefabs.json");
                 mesh = new BABYLON.Mesh('container-mesh');
             }
 
-            // Create Game Object
-            // let uid = null
-            // console.warn(itemToBuild.name,itemToBuild.uid)
-            // if (itemToBuild.uid) {
-            //     uid = itemToBuild.uid
-            // }
+            // Set it enabled for now hopefully stops weird spawn collisions.
+            mesh.setEnabled(false);
             let gameObject = new GameObject(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh,itemToBuild.interactable,itemToBuild.uid);
+            mesh.setEnabled(true);
 
             // Setup Icons
             if (itemToBuild.icon) {
@@ -66,6 +56,7 @@ const items = require("../prefabs/prefabs.json");
                     }
                 }
 
+                console.log("Component Name",component.name);
                 switch(component.name as GameComponentType) {
                     case "Collectable":
                         gameComponent = new CollectableComponent(itemToBuild.name,"Collectable",gameObject);
@@ -94,9 +85,16 @@ const items = require("../prefabs/prefabs.json");
                     case "Button":
                         gameComponent = new ButtonComponent(triggerEvent,mesh,component.timeout,component.label);
                         break;
-                    case "Trigger":
+                    case "DelayedAutoTrigger":
                         console.log("Creating Trigger")
-                        gameComponent = new TriggerVolume(triggerEvent,mesh,component.timeout,component.label);
+                        gameComponent = new DelayedAutoTrigger(triggerEvent,mesh,component.timeout,component.label);
+                        break;
+                    case "IntersectInOutTrigger":
+                        gameComponent = new IntersectInOutTrigger(triggerEvent,mesh,false);
+                        break;
+                    case "PlayerAudioLoop":
+                        console.log("Hit PlayerAudioLoop")
+                        gameComponent = new PlayerLoop(component.id,component.id,mesh);
                         break;
 
                 }

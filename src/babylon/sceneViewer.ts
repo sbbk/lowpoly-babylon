@@ -11,6 +11,7 @@ import { Player } from "../player/Player";
 import { HandMode } from "../player/HandController";
 import { TagBillboard } from "../gui/TagBillboard";
 import { GameObjectParser } from "../data/GameObjectParser";
+import * as Tone from "tone"
 const items = require("../data/prefabs/prefabs.json");
 
 export type GameMode = "Play" | "Build"
@@ -195,8 +196,7 @@ export class SceneViewer {
             var isLocked = false;
 	
             // On click event, request pointer lock
-            SceneViewer.scene.onPointerDown = function (evt) {
-                
+            SceneViewer.scene.onPointerDown = async function (evt) {
                 //true/false check if we're locked, faster than checking pointerlock on each single click.
                 if (!isLocked && SceneViewer.GameMode == "Play" && SceneViewer.DisablePointerLock == false) {
                     canvas.requestPointerLock = canvas.requestPointerLock || canvas.msRequestPointerLock || canvas.mozRequestPointerLock || canvas.webkitRequestPointerLock;
@@ -217,10 +217,13 @@ export class SceneViewer {
             // collectMat.diffuseColor = new BABYLON.Color3(1,1,0);
             // collectableBox.mesh.material = collectMat
 
-            // Prefab.CreatePrefab(0).then((vinylObject) => {});
+            Prefab.CreatePrefab(0).then((vinylObject) => {});
             Prefab.CreatePrefab(1).then((frogMan) => {});
             Prefab.CreatePrefab(2).then((ballSocket) => {});
-
+            Prefab.CreatePrefab(9)
+            Prefab.CreatePrefab(10).then((kickButton) => {})
+            Prefab.CreatePrefab(11).then(() => {})
+            Prefab.CreatePrefab(12).then((hatsButton) => {})
             // let onionLimit = 50;
             // for (let i=0; i < onionLimit;i++) {
             //     Prefab.CreatePrefab(4);
@@ -445,11 +448,11 @@ export class SceneViewer {
                     // If there's something to interact with continue..
                     if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
 
-                        SceneViewer.player.weaponController.equippedWeapon.fire();
-
+                        
                         // // Return if we can't interact right now.
-                        console.log("ACTIVE",SceneViewer.player.currentTarget.activeComponent);
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
+                        SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
+                        SceneViewer.player.weaponController.equippedWeapon.fire();
 
                         // if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
                         //     SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
@@ -487,12 +490,14 @@ export class SceneViewer {
                     //     }
 
                     // }
-                    if (!SceneViewer.player.currentTarget) return;
-                    if (!SceneViewer.player.currentTarget.activeComponent) return;
-                    if (SceneViewer.player.currentTarget.activeComponent) {
-                        //SceneViewer.activeComponent.endInteract();
+                    if (SceneViewer.activeComponent) {
                         SceneViewer.player.weaponController.equippedWeapon.stopFire();
                     }
+                    SceneViewer.activeComponent = null;
+                    // if (!SceneViewer.player.currentTarget) return;
+                    // if (SceneViewer.activeComponent) {
+                    //     //SceneViewer.activeComponent.endInteract();
+                    // }
 
     
                 break;
@@ -674,7 +679,8 @@ export class SceneViewer {
                         gameObject.activeComponent.type == "Physics" || 
                         gameObject.activeComponent.type == "SocketString" ||
                         gameObject.activeComponent.type == "Door" ||
-                        gameObject.activeComponent.type == "Button"
+                        gameObject.activeComponent.type == "Button" ||
+                        gameObject.activeComponent.type == "PlayerAudioLoop"
                         ) 
                         {
 

@@ -23,6 +23,8 @@ export namespace EventHandler {
         timer?:number;
 
         constructor(type: eventType,targetID:string,timer?:number) {
+
+            console.log("Target:",targetID)
             this.type = type;
             let gameObject = SceneViewer.findGameObjectByUID(targetID);
             this.targetComponent = gameObject.activeComponent;
@@ -42,9 +44,11 @@ export namespace EventHandler {
                 case "TOGGLE":
                     switch(this.targetComponent.enabled) {
                         case true:
+                            console.log("Disable")
                             this.targetComponent.disable();
                             break;
                         case false:
+                            console.log("Enable")
                             this.targetComponent.enable();
                             break;
                     }

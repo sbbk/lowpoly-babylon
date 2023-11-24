@@ -186,7 +186,7 @@
         "rotation":[0,0,0],
         "components": [
             {
-                "name":"Trigger",
+                "name":"DelayedAutoTrigger",
                 "active":true,
                 "timeout":"1000",
                 "label":"Open Door",
@@ -214,6 +214,85 @@
                 "active":true
             }
         ]
+    },
+    {
+        "id":"9",
+        "uid":"Level1_Kick",
+        "name" : "PlayerAudioLoop",
+        "interactable":true,
+        "icon":null,
+        "position":[8,-18,0],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],    
+        "components": [
+            {
+                "name":"PlayerAudioLoop",
+                "id":"Level1_Kick",
+                "active":true
+            }
+        ]
+    },
+    {
+        "id":"10",
+        "name":"Button",
+        "interactable":true,
+        "icon":null,
+        "position":[20,-18, 2],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"IntersectInOutTrigger",
+                "active":true,
+                "timeout":"200",
+                "label":"Play Kick",
+                "trigger" : {
+                    "triggerType" : "Component",
+                    "eventType" : "TOGGLE",
+                    "targetId" : "Level1_Kick"
+                }
+            }
+        ]
+    },
+    {
+        "id":"11",
+        "uid":"Level1Hats",
+        "name" : "PlayerAudioLoop",
+        "interactable":true,
+        "icon":null,
+        "position":[8,-18,0],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],    
+        "components": [
+            {
+                "name":"PlayerAudioLoop",
+                "id":"Level1Hats",
+                "active":true
+            }
+        ]
+    },
+    {
+        "id":"12",
+        "name":"Button",
+        "interactable":true,
+        "icon":null,
+        "position":[24,-18, 2],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],
+        "components": [
+            {
+                "name":"IntersectInOutTrigger",
+                "active":true,
+                "timeout":"200",
+                "label":"Play Hats",
+                "trigger" : {
+                    "triggerType" : "Component",
+                    "eventType" : "TOGGLE",
+                    "targetId" : "Level1Hats"
+                }
+            }
+        ]
     }
+    
 
 ]

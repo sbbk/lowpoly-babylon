@@ -110,14 +110,17 @@ export class FlareGun implements BaseWeapon {
 export class Hand implements BaseWeapon {
 
     fire() {
-        console.log("Fire");
-        this.playAnimation(0,false)
-        if (!SceneViewer.player.currentTarget.activeComponent) return;
-        SceneViewer.player.currentTarget.activeComponent.interact()
+        console.log("Fire",SceneViewer.activeComponent);
+        if (SceneViewer.activeComponent) {
+            SceneViewer.activeComponent.interact()
+        }
+        this.playAnimation(0,false);
     };
     stopFire() {
-        console.log("Active",SceneViewer.player.currentTarget.activeComponent)
-        SceneViewer.player.currentTarget.activeComponent.endInteract();
+        console.log("Stop",SceneViewer.activeComponent);
+        if (SceneViewer.activeComponent) {
+            SceneViewer.activeComponent.endInteract();
+        }
         this.playAnimation(1,true)
         // SceneViewer.activeComponent = null;
     }

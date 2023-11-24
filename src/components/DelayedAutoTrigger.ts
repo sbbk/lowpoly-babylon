@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { delayFunc } from "../utility/utilities";
 import { SceneViewer } from "../babylon/sceneViewer";
 
-export class TriggerVolume implements iGameComponent {
+export class DelayedAutoTrigger implements iGameComponent {
 
     name:string = "Trigger";
     id:string;
@@ -13,7 +13,7 @@ export class TriggerVolume implements iGameComponent {
     mesh:BABYLON.Mesh;
     aggregate:BABYLON.PhysicsAggregate;
     mat:BABYLON.StandardMaterial // Debug remove later... or figure diff way
-    type:GameComponentType = "Trigger";
+    type:GameComponentType = "DelayedAutoTrigger";
     canInteract: boolean;
     trigger:EventTrigger;
     label:string
@@ -41,25 +41,25 @@ export class TriggerVolume implements iGameComponent {
 
         setTimeout(() => {
             this.canInteract = true;
+            SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
+                
+                if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh)) {
+                    console.log("Intersect")
+                    if (this.disabled) {
+                        return;
+                    }
+                    this.disabled = true;
+                    this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
+                    this.fire();            
+                    await delayFunc(this.timeoutMS);
+                    this.disabled = false;
+                    this.mat.diffuseColor = new BABYLON.Color3(0,1,0)
+    
+                }
+                
+            })
         }, 1000);
 
-        SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
-            
-            if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh)) {
-                console.log("Intersect")
-                if (this.disabled) {
-                    return;
-                }
-                this.disabled = true;
-                this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
-                this.fire();            
-                await delayFunc(this.timeoutMS);
-                this.disabled = false;
-                this.mat.diffuseColor = new BABYLON.Color3(0,1,0)
-
-            }
-            
-        })
     }
 
     init() {}

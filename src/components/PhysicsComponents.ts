@@ -17,7 +17,7 @@ export class PhysicsComponent implements iGameComponent {
     parent: GameObject;
     gravityFactor:number;
     collideSFX: BABYLON.Sound
-    enabled:boolean = true;
+    enabled:boolean = false;
     lastSpeed:number | null = null;
     speedCounter:number = 0;
     isTimingOut:boolean = false;
@@ -35,15 +35,16 @@ export class PhysicsComponent implements iGameComponent {
         this.collideSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/impact/body_medium_impact_soft7.wav',import.meta.url).pathname,SceneViewer.scene);
         SceneViewer.havokPlugin.setCollisionCallbackEnabled(this.physicsAggregate.body,true);
         SceneViewer.scene.registerBeforeRender(() => {
-            if (this.speedCounter == 3) {
-                this.speedCounter = 0;
-                this.lastSpeed = 0;
-            }
-            this.speedCounter++;
-            this.lastSpeed += this.physicsAggregate.body.getLinearVelocity().length();
-            if (this.lastSpeed < 0.001) {
-                this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.STATIC);
-            }
+            // if (this.enabled == false) return;
+            // if (this.speedCounter == 3) {
+            //     this.speedCounter = 0;
+            //     this.lastSpeed = 0;
+            // }
+            // this.speedCounter++;
+            // this.lastSpeed += this.physicsAggregate.body.getLinearVelocity().length();
+            // if (this.lastSpeed < 0.001) {
+            //     this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.STATIC);
+            // }
         })
         
         this.physicsAggregate.body.getCollisionObservable().add((collisionEvent) => {
@@ -58,6 +59,7 @@ export class PhysicsComponent implements iGameComponent {
 
         this.gravityFactor = this.physicsAggregate.body.getGravityFactor();
         this.setPhysicsState = () => {
+            console.log(this.physicsAggregate.body.getMotionType());
             this.physicsAggregate.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition, BABYLON.Quaternion.Identity())
         }
     }
@@ -66,16 +68,17 @@ export class PhysicsComponent implements iGameComponent {
         
     }
     interact() {
-        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-        this.lock(false);
+        this.enabled = true;
         this.physicsAggregate.body.disablePreStep = false;
-        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-        SceneViewer.scene.registerBeforeRender(this.setPhysicsState);
+        this.lock(false);
+        SceneViewer.scene.registerBeforeRender(this.setPhysicsState)
     }
     endInteract() {
+        this.enabled = false;
         this.physicsAggregate.body.disablePreStep = true;
-        //this.physicsAggregate.body.setMassProperties({ mass: this.mass })
         SceneViewer.scene.unregisterBeforeRender(this.setPhysicsState)
+
+        //this.physicsAggregate.body.setMassProperties({ mass: this.mass })
     }
     lock(on:boolean,pos?:BABYLON.Vector3) {
 
