@@ -1,7 +1,5 @@
-import { SceneViewer } from "../babylon/sceneViewer";
-import { GameObject, iGameComponent } from "../components/GameObject";
+import { findGameObjectByUID, iGameComponent } from "../components/GameObject";
 import { Prefab } from "../data/prefabs/CreatePrefab";
-import * as BABYLON from "@babylonjs/core"
 import { delayFunc } from "../utility/utilities";
 
 export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE" | "TOGGLE" | "TOGGLETOFROM"
@@ -26,7 +24,7 @@ export namespace EventHandler {
 
             console.log("Target:",targetID)
             this.type = type;
-            let gameObject = SceneViewer.findGameObjectByUID(targetID);
+            let gameObject = findGameObjectByUID(targetID);
             this.targetComponent = gameObject.activeComponent;
             if (timer) this.timer = timer;
             else {this.timer = 1000}

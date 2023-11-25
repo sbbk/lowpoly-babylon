@@ -4,6 +4,32 @@ export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Tal
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
 
+export function findGameObject(id:string) {
+
+    let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.id === id);
+    return foundObject;
+
+}
+export function findGameObjectByUID(id:string) {
+
+    let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.uid === id);
+    return foundObject;
+
+}
+
+export function findGameObjectParent(mesh: BABYLON.AbstractMesh): GameObject | null {
+    // If the mesh has no parent, return null
+    if (!mesh.parent) {
+      return null;
+    }
+    // If the parent is an instance of GameObject, return it
+    if (mesh.parent instanceof GameObject) {
+    return mesh.parent as GameObject;
+    }
+    // Otherwise, recursively call the function with the parent as the argument
+    return findGameObjectParent(mesh.parent as BABYLON.AbstractMesh);
+}
+
 
 export interface iGameComponent {
 

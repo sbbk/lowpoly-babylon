@@ -3,7 +3,6 @@ import { Player } from "../player/Player";
 import * as BABYLON from "@babylonjs/core";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { ModelLoader } from "../media/models/modelImporter";
-import { Scene } from "babylonjs";
 import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 
 export interface iBaseWeapon {
