@@ -292,7 +292,44 @@
                 }
             }
         ]
+    },
+    {
+        "id":"13",
+        "name":"Valve",
+        "interactable":true,
+        "icon":null,
+        "mesh":"Valve",
+        "position":[10,-18, 10],
+        "scale":[1,1,1],
+        "rotation":[1.57,0,0],
+        "components": [
+            {
+                "name":"Valve",
+                "active":true,
+                "label":"Turn Valve",
+                "trigger" : {
+                    "triggerType" : "Component",
+                    "eventType" : "USEWITHARGS",
+                    "targetId" : "lift_main_1"
+                }
+            }
+        ]
+    },
+    {
+        "id":"14",
+        "uid":"lift_main_1",
+        "name" : "Lift",
+        "interactable":true,
+        "icon":null,
+        "position":[20,-18,10],
+        "scale":[1,1,1],
+        "rotation":[0,0,0],    
+        "components": [
+            {
+                "name":"Lift",
+                "id":"lift_main_1",
+                "active":true
+            }
+        ]
     }
-    
-
 ]

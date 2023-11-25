@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core"
 export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Talkable" | "Synth"
-| "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger";
+| "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger" | "Valve" | "Lift";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
 
@@ -42,8 +42,8 @@ export interface iGameComponent {
     canInteract: boolean;
     enabled:boolean;
     init: () => void;
-    interact: () => void;
-    endInteract: () => void;
+    interact: (args?:any) => void;
+    endInteract: (args?:any) => void;
     destroy: () => void;
     enable:() => void;
     disable:() => void;

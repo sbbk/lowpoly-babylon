@@ -195,6 +195,8 @@ export class SceneViewer {
             Prefab.CreatePrefab(6);
             Prefab.CreatePrefab(7);
             Prefab.CreatePrefab(8);
+            Prefab.CreatePrefab(14).then((valve) => {});
+            Prefab.CreatePrefab(13).then((valve) => {});
                 
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES

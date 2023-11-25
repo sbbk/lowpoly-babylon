@@ -253,18 +253,19 @@ export class InteractionManager {
                         gameObject.activeComponent.type == "SocketString" ||
                         gameObject.activeComponent.type == "Door" ||
                         gameObject.activeComponent.type == "Button" ||
-                        gameObject.activeComponent.type == "PlayerAudioLoop"
+                        gameObject.activeComponent.type == "PlayerAudioLoop" ||
+                        gameObject.activeComponent.type == "Valve"
                         ) 
                         {
 
                         if (!mesh.parent) return;
                         let meshes = mesh.parent.getChildMeshes();
                         // Highlight all the meshes in the game object.
-                        SceneViewer.highlightLayer.isEnabled = true;
-                        meshes.forEach(mesh => {
-                            if (mesh.name == "collider") return;
-                            SceneViewer.highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
-                        })
+                        // SceneViewer.highlightLayer.isEnabled = true;
+                        // meshes.forEach(mesh => {
+                        //     if (mesh.name == "collider") return;
+                        //     SceneViewer.highlightLayer.addMesh(mesh, new BABYLON.Color3(1, 1, 0));
+                        // })
 
                         // Add the billboard tag.
                         SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.activeComponent);

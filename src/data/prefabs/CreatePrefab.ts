@@ -9,10 +9,12 @@ import { PhysicsComponent } from "../../components/PhysicsComponents";
 import { SocketStringComponent } from "../../components/SocketString/SocketString";
 import { DoorComponent } from "../../components/DoorComponent";
 import { ButtonComponent } from "../../components/ButtonComponent";
-import { EventHandler } from "../../triggers/EventTrigger";
-import { DelayedAutoTrigger } from "../../components/DelayedAutoTrigger"
+import { EventHandler, EventTrigger } from "../../triggers/EventTrigger";
+import { DelayedAutoTrigger } from "../../components/triggers/DelayedAutoTrigger"
 import { PlayerLoop } from "../../components/AudioSequencer";
-import { IntersectInOutTrigger } from "../../components/IntersectInOutTrigger";
+import { IntersectInOutTrigger } from "../../components/triggers/IntersectInOutTrigger";
+import { ValveComponent } from "../../components/ValveComponent";
+import { LiftComponent } from "../../components/LiftComponent";
 
 const items = require("../prefabs/prefabs.json");
 
@@ -43,7 +45,7 @@ const items = require("../prefabs/prefabs.json");
 
                 let gameComponent;
                 // Create any triggers on the component.
-                let triggerEvent = null;
+                let triggerEvent = null as EventTrigger;
                 if (component.trigger) {
                     let trigger = component.trigger
                     switch(trigger.triggerType) {
@@ -56,7 +58,6 @@ const items = require("../prefabs/prefabs.json");
                     }
                 }
 
-                console.log("Component Name",component.name);
                 switch(component.name as GameComponentType) {
                     case "Collectable":
                         gameComponent = new CollectableComponent(itemToBuild.name,"Collectable",gameObject);
@@ -82,19 +83,24 @@ const items = require("../prefabs/prefabs.json");
                         console.log("Component ID",component.id);
                         gameComponent = new DoorComponent("left","slide",mesh,component.id);
                         break;
+                    // BUTTONS AND TRIGGERS
                     case "Button":
                         gameComponent = new ButtonComponent(triggerEvent,mesh,component.timeout,component.label);
                         break;
                     case "DelayedAutoTrigger":
-                        console.log("Creating Trigger")
                         gameComponent = new DelayedAutoTrigger(triggerEvent,mesh,component.timeout,component.label);
                         break;
                     case "IntersectInOutTrigger":
                         gameComponent = new IntersectInOutTrigger(triggerEvent,mesh,false);
                         break;
+                    case "Valve":
+                        gameComponent = new ValveComponent(triggerEvent,mesh);
+                        break;
                     case "PlayerAudioLoop":
-                        console.log("Hit PlayerAudioLoop")
                         gameComponent = new PlayerLoop(component.id,component.id,mesh);
+                        break;
+                    case "Lift":
+                        gameComponent = new LiftComponent(mesh,component.id);
                         break;
 
                 }
@@ -106,6 +112,12 @@ const items = require("../prefabs/prefabs.json");
 
                 // Add the found component and set active
                 gameObject.addComponent(gameComponent);
+
+                // Set triger parent if exists
+                if (triggerEvent !== null) {
+                    let parentComponent = triggerEvent.setParentComponent(gameComponent);
+                }
+
                 if (component.active == true) {
                     gameObject.setActiveComponent(gameComponent);
                 }

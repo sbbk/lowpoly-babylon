@@ -47,21 +47,20 @@ export class PlayerLoop implements iGameComponent {
     file:string;
     buffer:Tone.ToneAudioBuffer
     player:Tone.Player;
-    interact() {}
+    interact(args?) {
+    }
     endInteract() {}
     destroy() {}
     enable() {
         this.enabled = true;
         if (this.loaded == true) {
             Tone.Transport.schedule(() => {
-                console.log("Scheduling..")
                 this.player.start()
             },Tone.Transport.nextSubdivision("1m"))
         }
         else {
             Tone.loaded().then(async (tone) => {
                 this.loaded = true;
-                console.log("Tone Ready")
                 Tone.Transport.schedule(() => {
                     console.log("Scheduling..")
                     this.player.start()

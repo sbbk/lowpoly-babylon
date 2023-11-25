@@ -59,6 +59,8 @@ export namespace ModelLoader {
     const skull = new URL('skull.glb', import.meta.url).pathname;
     const vinylSingle = new URL('./items/vinyl-single.glb', import.meta.url).pathname;
     const onion = new URL('./items/onion.glb', import.meta.url).pathname;
+    const valve = new URL('./valve.glb', import.meta.url).pathname;
+
 
     // Weapons
     const flareGun = new URL('./flare_gun.glb', import.meta.url).pathname;
@@ -69,7 +71,7 @@ export namespace ModelLoader {
     export var LoadedModel: BABYLON.AbstractMesh;
 
     export type models = "Scene" | "CityScene" | "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
-        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun" | "Knife";
+        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun" | "Knife" | "Valve";
 
     export function generateList(): models[] {
 
@@ -83,6 +85,8 @@ export namespace ModelLoader {
         switch (model) {
             case "FlareGun":
                 return flareGun;
+            case "Valve":
+                return valve;
             case "Knife":
                 return knife;
             case "Scene":
