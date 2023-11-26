@@ -227,7 +227,7 @@ export class InteractionManager {
             let hit = SceneViewer.scene.pickWithRay(ray);
 
             if (hit.pickedMesh) {
-
+                console.log("HIT",hit.pickedMesh)
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
                 SceneViewer.distanceTracker.innerText = distance.toString();
@@ -238,7 +238,9 @@ export class InteractionManager {
 
                 // Look for a parent game object.
                 let foundParent = findGameObjectParent(mesh);
+                console.log("Try find",foundParent);
                 if (foundParent) {
+                    console.error("FOUND?",foundParent)
                     let gameObject = foundParent as GameObject;
                     if (!gameObject || !gameObject.activeComponent) return;
                     // Are we allowed to interact?
@@ -254,7 +256,8 @@ export class InteractionManager {
                         gameObject.activeComponent.type == "Door" ||
                         gameObject.activeComponent.type == "Button" ||
                         gameObject.activeComponent.type == "PlayerAudioLoop" ||
-                        gameObject.activeComponent.type == "Valve"
+                        gameObject.activeComponent.type == "Valve" ||
+                        gameObject.activeComponent.type == "OneLineConversation"
                         ) 
                         {
 

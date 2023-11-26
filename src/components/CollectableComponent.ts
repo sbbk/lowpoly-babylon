@@ -18,6 +18,7 @@ export class CollectableComponent implements iGameComponent {
         this.id = uuidv4()
         this.gameObject = gameObject
         this.mesh = gameObject.mesh as BABYLON.Mesh;
+        console.log("MESH",this.mesh);
         this.name = name;
         this.type = type;
     }

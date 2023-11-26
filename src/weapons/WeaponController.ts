@@ -6,6 +6,9 @@ import { ModelLoader } from "../media/models/modelImporter";
 import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 import { GameObject } from "../components/GameObject";
 import { PhysicsComponent } from "../components/PhysicsComponents";
+import { v4 as uuidv4 } from 'uuid';
+import { CollectableComponent } from "../components/CollectableComponent";
+import { ConversationComponent } from "../components/ConversationComponent";
 
 export interface iBaseWeapon {
 
@@ -48,7 +51,7 @@ export class BaseWeapon implements iBaseWeapon{
     clipSize:number;
     damage:number;
     mesh:BABYLON.Mesh
-    transformNode:BABYLON.TransformNode;
+    transformNode:GameObject;
     innerMesh:BABYLON.Mesh;
 
     constructor() {
@@ -82,7 +85,7 @@ export class BaseWeapon implements iBaseWeapon{
         var quatRotation = new BABYLON.Quaternion();
         var position = new BABYLON.Vector3();
         let decompose = matrix.decompose(scale,quatRotation,position);
-        this.mesh.parent = null;
+        this.transformNode.parent = null;
         this.mesh.setAbsolutePosition(position);
         this.mesh.rotationQuaternion = quatRotation;
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh,BABYLON.PhysicsShapeType.BOX,{mass:10},SceneViewer.scene);
@@ -98,7 +101,17 @@ export class BaseWeapon implements iBaseWeapon{
         // gameObject.addComponent(physicsComponent)
         // gameObject.setActiveComponent(physicsComponent);
         // gameObject.activeComponent = physicsComponent
-        this.mesh.renderingGroupId = 0;
+        let childMeshes = this.mesh.getChildMeshes();
+
+        let collectable = new CollectableComponent('collect-weapon',"Collectable",this.transformNode);
+        this.transformNode.addComponent(collectable);
+        this.transformNode.setActiveComponent(collectable);
+        collectable.canInteract = true;
+        this.mesh.isPickable = true;
+        childMeshes.forEach(mesh => {
+            mesh.renderingGroupId = 0;
+            mesh.isPickable = true;
+        })
 
         // impostor.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition, BABYLON.Quaternion.Identity())
         //this.mesh.setAbsolutePosition(absolutePosition);
@@ -140,22 +153,15 @@ export class FlareGun extends BaseWeapon {
         let container = await ModelLoader.AppendGltfContainer("FlareGun",SceneViewer.scene) as BABYLON.AssetContainer;
         this.mesh = new BABYLON.Mesh('d')
         this.mesh.showBoundingBox = true;
-        this.transformNode = new BABYLON.TransformNode('t-node-flareGun');
+        this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
-        console.log("INNER MESH POS",this.mesh.position);
-        console.log("COLLECTION MESH POS",collection.position);
         collection.parent = this.mesh;
-        // this.mesh.setParent(this.mesh);
         let meshes = container.meshes;
-        // meshes[0].normalizeToUnitCube();
         meshes.forEach(mesh => {
             collection.addChild(mesh);
-            console.log("EACH MESH POS",mesh.position);
-            // mesh.showBoundingBox = true;
         })
 
         let childMeshes = this.mesh.getChildMeshes();
-
         let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
         let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
     
@@ -170,13 +176,6 @@ export class FlareGun extends BaseWeapon {
         let width = max.subtract(min);
         this.mesh.scaling = width;
         this.mesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
-        
-
-        // let box = BABYLON.MeshBuilder.CreateBox('booxx');
-        let mat = new BABYLON.StandardMaterial('few');
-        mat.diffuseColor = new BABYLON.Color3(1,0,0);
-        this.mesh.material = mat;
-
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
             animation.enableBlending = true;
@@ -187,16 +186,16 @@ export class FlareGun extends BaseWeapon {
         // this.mesh.showBoundingBox = true;
 
 
-        this.mesh.parent = SceneViewer.player.pickupZone;
+        this.transformNode.parent = SceneViewer.player.pickupZone;
         this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
         this.mesh.isPickable = false;
         this.mesh.renderingGroupId = 3;
-        // this.mesh.checkCollisions = false;
-        // let children = this.mesh.getChildMeshes();
-        // children.forEach(child => {
-        //     child.renderingGroupId = 3;
-        //     child.checkCollisions = false;
-        // })
+        this.mesh.checkCollisions = false;
+        childMeshes.forEach(child => {
+            child.renderingGroupId = 3;
+            child.isPickable = false;
+            child.checkCollisions = false;
+        })
         this.mesh.position.z = 4;
         this.mesh.position.y = -2;
         this.mesh.position.x = 0.5;
