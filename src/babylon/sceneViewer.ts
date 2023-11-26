@@ -20,7 +20,6 @@ export class SceneViewer {
     static scene:BABYLON.Scene;
 
     static questManager:QuestSystem.QuestManager;
-    static heroMesh:BABYLON.Mesh;
     static pointer:BABYLON.Mesh;
     static engine:BABYLON.Engine;
     static player:Player;
@@ -28,11 +27,13 @@ export class SceneViewer {
     loadedModel:BABYLON.Scene
     currentTarget:number;
     static interactionManager:InteractionManager;
-    static havokPlugin:BABYLON.HavokPlugin;
     static inventory:pInventory;
-
+    
+    // PHYSICS
+    static havokPlugin:BABYLON.HavokPlugin;
     static framesPerSecond:number;
     static gravity:number;
+    static physicsViewer:BABYLON.PhysicsViewer
 
     static tagBillBoard:TagBillboard;
 
@@ -102,7 +103,8 @@ export class SceneViewer {
             SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0),SceneViewer.havokPlugin);
             SceneViewer.havokPlugin.setTimeStep(1 / SceneViewer.scene.getEngine().getFps());
             // PLAYER
-            SceneViewer.player = new Player(SceneViewer.scene);
+            let heroMesh = BABYLON.Mesh.CreateBox('hero-mesh', 2.0, SceneViewer.scene, false, BABYLON.Mesh.FRONTSIDE);
+            SceneViewer.player = new Player("Hero","Hero",SceneViewer.scene,heroMesh,false,"HERO_PLAYER");
             SceneViewer.interactionManager = new InteractionManager();
 
             // CAMERAS
@@ -115,6 +117,7 @@ export class SceneViewer {
             SceneViewer.positionGizmo.updateGizmoRotationToMatchAttachedMesh = false;
             SceneViewer.scaleGizmo.updateGizmoRotationToMatchAttachedMesh = false;
             SceneViewer.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
+            SceneViewer.physicsViewer = new BABYLON.PhysicsViewer(SceneViewer.scene);
 
 
             SceneViewer.setGameMode("Play");
@@ -134,6 +137,7 @@ export class SceneViewer {
             myGround.material = groundMat;
             //groundMat.alpha = 0.01;
             const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10, restitution:0.01 }, SceneViewer.scene);
+            SceneViewer.physicsViewer.showBody(groundAggregate.body)
             groundAggregate.body.setCollisionCallbackEnabled(true);
 
     
@@ -183,20 +187,20 @@ export class SceneViewer {
                 SceneViewer.engine.resize();
             });
 
-            Prefab.CreatePrefab(0).then((vinylObject) => {});
-            Prefab.CreatePrefab(1).then((frogMan) => {});
-            Prefab.CreatePrefab(2).then((ballSocket) => {});
-            Prefab.CreatePrefab(9)
-            Prefab.CreatePrefab(10).then((kickButton) => {})
-            Prefab.CreatePrefab(11).then(() => {})
-            Prefab.CreatePrefab(12).then((hatsButton) => {})
-            Prefab.CreatePrefab(3).then((main_entry_door) => {});
-            Prefab.CreatePrefab(5);
-            Prefab.CreatePrefab(6);
-            Prefab.CreatePrefab(7);
-            Prefab.CreatePrefab(8);
-            Prefab.CreatePrefab(14).then((valve) => {});
-            Prefab.CreatePrefab(13).then((valve) => {});
+            // Prefab.CreatePrefab(0).then((vinylObject) => {});
+            // Prefab.CreatePrefab(1).then((frogMan) => {});
+            // Prefab.CreatePrefab(2).then((ballSocket) => {});
+            // Prefab.CreatePrefab(9)
+            // Prefab.CreatePrefab(10).then((kickButton) => {})
+            // Prefab.CreatePrefab(11).then(() => {})
+            // Prefab.CreatePrefab(12).then((hatsButton) => {})
+            // Prefab.CreatePrefab(3).then((main_entry_door) => {});
+            // Prefab.CreatePrefab(5);
+            // Prefab.CreatePrefab(6);
+            // Prefab.CreatePrefab(7);
+            // Prefab.CreatePrefab(8);
+            // Prefab.CreatePrefab(14).then((valve) => {});
+            // Prefab.CreatePrefab(13).then((valve) => {});
                 
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES

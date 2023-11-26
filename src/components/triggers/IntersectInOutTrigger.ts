@@ -46,14 +46,14 @@ export class IntersectInOutTrigger implements iGameComponent {
             this.enabled = true;
             SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
                 
-                if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh) && this.hasIntersected == false) {
+                if (this.mesh.intersectsMesh(SceneViewer.player.mesh) && this.hasIntersected == false) {
                     this.hasIntersected = true;
                     this.mat.diffuseColor = new BABYLON.Color3(1,0,0);
                     this.fire();            
                     this.disabled = true;
     
                 }
-                else if (!this.mesh.intersectsMesh(SceneViewer.player.heroMesh) && this.hasIntersected == true) {
+                else if (!this.mesh.intersectsMesh(SceneViewer.player.mesh) && this.hasIntersected == true) {
                     this.hasIntersected = false;
                     this.disabled = false;
                     this.fire();

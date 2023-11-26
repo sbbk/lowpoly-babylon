@@ -3,11 +3,10 @@ import { GameObject } from "../components/GameObject";
 import { HandController } from "./HandController";
 import { WeaponController } from "../weapons/WeaponController";
 
-export class Player {
+export class Player extends GameObject {
 
     scene:BABYLON.Scene;
     camera:BABYLON.FreeCamera;
-    heroMesh:BABYLON.Mesh;
     heroPhysicsAgregate:BABYLON.PhysicsAggregate;
     pointer:BABYLON.Mesh;
     pickupZone:BABYLON.Mesh;
@@ -15,8 +14,14 @@ export class Player {
     handController:HandController;
     activeQuests:number[] = [];
     weaponController:WeaponController;
-    constructor(scene:BABYLON.Scene) {
+    constructor(id,name,scene:BABYLON.Scene,mesh,interactable,uid) {
+        super(id,name,scene,mesh,interactable,uid);
+        this.id = id;
+        this.name = name;
         this.scene = scene;
+        this.mesh = mesh;
+        this.interactable = interactable;
+        this.uid = uid;
         this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
         //this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
         this.camera.minZ = 0.1;
@@ -50,9 +55,8 @@ export class Player {
         };
 
         // Hero mesh.
-        this.heroMesh = BABYLON.Mesh.CreateBox('hero-mesh', 2.0, scene, false, BABYLON.Mesh.FRONTSIDE);
-        this.heroMesh.isPickable = false;
-        this.heroMesh.parent = this.camera;
+        this.mesh.isPickable = false;
+        this.mesh.parent = this.camera;
         // this.heroMesh.position.x = 0.0;
         // this.heroMesh.position.y = 1.0;
         // this.heroMesh.position.z = 0.0;

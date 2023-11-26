@@ -34,6 +34,7 @@ export class AudioSequencer  {
 }
 
 export class PlayerLoop implements iGameComponent {
+    // TODO: BUG IN HERE When you quickly enter and leave
 
     name: string = "PlayerAudioLoop";
     id: string;

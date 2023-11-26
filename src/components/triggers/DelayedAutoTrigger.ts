@@ -43,7 +43,7 @@ export class DelayedAutoTrigger implements iGameComponent {
             this.canInteract = true;
             SceneViewer.scene.onBeforeRenderObservable.add(async() => {  
                 
-                if (this.mesh.intersectsMesh(SceneViewer.player.heroMesh)) {
+                if (this.mesh.intersectsMesh(SceneViewer.player.mesh)) {
                     console.log("Intersect")
                     if (this.disabled) {
                         return;

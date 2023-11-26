@@ -31,6 +31,8 @@ export class PhysicsComponent implements iGameComponent {
         this.mass = mass;
         this.parent = this.mesh.parent as GameObject;
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.1, friction: 10 }, SceneViewer.scene);
+        SceneViewer.physicsViewer.showBody(this.physicsAggregate.body)
+
         this.physicsAggregate.body.disablePreStep = false;
         this.collideSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/impact/body_medium_impact_soft7.wav',import.meta.url).pathname,SceneViewer.scene);
         SceneViewer.havokPlugin.setCollisionCallbackEnabled(this.physicsAggregate.body,true);

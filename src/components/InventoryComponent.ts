@@ -124,7 +124,7 @@ export class pInventory {
 
 
         if (!this.items[index].item) return;
-        this.items[index].item.getComponent("Collectable").renderToScene(SceneViewer.heroMesh.position.clone());
+        this.items[index].item.getComponent("Collectable").renderToScene(SceneViewer.player.mesh.position.clone());
         this.items[index].removeItem();
         this.amount -= 1;
 

@@ -7,6 +7,7 @@ export namespace KeyboardShortcuts {
         static Weapon2:string = "3";
         static Weapon3:string = "4";
         static Weapon4:string = "5";
+        static DropCurrent:string = "g";
 
     }
 

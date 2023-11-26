@@ -30,6 +30,14 @@ export function findGameObjectParent(mesh: BABYLON.AbstractMesh): GameObject | n
     return findGameObjectParent(mesh.parent as BABYLON.AbstractMesh);
 }
 
+export enum iMaterial {
+
+    CONCRETE = "CONCRETE",
+    GRASS = "GRASS",
+    FLESH = "FLESH",
+    METAL = "METAL"
+
+}
 
 export interface iGameComponent {
 
@@ -57,6 +65,11 @@ export class GameObject extends BABYLON.TransformNode {
     id: string;
     mesh?: BABYLON.Mesh | BABYLON.AbstractMesh;
     icon?: string;
+    maxHitPoints:number;
+    currentHitPoints:number;
+    invisible:boolean;
+    indestructable:boolean;
+    material:iMaterial;
     physicsAggregate: BABYLON.PhysicsAggregate;
     components: iGameComponent[];
     activeComponent: iGameComponent;
@@ -71,6 +84,7 @@ export class GameObject extends BABYLON.TransformNode {
         this.uid = uid ? uid : uuidv4();
         this.mesh = mesh;
         this.mesh.name = name;
+        this.maxHitPoints = null;
         this.mesh.parent = this;
         this.components = [];
         this.interactable = interactable;
