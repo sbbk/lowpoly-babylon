@@ -137,7 +137,7 @@ export class SceneViewer {
             myGround.material = groundMat;
             //groundMat.alpha = 0.01;
             const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10, restitution:0.01 }, SceneViewer.scene);
-            SceneViewer.physicsViewer.showBody(groundAggregate.body)
+            // SceneViewer.physicsViewer.showBody(groundAggregate.body)
             groundAggregate.body.setCollisionCallbackEnabled(true);
 
     

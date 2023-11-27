@@ -12,7 +12,7 @@ import { ConversationComponent } from "../components/ConversationComponent";
 
 export interface iBaseWeapon {
 
-    fire:() => void;
+    fire:(whoFired:Player) => void;
     stopFire:() => void;
     reload:() => Promise<void>;
     onHit:() => void;
@@ -21,6 +21,7 @@ export interface iBaseWeapon {
     name:string
     UID:string;
     projectile:BABYLON.Mesh;
+    physicsAggregate: BABYLON.PhysicsAggregate;
     reloadTime:number;
     velocity:number;
     spread:number;
@@ -58,7 +59,7 @@ export class BaseWeapon implements iBaseWeapon{
         this.canBeDropped = true;
     }
 
-    fire() {}
+    fire(whoFired:Player) {}
     stopFire() {
 
     }
@@ -74,7 +75,6 @@ export class BaseWeapon implements iBaseWeapon{
 
     }
     onEquip() {
-        this.mesh.showBoundingBox = true;
 
     }
     onUnequip() {}
@@ -90,19 +90,8 @@ export class BaseWeapon implements iBaseWeapon{
         this.mesh.rotationQuaternion = quatRotation;
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh,BABYLON.PhysicsShapeType.BOX,{mass:10},SceneViewer.scene);
         this.physicsAggregate.body.disablePreStep = false;
-        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-        let pb = this.physicsAggregate.transformNode.getPhysicsBody();
-        console.log("PB",pb);
-        console.log("Body",this.physicsAggregate.body);
         SceneViewer.physicsViewer.showBody(this.physicsAggregate.body);
-        // let gameObject = new GameObject('weapon','weapon',SceneViewer.scene,this.mesh,true);
-        // let physicsComponent = new PhysicsComponent("Physics",this.mesh,1);
-        // physicsComponent.canInteract = true;
-        // gameObject.addComponent(physicsComponent)
-        // gameObject.setActiveComponent(physicsComponent);
-        // gameObject.activeComponent = physicsComponent
         let childMeshes = this.mesh.getChildMeshes();
-
         let collectable = new CollectableComponent('collect-weapon',"Collectable",this.transformNode);
         this.transformNode.addComponent(collectable);
         this.transformNode.setActiveComponent(collectable);
@@ -112,9 +101,6 @@ export class BaseWeapon implements iBaseWeapon{
             mesh.renderingGroupId = 0;
             mesh.isPickable = true;
         })
-
-        // impostor.body.setTargetTransform(SceneViewer.player.pickupZone.absolutePosition, BABYLON.Quaternion.Identity())
-        //this.mesh.setAbsolutePosition(absolutePosition);
     }
     playAnimation(index:number,loop:boolean) {
         if (!this.animations[index]) return;
@@ -152,7 +138,6 @@ export class FlareGun extends BaseWeapon {
     async init() {
         let container = await ModelLoader.AppendGltfContainer("FlareGun",SceneViewer.scene) as BABYLON.AssetContainer;
         this.mesh = new BABYLON.Mesh('d')
-        this.mesh.showBoundingBox = true;
         this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
         collection.parent = this.mesh;
@@ -181,12 +166,7 @@ export class FlareGun extends BaseWeapon {
             animation.enableBlending = true;
             animation.stop();
         })
-
-    
-        // this.mesh.showBoundingBox = true;
-
-
-        this.transformNode.parent = SceneViewer.player.pickupZone;
+        this.transformNode.parent = SceneViewer.player.camera;
         this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
         this.mesh.isPickable = false;
         this.mesh.renderingGroupId = 3;
@@ -196,10 +176,11 @@ export class FlareGun extends BaseWeapon {
             child.isPickable = false;
             child.checkCollisions = false;
         })
-        this.mesh.position.z = 4;
-        this.mesh.position.y = -2;
-        this.mesh.position.x = 0.5;
-        this.mesh.rotation.y = -Math.PI / 2;
+        this.mesh.position.z = 3;
+        this.mesh.position.y = -0.5;
+        this.mesh.position.x = 1;
+        this.mesh.rotation.y = -Math.PI / 1.7;
+        this.mesh.rotation.z = 0.09;
         // this.mesh.setEnabled(false);
 
     }
@@ -214,13 +195,13 @@ export class Hand extends BaseWeapon {
     declare animations:BABYLON.AnimationGroup[];
     constructor() {
         super();
-        this.canBeDropped = true;
+        this.canBeDropped = false;
     }
     
-    fire() {
+    fire(whoFired:Player) {
         console.log("Fire",SceneViewer.activeComponent);
         if (SceneViewer.activeComponent) {
-            SceneViewer.activeComponent.interact()
+            SceneViewer.activeComponent.interact(whoFired)
         }
         this.playAnimation(0,false);
     }
@@ -242,36 +223,55 @@ export class Hand extends BaseWeapon {
 
     async init() {
         let container = await ModelLoader.AppendGltfContainer("Knife",SceneViewer.scene) as BABYLON.AssetContainer
-        let innerMesh = new BABYLON.Mesh('container-hands');
-        this.mesh = new BABYLON.TransformNode('t-node-hands');
-        innerMesh.setParent(this.mesh);
+        this.mesh = new BABYLON.Mesh('d')
+        this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
+        let collection = new BABYLON.Mesh('collection');
+        collection.parent = this.mesh;
         let meshes = container.meshes;
         meshes.forEach(mesh => {
-            innerMesh.addChild(mesh);
-            // mesh.showBoundingBox = true;
+            collection.addChild(mesh);
         })
-        this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh,BABYLON.PhysicsShapeType.BOX,{mass:10},SceneViewer.scene);
-        this.physicsAggregate.body.disablePreStep = false;
-        this.physicsAggregate.body.setMotionType(BABYLON.PhysicsMotionType.DYNAMIC);
-        SceneViewer.physicsViewer.showBody(this.physicsAggregate.body);
-        let pb = this.physicsAggregate.transformNode.getPhysicsBody();
+
+        let childMeshes = this.mesh.getChildMeshes();
+        let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+        let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+    
+        for(let i=0; i<childMeshes.length; i++){
+            let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+            let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+    
+            min = BABYLON.Vector3.Minimize(min, meshMin);
+            max = BABYLON.Vector3.Maximize(max, meshMax);
+        }
+
+        let width = max.subtract(min);
+        this.mesh.scaling = width;
+        this.mesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
             animation.enableBlending = true;
             animation.stop();
         })
-
-        // this.mesh.parent = SceneViewer.camera;
-        // this.playAnimation(1,true)
+        this.transformNode.parent = SceneViewer.player.camera;
+        this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
+        this.mesh.isPickable = false;
+        this.mesh.renderingGroupId = 3;
+        this.mesh.checkCollisions = false;
+        childMeshes.forEach(child => {
+            child.renderingGroupId = 3;
+            child.isPickable = false;
+            child.checkCollisions = false;
+        })
         this.mesh.scaling = new BABYLON.Vector3(4,4,4);
         this.mesh.renderingGroupId = 3;
         let children = this.mesh.getChildMeshes();
         children.forEach(child => {
             child.renderingGroupId = 3;
         })
-        // innerMesh.position.z = 2;
-        // innerMesh.position.y = -6;
+        this.mesh.position.z = 1;
+        this.mesh.position.y = -6;
         this.mesh.setEnabled(false);
+        this.playAnimation(1,true);
     }
 
 }
@@ -293,7 +293,9 @@ export class WeaponController {
         await hand.init();
         await flareGun.init();
         this.availableWeapons = [hand,flareGun];
-        console.log("Available",this.availableWeapons)
+        this.availableWeapons.forEach(weapon => {
+            weapon.mesh.setEnabled(false);
+        })
         this.equip(0);
 
     }
@@ -309,7 +311,7 @@ export class WeaponController {
 
     fire() {
         console.log("Fire weapon")
-        this.equippedWeapon.fire();
+        this.equippedWeapon.fire(this.player);
 
     }
     equip(index:number) {

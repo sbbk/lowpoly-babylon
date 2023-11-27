@@ -38,7 +38,7 @@ export class InteractionManager {
                         // // Return if we can't interact right now.
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
                         SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
-                        SceneViewer.player.weaponController.equippedWeapon.fire();
+                        SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
 
                         // if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
                         //     SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
