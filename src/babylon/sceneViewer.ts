@@ -187,20 +187,20 @@ export class SceneViewer {
                 SceneViewer.engine.resize();
             });
 
-            // Prefab.CreatePrefab(0).then((vinylObject) => {});
-            // Prefab.CreatePrefab(1).then((frogMan) => {});
-            // Prefab.CreatePrefab(2).then((ballSocket) => {});
-            // Prefab.CreatePrefab(9)
-            // Prefab.CreatePrefab(10).then((kickButton) => {})
-            // Prefab.CreatePrefab(11).then(() => {})
-            // Prefab.CreatePrefab(12).then((hatsButton) => {})
-            // Prefab.CreatePrefab(3).then((main_entry_door) => {});
-            // Prefab.CreatePrefab(5);
-            // Prefab.CreatePrefab(6);
-            // Prefab.CreatePrefab(7);
-            // Prefab.CreatePrefab(8);
-            // Prefab.CreatePrefab(14).then((valve) => {});
-            // Prefab.CreatePrefab(13).then((valve) => {});
+            Prefab.CreatePrefab(0).then((vinylObject) => {});
+            Prefab.CreatePrefab(1).then((frogMan) => {});
+            Prefab.CreatePrefab(2).then((ballSocket) => {});
+            Prefab.CreatePrefab(9)
+            Prefab.CreatePrefab(10).then((kickButton) => {})
+            Prefab.CreatePrefab(11).then(() => {})
+            Prefab.CreatePrefab(12).then((hatsButton) => {})
+            Prefab.CreatePrefab(3).then((main_entry_door) => {});
+            Prefab.CreatePrefab(5);
+            Prefab.CreatePrefab(6);
+            Prefab.CreatePrefab(7);
+            Prefab.CreatePrefab(8);
+            Prefab.CreatePrefab(14).then((valve) => {});
+            Prefab.CreatePrefab(13).then((valve) => {});
                 
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES
