@@ -29,32 +29,27 @@ export class DoorComponent implements iGameComponent {
     disableSFX:BABYLON.Sound;
 
 
-    constructor(openDirection:openDirection,openType:openType,rootMesh:BABYLON.Mesh,id?:string) {
+    constructor(openDirection:openDirection,openType:openType,mesh:BABYLON.Mesh,id?:string) {
 
         this.id = id ? id : new uuidv4();
         console.log("DOOR ID",this.id);
         this.height = 4;
         this.width = 2;
         this.depth = 0.2;
+        this.mesh = mesh;
+        this.mesh.scaling = new BABYLON.Vector3(0.7,0.7,0.7)
+        this.mesh.rotation.y = Math.PI / 2
         this.openDirection = openDirection
         this.openType = openType
         this.isOpen = false;
         this.canInteract = true;
         this.enabled = false;
-        this.rootMesh = rootMesh;
-        this.mesh = BABYLON.MeshBuilder.CreateBox('door',{width:this.width,height:this.height,depth:this.depth});
-        this.mesh.parent = this.rootMesh;
         this.interactSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-interact-1.wav',import.meta.url).pathname,SceneViewer.scene);
         this.disabledSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-disabled-1.wav',import.meta.url).pathname,SceneViewer.scene);
         this.enableSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-enable-1.wav',import.meta.url).pathname,SceneViewer.scene);
         this.disableSFX = new BABYLON.Sound('collide-sfx',new URL('../media/audio/sfx/environment/door/door-disable-1.wav',import.meta.url).pathname,SceneViewer.scene);
 
-        
-        // DEBUG COLOUR
-        this.material = new BABYLON.StandardMaterial('doormat');
-        this.material.diffuseColor = new BABYLON.Color3(0,1,0);
-        this.mesh.material = this.material;
-
+    
         let pivot:BABYLON.Vector3;
         switch(this.openDirection) {
             case "left":
@@ -148,7 +143,6 @@ export class DoorComponent implements iGameComponent {
         // this.open();
         this.enableSFX.play();
         this.enabled = true;
-        this.material.diffuseColor = new BABYLON.Color3(0,1,0);
 
     }
     disable() {
@@ -156,8 +150,6 @@ export class DoorComponent implements iGameComponent {
         // this.close();
         this.disableSFX.play();
         this.enabled = false;
-        this.material.diffuseColor = new BABYLON.Color3(1,0,0);
-
     }
     renderToScene(position?: BABYLON.Vector3) {
 

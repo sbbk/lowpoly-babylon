@@ -60,6 +60,7 @@ export namespace ModelLoader {
     const vinylSingle = new URL('./items/vinyl-single.glb', import.meta.url).pathname;
     const onion = new URL('./items/onion.glb', import.meta.url).pathname;
     const valve = new URL('./valve.glb', import.meta.url).pathname;
+    const metaldoor = new URL('../doors/door2.glb', import.meta.url).pathname;
 
 
     // Weapons
@@ -71,7 +72,7 @@ export namespace ModelLoader {
     export var LoadedModel: BABYLON.AbstractMesh;
 
     export type models = "Scene" | "CityScene" | "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
-        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun" | "Knife" | "Valve";
+        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun" | "Knife" | "Valve" | "Door";
 
     export function generateList(): models[] {
 
@@ -85,6 +86,8 @@ export namespace ModelLoader {
         switch (model) {
             case "FlareGun":
                 return flareGun;
+            case "Door":
+                return metaldoor;
             case "Valve":
                 return valve;
             case "Knife":
@@ -471,6 +474,8 @@ export namespace ModelLoader {
                     }
                 })
 
+
+                
                 let childMeshes = root.getChildMeshes();
                 let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
                 let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
@@ -491,30 +496,25 @@ export namespace ModelLoader {
                 mat.alpha = 0.0;
                 mat.alphaMode = BABYLON.Engine.ALPHA_COMBINE;
 
-                let centerX = (min.x + max.x) / 2;
-                let centerY = (min.y + max.y) / 2;
-                let centerZ = (min.z + max.z) / 2;
-
                 let box = BABYLON.MeshBuilder.CreateBox('collider');
-                box.setParent(root);
                 box.material = mat;
-                box.scaling = scaling;
                 box.material.backFaceCulling = true;
                 box.checkCollisions = true;
                 box.isPickable = true;
                 box.onBeforeRenderObservable.add(() => {
                     SceneViewer.engine.setStencilBuffer(false);
-                });
-
-                // Create a vector from the coordinates
-                let center = new BABYLON.Vector3(centerX, centerY, centerZ);
-                box.setPivotPoint(center)
-
+                });      
 
                 root.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
-
+                box.setParent(root);
+                let centerX = (min.x + max.x) / 2;
+                let centerY = (min.y + max.y) / 2;
+                let centerZ = (min.z + max.z) / 2;
+                let center = new BABYLON.Vector3(centerX, centerY, centerZ);
+                box.position = center;
+                box.scaling = scaling;
+                box.showBoundingBox = true;
                 root.checkCollisions = true;
-                //root.showBoundingBox = true;
                 root.renderingGroupId = 0;
 
                 resolve(root);

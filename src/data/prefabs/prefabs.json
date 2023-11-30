@@ -95,9 +95,10 @@
         "id":"3",
         "uid":"main_entry_door",
         "name" : "Door",
+        "mesh": "Door",
         "interactable":true,
         "icon":null,
-        "position":[8,-18,0],
+        "position":[8,-19,0],
         "scale":[1,1,1],
         "rotation":[0,0,0],    
         "components": [

@@ -194,10 +194,11 @@ export class SceneViewer {
             Prefab.CreatePrefab(10).then((kickButton) => {})
             Prefab.CreatePrefab(11).then(() => {})
             Prefab.CreatePrefab(12).then((hatsButton) => {})
-            Prefab.CreatePrefab(3).then((main_entry_door) => {});
+            Prefab.CreatePrefab(3).then((main_entry_door) => {
+                Prefab.CreatePrefab(6);
+                Prefab.CreatePrefab(7);
+            });
             Prefab.CreatePrefab(5);
-            Prefab.CreatePrefab(6);
-            Prefab.CreatePrefab(7);
             Prefab.CreatePrefab(8);
             Prefab.CreatePrefab(14).then((valve) => {});
             Prefab.CreatePrefab(13).then((valve) => {});
