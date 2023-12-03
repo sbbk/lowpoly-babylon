@@ -21,7 +21,7 @@ export class DropdownToggle implements JSXComponent {
     render(children: JSXElement[]): JSXElement {
         this.content = <div class="dropdown-content">{children}</div> as HTMLElement
         return <div class="dropdown-wrapper" >
-            <div class="dropdown-header" onclick={() => {this.toggle()}}><h2 class="dropdown-title">{this.title}</h2><h2>v</h2></div>
+            <div class="dropdown-header" onclick={() => {this.toggle()}}><h3 class="dropdown-title">{this.title}</h3><h3>v</h3></div>
             {this.content}
             </div>
     }

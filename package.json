@@ -26,10 +26,12 @@
     "earcut": "^2.2.4",
     "three": "^0.156.1",
     "tone": "^14.7.77",
-    "uuid": "^9.0.1"
+    "uuid": "^9.0.1",
+    "vue": "^3.3.9"
   },
   "devDependencies": {
     "@parcel/transformer-sass": "^2.9.3",
+    "@parcel/transformer-vue": "^2.9.3",
     "@types/node": "^20.7.1",
     "@vertx/jsx": "^1.0.0",
     "buffer": "^6.0.3",

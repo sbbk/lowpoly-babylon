@@ -2,8 +2,17 @@ import { findGameObjectByUID, iGameComponent } from "../components/GameObject";
 import { Prefab } from "../data/prefabs/CreatePrefab";
 import { delayFunc } from "../utility/utilities";
 
-export type eventType = "USE" | "SPAWN" | "KILL" | "ENABLE" | "DISABLE" | "TOGGLE" | "TOGGLETOFROM" | "USEWITHARGS"
+export enum eventType{
+USE = "USE",
+SPAWN = "SPAWN",
+KILL = "KILL",
+ENABLE = "ENABLE",
+DISABLE = "DISABLE",
+TOGGLE = "TOGGLE",
+TOGGLETOFROM = "TOGGLETOFROM",
+UESWITHARGS = "USEWITHARGS" }
 export type triggerTypes = "Component" | "Spawn"
+
 
 export interface iComponentEventArgs {
     min:number,
@@ -22,6 +31,7 @@ export interface EventTrigger {
 
 export namespace EventHandler {
 
+    
     export class ComponentEventTrigger implements EventTrigger {
 
         type: eventType;
@@ -49,16 +59,16 @@ export namespace EventHandler {
             console.log("HEY",this.type,this.targetComponent);
 
             switch (this.type) {
-                case "USE":
+                case eventType.USE:
                     this.targetComponent.interact();
                     break;
-                case "USEWITHARGS":
+                case eventType.UESWITHARGS:
                     this.targetComponent.interact(args);
                     break;
-                case "ENABLE":
+                case eventType.ENABLE:
                     this.targetComponent.enable();
                     break;
-                case "TOGGLE":
+                case eventType.TOGGLE:
                     switch(this.targetComponent.enabled) {
                         case true:
                             console.log("Disable")
@@ -70,7 +80,7 @@ export namespace EventHandler {
                             break;
                     }
                     break;
-                case "TOGGLETOFROM":
+                case eventType.TOGGLETOFROM:
                     switch(this.targetComponent.enabled) {
                     case true:
                         this.targetComponent.disable();
@@ -84,13 +94,13 @@ export namespace EventHandler {
                         break;
                 }
                 break;
-                case "DISABLE":
+                case eventType.DISABLE:
                     this.targetComponent.disable();
                     break;
-                case "KILL":
+                case eventType.KILL:
                     this.targetComponent.destroy();
                     break;
-                case "SPAWN":
+                case eventType.SPAWN:
                     this.targetComponent.renderToScene();
                     break;
             }
@@ -99,7 +109,7 @@ export namespace EventHandler {
     }
     export class SpawnEventTrigger implements EventTrigger {
 
-        type: eventType = "SPAWN";
+        type: eventType = eventType.SPAWN;
         parentComponent:iGameComponent;
         prefabID: number;
         position: number[];

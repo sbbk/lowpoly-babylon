@@ -144,36 +144,36 @@ export class SceneViewer {
             let graphics = new GraphicsConfig();
     
             // HARDWARE SCALING
-            let hardwareScalingInput = document.getElementById("hardware-scaling-range") as HTMLInputElement;
-            hardwareScalingInput.value = GraphicsConfig.hardwareScaling.toString();
-            console.log(GraphicsConfig.hardwareScaling);
-            hardwareScalingInput.addEventListener('input',() =>{
-                GraphicsConfig.setValue("hardwareScaling",parseFloat(hardwareScalingInput.value));
-                SceneViewer.engine.setHardwareScalingLevel(GraphicsConfig.hardwareScaling);
-                console.log(GraphicsConfig.hardwareScaling);
-            })
+            // let hardwareScalingInput = document.getElementById("hardware-scaling-range") as HTMLInputElement;
+            // hardwareScalingInput.value = GraphicsConfig.hardwareScaling.toString();
+            // console.log(GraphicsConfig.hardwareScaling);
+            // hardwareScalingInput.addEventListener('input',() =>{
+            //     GraphicsConfig.setValue("hardwareScaling",parseFloat(hardwareScalingInput.value));
+            //     SceneViewer.engine.setHardwareScalingLevel(GraphicsConfig.hardwareScaling);
+            //     console.log(GraphicsConfig.hardwareScaling);
+            // })
     
-            // JITTER
-            let jitterInput = document.getElementById("jitter-level-range") as HTMLInputElement;
-            jitterInput.value = GraphicsConfig.jitterAmplitude.toString();
-            jitterInput.addEventListener('input',() =>{
-                GraphicsConfig.setValue("jitterAmplitude",parseFloat(jitterInput.value));
-            })
+            // // JITTER
+            // let jitterInput = document.getElementById("jitter-level-range") as HTMLInputElement;
+            // jitterInput.value = GraphicsConfig.jitterAmplitude.toString();
+            // jitterInput.addEventListener('input',() =>{
+            //     GraphicsConfig.setValue("jitterAmplitude",parseFloat(jitterInput.value));
+            // })
     
-            // DITHER
-            let ditherLightnessInput = document.getElementById("dither-lightness-range") as HTMLInputElement;
-            ditherLightnessInput.value = GraphicsConfig.ditherLightenFactor.toString();
-            ditherLightnessInput.addEventListener('input',() =>{
-                GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherLightnessInput.value));
-                SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
-            })
-            let ditherDarknessInput = document.getElementById("dither-darkness-range") as HTMLInputElement;
-            ditherDarknessInput.value = GraphicsConfig.ditherDarkenFactor.toString();
-            ditherDarknessInput.addEventListener('input',() =>{
-                GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherDarknessInput.value));
-                SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
+            // // DITHER
+            // let ditherLightnessInput = document.getElementById("dither-lightness-range") as HTMLInputElement;
+            // ditherLightnessInput.value = GraphicsConfig.ditherLightenFactor.toString();
+            // ditherLightnessInput.addEventListener('input',() =>{
+            //     GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherLightnessInput.value));
+            //     SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
+            // })
+            // let ditherDarknessInput = document.getElementById("dither-darkness-range") as HTMLInputElement;
+            // ditherDarknessInput.value = GraphicsConfig.ditherDarkenFactor.toString();
+            // ditherDarknessInput.addEventListener('input',() =>{
+            //     GraphicsConfig.setValue("ditcherDarkenRatio",parseFloat(ditherDarknessInput.value));
+            //     SceneViewer.scene.markAllMaterialsAsDirty(BABYLON.Constants.MATERIAL_AllDirtyFlag);
     
-            })
+            // })
     
             this.fileLoader = new GLTFFileLoader();    
                 

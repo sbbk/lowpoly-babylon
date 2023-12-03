@@ -10,7 +10,15 @@ body {
     height:100vh;
     font-family: 'JetBrainsMono-Regular';
     color:white;
+    background:darkslateblue;
     overflow: hidden;
+}
+dialog {
+    background:none;
+    border:none;
+}
+h1,h2,h3,h4,h5,h6 {
+    margin:0;
 }
 
 button {
@@ -40,6 +48,7 @@ canvas {
     height:100%;
     background:darkslateblue;
     padding:1rem;
+    margin-top:1rem;
 }
 
 .pInventory {

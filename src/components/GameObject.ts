@@ -3,6 +3,7 @@ export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Tal
 | "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger" | "Valve" | "Lift";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
+import { EventTrigger } from "~/triggers/EventTrigger";
 
 export function findGameObject(id:string) {
 
@@ -48,6 +49,7 @@ export interface iGameComponent {
     mesh?: BABYLON.Mesh;
     label?:string;
     canInteract: boolean;
+    trigger?:EventTrigger;
     enabled:boolean;
     init: () => void;
     interact: (args?:any) => void;

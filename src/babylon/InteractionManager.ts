@@ -45,22 +45,7 @@ export class InteractionManager {
 
     registerBuildPointers() {
 
-        let posX = document.getElementById("posx") as HTMLInputElement;
-        let posY = document.getElementById("posy") as HTMLInputElement;
-        let posZ = document.getElementById("posz") as HTMLInputElement;
-        let rotX = document.getElementById("rotx") as HTMLInputElement;
-        let rotY = document.getElementById("roty") as HTMLInputElement;
-        let rotZ = document.getElementById("rotz") as HTMLInputElement;
-        let scaX = document.getElementById("scax") as HTMLInputElement;
-        let scaY = document.getElementById("scay") as HTMLInputElement;
-        let scaZ = document.getElementById("scaz") as HTMLInputElement;
-        
         let buildActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
-
-            // DEBUGS.
-            let activeTargetTracker = document.getElementById('active-target-tracker');
-            let activeComponentTracker = document.getElementById('active-component-tracker');
-            let componentDetailArea = document.getElementById('component-details-area');
 
             let bubbleParent = (mesh) => {
                 while (mesh.parent !== null) {
@@ -82,37 +67,10 @@ export class InteractionManager {
                         SceneViewer.positionGizmo.attachedNode = foundParent;
                         SceneViewer.scaleGizmo.attachedNode = foundParent;
                         SceneViewer.rotationGizmo.attachedNode = foundParent;
-                        
-                        // if (foundParent) {
 
-                        //     activeTargetTracker.innerText = foundParent.name;
-                        //     activeComponentTracker.innerText = foundParent.activeComponent.type;
-                            
+                        let gameObjectSelected = new CustomEvent("BuildMode:GameObjectSelected", { detail: { id:foundParent.uid } })
+                        document.dispatchEvent(gameObjectSelected);
     
-                        //     // MOVE ALL THIS SHIT.
-                        //     componentDetailArea.innerHTML = "";
-                        //     switch(foundParent.activeComponent.type) {
-    
-                        //         case "Talkable":
-                        //             let component = foundParent.activeComponent as ConversationComponent;
-                        //             component.conversationLines.forEach(line => {
-                        //                 let lineElem = document.createElement('h5');
-                        //                 lineElem.textContent = line;
-                        //                 componentDetailArea.appendChild(lineElem);
-                        //             })
-                        //             break;
-                        //     }
-                        // }
-
-                        posX.value = pickedMesh.position.x.toString()
-                        posY.value = pickedMesh.position.y.toString()
-                        posZ.value = pickedMesh.position.z.toString()
-                        rotX.value = pickedMesh.rotation.x.toString()
-                        rotY.value = pickedMesh.rotation.y.toString()
-                        rotZ.value = pickedMesh.rotation.z.toString()
-                        scaX.value = pickedMesh.scaling.x.toString()
-                        scaY.value = pickedMesh.scaling.y.toString()
-                        scaZ.value = pickedMesh.scaling.z.toString()
 
                     }
                     else {
