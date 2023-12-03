@@ -5,10 +5,8 @@ import { SceneViewer } from "../babylon/sceneViewer";
 import { ModelLoader } from "../media/models/modelImporter";
 import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 import { GameObject } from "../components/GameObject";
-import { PhysicsComponent } from "../components/PhysicsComponents";
 import { v4 as uuidv4 } from 'uuid';
 import { CollectableComponent, CollectableType } from "../components/CollectableComponent";
-import { ConversationComponent } from "../components/ConversationComponent";
 
 export enum WeaponType {
 
@@ -227,6 +225,7 @@ export class Hand extends BaseWeapon {
 
     async init() {
         let container = await ModelLoader.AppendGltfContainer("Knife",SceneViewer.scene) as BABYLON.AssetContainer
+        // TODO : All of this shit needs to be moved into the ModelLoader, but I need the container for now. Should make a loaded model class.
         this.mesh = new BABYLON.Mesh('d')
         this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
@@ -324,6 +323,7 @@ export class WeaponController {
                 pickedUpWeapon = hands;
                 break;
         }
+        // TODO : This needs to equip the picked up weapon later. But done with messing with this for now.
         this.equip(this.availableWeapons.length -1);
     }
 

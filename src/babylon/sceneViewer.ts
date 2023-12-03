@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core"
 import { GLTFFileLoader } from "@babylonjs/loaders";
-import { GraphicsConfig } from "../media/models/modelImporter";
+import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import HavokPhysics from "@babylonjs/havok";
 import { QuestSystem } from "../components/Quest"
 import { Prefab } from "../data/prefabs/CreatePrefab";
@@ -10,6 +10,7 @@ import { Player } from "../player/Player";
 import { TagBillboard } from "../gui/TagBillboard";
 import { GameObjectParser } from "../data/GameObjectParser";
 import { InteractionManager } from "./InteractionManager";
+import { PrefabSpawner } from "../builder/PrefabSpawner";
 const items = require("../data/prefabs/prefabs.json");
 
 export type GameMode = "Play" | "Build"
@@ -52,9 +53,6 @@ export class SceneViewer {
     static highlightDistance:number;
     static interactDistance:number;
 
-    // DEBUG
-    static distanceTracker:HTMLElement;
-
     // Modes & Observers
     static GameMode:GameMode;
 
@@ -86,7 +84,6 @@ export class SceneViewer {
         SceneViewer.highlightedMeshes = [];
         SceneViewer.highlightDistance = 15;
         SceneViewer.interactDistance = 10;
-        SceneViewer.distanceTracker = document.getElementById('distance-tracker') as HTMLElement;
         this.initSkyBox();
 
         window['gameObjects'] = SceneViewer.gameObjects;
@@ -118,6 +115,7 @@ export class SceneViewer {
             SceneViewer.scaleGizmo.updateGizmoRotationToMatchAttachedMesh = false;
             SceneViewer.rotationGizmo.updateGizmoRotationToMatchAttachedMesh = false;
             SceneViewer.physicsViewer = new BABYLON.PhysicsViewer(SceneViewer.scene);
+            let spawner = new PrefabSpawner();
 
 
             SceneViewer.setGameMode("Play");
@@ -187,21 +185,25 @@ export class SceneViewer {
                 SceneViewer.engine.resize();
             });
 
-            Prefab.CreatePrefab(0).then((vinylObject) => {});
-            Prefab.CreatePrefab(1).then((frogMan) => {});
-            Prefab.CreatePrefab(2).then((ballSocket) => {});
-            Prefab.CreatePrefab(9)
-            Prefab.CreatePrefab(10).then((kickButton) => {})
-            Prefab.CreatePrefab(11).then(() => {})
-            Prefab.CreatePrefab(12).then((hatsButton) => {})
-            Prefab.CreatePrefab(3).then((main_entry_door) => {
-                Prefab.CreatePrefab(6);
-                Prefab.CreatePrefab(7);
-            });
-            Prefab.CreatePrefab(5);
-            Prefab.CreatePrefab(8);
-            Prefab.CreatePrefab(14).then((valve) => {});
-            Prefab.CreatePrefab(13).then((valve) => {});
+            // Prefab.CreatePrefab(0).then((vinylObject) => {});
+            // Prefab.CreatePrefab(1).then((frogMan) => {});
+            // Prefab.CreatePrefab(2).then((ballSocket) => {});
+            // Prefab.CreatePrefab(9)
+            // Prefab.CreatePrefab(10).then((kickButton) => {})
+            // Prefab.CreatePrefab(11).then(() => {})
+            // Prefab.CreatePrefab(12).then((hatsButton) => {})
+            // Prefab.CreatePrefab(3).then((main_entry_door) => {
+            //     Prefab.CreatePrefab(6);
+            //     Prefab.CreatePrefab(7);
+            // });
+            // Prefab.CreatePrefab(5);
+            // Prefab.CreatePrefab(8);
+            // Prefab.CreatePrefab(14).then((valve) => {});
+            // Prefab.CreatePrefab(13).then((valve) => {});
+
+            // ModelLoader.AppendModel("ArcadeMachine",SceneViewer.scene);
+            // ModelLoader.AppendModel("SmallCity",SceneViewer.scene);
+            // ModelLoader.AppendModel("VendingMachine",SceneViewer.scene);
                 
             BABYLON.Effect.ShadersStore["customFragmentShader"] = `
             #ifdef GL_ES

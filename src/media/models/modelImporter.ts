@@ -67,12 +67,20 @@ export namespace ModelLoader {
     const flareGun = new URL('./flare_gun1.glb', import.meta.url).pathname;
     const knife = new URL('./knife.glb', import.meta.url).pathname;
 
+    // Environment
+    const pacmanArcade = new URL('./environment/pacman-arcade.glb', import.meta.url).pathname;
+    const vendingMachine = new URL('./environment/vending-machine.glb', import.meta.url).pathname;
+    const station = new URL('./environment/station.glb', import.meta.url).pathname;
+    const smallCity = new URL('./environment/small_city_environment.glb', import.meta.url).pathname;
+
 
     export var LoadedModels: BABYLON.AbstractMesh[] = [];
     export var LoadedModel: BABYLON.AbstractMesh;
 
     export type models = "Scene" | "CityScene" | "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
-        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | "Onion" | "FlareGun" | "Knife" | "Valve" | "Door";
+        "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | 
+        "Onion" | "FlareGun" | "Knife" | "Valve" | "Door" |
+        "Station" | "VendingMachine" | "ArcadeMachine" | "SmallCity";
 
     export function generateList(): models[] {
 
@@ -88,6 +96,14 @@ export namespace ModelLoader {
                 return flareGun;
             case "Door":
                 return metaldoor;
+            case "SmallCity":
+                return smallCity;
+            case "Station":
+                return station;
+            case "ArcadeMachine":
+                return pacmanArcade;
+            case "VendingMachine":
+                return vendingMachine;
             case "Valve":
                 return valve;
             case "Knife":

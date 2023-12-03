@@ -1,6 +1,5 @@
 import { GameObject, findGameObjectParent } from "../components/GameObject";
 import { SceneViewer } from "./sceneViewer";
-import { ConversationComponent } from "../components/ConversationComponent";
 import * as BABYLON from "@babylonjs/core"
 
 export class InteractionManager {
@@ -12,21 +11,10 @@ export class InteractionManager {
     registerPlayerPointers() {
         let playerActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
 
-            // DEBUGS.
-            let activeTargetTracker = document.getElementById('active-target-tracker');
-            if (SceneViewer.player.currentTarget) {
-                activeTargetTracker.innerText = SceneViewer.player.currentTarget.activeComponent.type;
-            }
-
             switch(pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                     if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
-                        // Not sure if this does much now, check back later.
-                        // if (activeComponent) {
-                        //     activeComponent.destroy();
-                        //     activeComponent = null;
-                        // }
                         return;
                     }
                     // Cancel out if we already have something active.. prevent stacking.
@@ -39,53 +27,14 @@ export class InteractionManager {
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
                         SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
                         SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
-
-                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Interactable" ||
-                        //     SceneViewer.player.currentTarget.activeComponent.type == "Talkable" ||
-                        //     SceneViewer.player.currentTarget.activeComponent.type =="OneLineConversation" ||
-                        //     SceneViewer.player.currentTarget.activeComponent.type == "Physics" ||
-                        //     SceneViewer.player.currentTarget.activeComponent.type == "Door" ||
-                        //     SceneViewer.player.currentTarget.activeComponent.type == "Button"
-                        // ) {
-                        //     SceneViewer.player.currentTarget.activeComponent.interact();
-                        //     SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
-                        // }
-
-                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Collectable") {
-                        //     SceneViewer.player.currentTarget.activeComponent.interact();
-                        // }
-
-                        // if (SceneViewer.player.currentTarget.activeComponent.type == "Synth") {
-                        //     SceneViewer.player.currentTarget.activeComponent.interact();
-                        //     SceneViewer.activeSynths.push(SceneViewer.player.currentTarget.id);
-
-                        //     console.log(SceneViewer.player.currentTarget);
-                        //     console.log(SceneViewer.player.currentTarget.activeComponent);
-                        // }
                     }
 
                 break;
                 case BABYLON.PointerEventTypes.POINTERUP:
-                    // End any synths anyway..
-                    // for (let i=0;i<SceneViewer.activeSynths.length;i++) {
-
-                    //     let foundGameObject = SceneViewer.findGameObject(SceneViewer.activeSynths[i]);
-                    //     if (foundGameObject) {
-                    //         foundGameObject.activeComponent.endInteract();
-                    //         SceneViewer.activeSynths.splice(i)
-                    //     }
-
-                    // }
                     if (SceneViewer.activeComponent) {
                         SceneViewer.player.weaponController.equippedWeapon.stopFire();
                     }
                     SceneViewer.activeComponent = null;
-                    // if (!SceneViewer.player.currentTarget) return;
-                    // if (SceneViewer.activeComponent) {
-                    //     //SceneViewer.activeComponent.endInteract();
-                    // }
-
-    
                 break;
             }
 
@@ -126,34 +75,34 @@ export class InteractionManager {
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
 
                         var pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                        let foundParent = bubbleParent(pickedMesh) as GameObject;
                         SceneViewer.positionGizmo.attachedNode = null;
                         SceneViewer.scaleGizmo.attachedNode = null
                         SceneViewer.rotationGizmo.attachedNode = null
-                        SceneViewer.positionGizmo.attachedNode = pickedMesh;
-                        SceneViewer.scaleGizmo.attachedNode = pickedMesh;
-                        SceneViewer.rotationGizmo.attachedNode = pickedMesh;
+                        SceneViewer.positionGizmo.attachedNode = foundParent;
+                        SceneViewer.scaleGizmo.attachedNode = foundParent;
+                        SceneViewer.rotationGizmo.attachedNode = foundParent;
                         
-                        let foundParent = bubbleParent(pickedMesh) as GameObject;
-                        if (foundParent) {
+                        // if (foundParent) {
 
-                            activeTargetTracker.innerText = foundParent.name;
-                            activeComponentTracker.innerText = foundParent.activeComponent.type;
+                        //     activeTargetTracker.innerText = foundParent.name;
+                        //     activeComponentTracker.innerText = foundParent.activeComponent.type;
                             
     
-                            // MOVE ALL THIS SHIT.
-                            componentDetailArea.innerHTML = "";
-                            switch(foundParent.activeComponent.type) {
+                        //     // MOVE ALL THIS SHIT.
+                        //     componentDetailArea.innerHTML = "";
+                        //     switch(foundParent.activeComponent.type) {
     
-                                case "Talkable":
-                                    let component = foundParent.activeComponent as ConversationComponent;
-                                    component.conversationLines.forEach(line => {
-                                        let lineElem = document.createElement('h5');
-                                        lineElem.textContent = line;
-                                        componentDetailArea.appendChild(lineElem);
-                                    })
-                                    break;
-                            }
-                        }
+                        //         case "Talkable":
+                        //             let component = foundParent.activeComponent as ConversationComponent;
+                        //             component.conversationLines.forEach(line => {
+                        //                 let lineElem = document.createElement('h5');
+                        //                 lineElem.textContent = line;
+                        //                 componentDetailArea.appendChild(lineElem);
+                        //             })
+                        //             break;
+                        //     }
+                        // }
 
                         posX.value = pickedMesh.position.x.toString()
                         posY.value = pickedMesh.position.y.toString()
@@ -198,7 +147,6 @@ export class InteractionManager {
 
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
-                SceneViewer.distanceTracker.innerText = distance.toString();
                 
                 // We're not even within highlight distance.
                 if (distance > SceneViewer.highlightDistance)
@@ -229,7 +177,6 @@ export class InteractionManager {
             if (hit.pickedMesh) {
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
-                SceneViewer.distanceTracker.innerText = distance.toString();
                 
                 // We're not even within highlight distance.
                 if (distance > SceneViewer.highlightDistance)

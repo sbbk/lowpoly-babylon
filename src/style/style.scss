@@ -1,14 +1,33 @@
+@font-face {  
+    src: url(../fonts/JetBrainsMono-Regular.woff2) format("woff2");
+    font-family: 'JetBrainsMono-Regular';
+}
+
 body {
     margin:0;
     padding:0;
     width:100vw;
-    height:100vh
+    height:100vh;
+    font-family: 'JetBrainsMono-Regular';
+    color:white;
+    overflow: hidden;
+}
+
+button {
+    background: #fffc00;
+    border: none;
+    padding: 0.5rem 1rem;
+    font-family: 'JetBrainsMono-Regular';
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0px 0px 3px #00000066;
+    cursor: pointer;
 }
 
 .main-wrapper {
     width:100vw;
     height:100vh;
     display: flex;
+    overflow: hidden;
 
 }
 canvas {
@@ -19,6 +38,8 @@ canvas {
 #ui-area {
     width:20%;
     height:100%;
+    background:darkslateblue;
+    padding:1rem;
 }
 
 .pInventory {
