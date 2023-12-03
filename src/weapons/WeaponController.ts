@@ -7,8 +7,15 @@ import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 import { GameObject } from "../components/GameObject";
 import { PhysicsComponent } from "../components/PhysicsComponents";
 import { v4 as uuidv4 } from 'uuid';
-import { CollectableComponent } from "../components/CollectableComponent";
+import { CollectableComponent, CollectableType } from "../components/CollectableComponent";
 import { ConversationComponent } from "../components/ConversationComponent";
+
+export enum WeaponType {
+
+    HANDS = "HANDS",
+    FLAREGUN = "FLAREGUN"
+
+}
 
 export interface iBaseWeapon {
 
@@ -17,9 +24,10 @@ export interface iBaseWeapon {
     reload:() => Promise<void>;
     onHit:() => void;
     onUnequip:() => void;
-    drop:() => void;
+    drop:(weaponType:WeaponType) => void;
     name:string
     UID:string;
+    weaponType:WeaponType;
     projectile:BABYLON.Mesh;
     physicsAggregate: BABYLON.PhysicsAggregate;
     reloadTime:number;
@@ -41,6 +49,7 @@ export class BaseWeapon implements iBaseWeapon{
     canBeDropped: boolean;
     projectile:BABYLON.Mesh;
     animations:BABYLON.AnimationGroup[];
+    weaponType:WeaponType;
     physicsAggregate:BABYLON.PhysicsAggregate;
     playingAnimation:BABYLON.AnimationGroup;
     reloadTime:number;
@@ -55,8 +64,9 @@ export class BaseWeapon implements iBaseWeapon{
     transformNode:GameObject;
     innerMesh:BABYLON.Mesh;
 
-    constructor() {
+    constructor(weaponType:WeaponType) {
         this.canBeDropped = true;
+        this.weaponType = weaponType;
     }
 
     fire(whoFired:Player) {}
@@ -78,7 +88,7 @@ export class BaseWeapon implements iBaseWeapon{
 
     }
     onUnequip() {}
-    drop() {
+    drop(weaponType:WeaponType) {
         this.stopPlayingAnimation();
         let matrix = this.mesh.getWorldMatrix();
         var scale = new BABYLON.Vector3();
@@ -88,19 +98,12 @@ export class BaseWeapon implements iBaseWeapon{
         this.transformNode.parent = null;
         this.mesh.setAbsolutePosition(position);
         this.mesh.rotationQuaternion = quatRotation;
-        this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh,BABYLON.PhysicsShapeType.BOX,{mass:10},SceneViewer.scene);
-        this.physicsAggregate.body.disablePreStep = false;
-        SceneViewer.physicsViewer.showBody(this.physicsAggregate.body);
-        let childMeshes = this.mesh.getChildMeshes();
-        let collectable = new CollectableComponent('collect-weapon',"Collectable",this.transformNode);
+
+        let collectable = new CollectableComponent('collect-weapon',"Collectable",this.transformNode,CollectableType.WEAPON,weaponType);
+        collectable.canInteract = true;
+
         this.transformNode.addComponent(collectable);
         this.transformNode.setActiveComponent(collectable);
-        collectable.canInteract = true;
-        this.mesh.isPickable = true;
-        childMeshes.forEach(mesh => {
-            mesh.renderingGroupId = 0;
-            mesh.isPickable = true;
-        })
     }
     playAnimation(index:number,loop:boolean) {
         if (!this.animations[index]) return;
@@ -122,7 +125,7 @@ export class FlareGun extends BaseWeapon {
     declare mesh:BABYLON.Mesh;
     declare animations:BABYLON.AnimationGroup[];
     constructor() {
-        super()
+        super(WeaponType.FLAREGUN)
         this.canBeDropped = true;
     }
     stopFire() {
@@ -137,8 +140,9 @@ export class FlareGun extends BaseWeapon {
 
     async init() {
         let container = await ModelLoader.AppendGltfContainer("FlareGun",SceneViewer.scene) as BABYLON.AssetContainer;
-        this.mesh = new BABYLON.Mesh('d')
-        this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
+        let uuid = uuidv4();
+        this.mesh = new BABYLON.Mesh(`root-flare-${uuid}`)
+        this.transformNode = new GameObject("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
         collection.parent = this.mesh;
         let meshes = container.meshes;
@@ -194,7 +198,7 @@ export class Hand extends BaseWeapon {
     declare mesh:BABYLON.Mesh;
     declare animations:BABYLON.AnimationGroup[];
     constructor() {
-        super();
+        super(WeaponType.HANDS);
         this.canBeDropped = false;
     }
     
@@ -300,10 +304,33 @@ export class WeaponController {
 
     }
 
+    async pickupWeapon(weaponType:WeaponType) {
+
+        for (let weapon of this.availableWeapons) {
+            if (weapon.weaponType == weaponType) return;
+        }
+        let pickedUpWeapon;
+        switch(weaponType) {
+            case WeaponType.FLAREGUN:
+                let flaregun = new FlareGun();
+                flaregun.init();
+                this.availableWeapons.push(flaregun);
+                pickedUpWeapon = flaregun;
+                break;
+            case WeaponType.HANDS:
+                let hands = new Hand();
+                hands.init();
+                this.availableWeapons.push(hands);
+                pickedUpWeapon = hands;
+                break;
+        }
+        this.equip(this.availableWeapons.length -1);
+    }
+
     dropWeapon(index:number) {
 
         if (!this.equippedWeapon.canBeDropped) return;
-        this.equippedWeapon.drop();
+        this.equippedWeapon.drop(this.equippedWeapon.weaponType);
         this.equippedWeapon = null;
         this.availableWeapons.splice(index,1);
 
@@ -318,11 +345,14 @@ export class WeaponController {
 
         if (!this.availableWeapons[index]) return;
         if (this.equippedWeapon) {
-            this.equippedWeapon.onUnequip();
             this.equippedWeapon.mesh.setEnabled(false);
         }
         this.equippedWeapon = this.availableWeapons[index];
-        this.equippedWeapon.mesh.setEnabled(true);
+        // TODO : Artificial Delay.. remove this later.
+        setTimeout(() => {
+            this.equippedWeapon.onUnequip();
+            this.equippedWeapon.mesh.setEnabled(true);
+        }, 100);
 
     }
     reload() {

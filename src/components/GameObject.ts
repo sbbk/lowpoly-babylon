@@ -19,7 +19,6 @@ export function findGameObjectByUID(id:string) {
 
 export function findGameObjectParent(mesh: BABYLON.AbstractMesh): GameObject | null {
     // If the mesh has no parent, return null
-    console.error("MESH PARENT",mesh.parent);
     if (!mesh.parent) {
       return null;
     }

@@ -1,8 +1,7 @@
 import { Mesh, Vector3 } from "@babylonjs/core";
 import { GameComponentType, iGameComponent } from "./GameObject";
-import { FlareGun, Hand, iBaseWeapon } from "../weapons/WeaponController";
+import { FlareGun, Hand, WeaponType, iBaseWeapon } from "../weapons/WeaponController";
 import { Player } from "../player/Player";
-export type WeaponType = "Flaregun" | "Hands"
 
 export class WeaponComponent implements iGameComponent {
     name: string;
@@ -20,10 +19,10 @@ export class WeaponComponent implements iGameComponent {
     constructor(weaponType:WeaponType) {
         this.weaponType = weaponType;
         switch(this.weaponType) {
-            case "Hands":
+            case WeaponType.HANDS:
                 this.weapon = new Hand();
                 break;
-            case "Flaregun":
+            case WeaponType.FLAREGUN:
                 this.weapon = new FlareGun();
                 break;
         }

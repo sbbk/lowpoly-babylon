@@ -97,7 +97,7 @@ export class SceneViewer {
         HavokPhysics().then((havokInstance) => {
 
             // PHYSICS
-            SceneViewer.havokPlugin = new BABYLON.HavokPlugin(true, havokInstance);
+            SceneViewer.havokPlugin = new BABYLON.HavokPlugin(false, havokInstance);
             SceneViewer.scene.gravity = new BABYLON.Vector3(0,SceneViewer.gravity / SceneViewer.framesPerSecond,0)
             SceneViewer.scene.collisionsEnabled = true;
             SceneViewer.scene.enablePhysics(new BABYLON.Vector3(0, -9.81, 0),SceneViewer.havokPlugin);
@@ -138,7 +138,7 @@ export class SceneViewer {
             //groundMat.alpha = 0.01;
             const groundAggregate = new BABYLON.PhysicsAggregate(myGround, BABYLON.PhysicsShapeType.BOX, { mass: 0,friction:10, restitution:0.01 }, SceneViewer.scene);
             // SceneViewer.physicsViewer.showBody(groundAggregate.body)
-            groundAggregate.body.setCollisionCallbackEnabled(true);
+            //groundAggregate.body.setCollisionCallbackEnabled(true);
 
     
             window["camera"] = SceneViewer.camera;
@@ -299,6 +299,40 @@ export class SceneViewer {
             
         SceneViewer.GameMode = mode;
         SceneViewer.camera.attachControl(true);
+        // SceneViewer.scene.onDataLoadedObservable.add(() => {
+        //     var serializedScene = BABYLON.SceneSerializer.Serialize(SceneViewer.scene);
+            
+        //     let filename = 'scene';
+        //     // here is the serialized scene
+        //     let objectUrl;
+        //     if (confirm('Do you want to download that scene?')) {
+        //         if(objectUrl) {
+        //             window.URL.revokeObjectURL(objectUrl);
+        //         }
+                
+        //         var serializedScene = BABYLON.SceneSerializer.Serialize(SceneViewer.scene);
+                    
+        //         var strMesh = JSON.stringify(serializedScene);
+                
+        //         if (filename.toLowerCase().lastIndexOf(".babylon") !== filename.length - 8 || filename.length < 9){
+        //             filename += ".babylon";
+        //         }
+                        
+        //         var blob = new Blob ( [ strMesh ], { type : "octet/stream" } );
+                   
+        //         // turn blob into an object URL; saved as a member, so can be cleaned out later
+        //         objectUrl = (window.webkitURL || window.URL).createObjectURL(blob);
+                
+        //         var link = window.document.createElement('a');
+        //         link.href = objectUrl;
+        //         link.download = filename;
+        //         var click = document.createEvent("MouseEvents");
+        //         click.initEvent("click", true, false);
+        //         link.dispatchEvent(click);              
+        //     } else {
+        //         // Do nothing!
+        //     }
+        // })
 
     }
 
