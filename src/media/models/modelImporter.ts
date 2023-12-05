@@ -72,6 +72,35 @@ export namespace ModelLoader {
     const vendingMachine = new URL('./environment/vending-machine.glb', import.meta.url).pathname;
     const station = new URL('./environment/station.glb', import.meta.url).pathname;
     const smallCity = new URL('./environment/small_city_environment.glb', import.meta.url).pathname;
+    const AirConHub = new URL('./environment/AirConHub.glb', import.meta.url).pathname;
+    const ArtBust = new URL('./environment/ArtBust.glb', import.meta.url).pathname;
+    const Barrel = new URL('./environment/Barrel.glb', import.meta.url).pathname;
+    const BoxPallet = new URL('./environment/BoxPallet.glb', import.meta.url).pathname;
+    const Cardboard_boxGroup = new URL('./environment/Cardboard_boxGroup.glb', import.meta.url).pathname;
+    const Cone = new URL('./environment/Cone.glb', import.meta.url).pathname;
+    const Crate1 = new URL('./environment/Crate1.glb', import.meta.url).pathname;
+    const Crate2 = new URL('./environment/Crate2.glb', import.meta.url).pathname;
+    const Forklift = new URL('./environment/Forklift.glb', import.meta.url).pathname;
+    const Ladder = new URL('./environment/Ladder.glb', import.meta.url).pathname;
+    const MetalContainer = new URL('./environment/MetalContainer.glb', import.meta.url).pathname;
+    const Plywood = new URL('./environment/Plywood.glb', import.meta.url).pathname;
+    const Skip = new URL('./environment/Skip.glb', import.meta.url).pathname;
+
+    // Brick Set Marc Richmond.
+    const Brickset_Doorframe = new URL('./environment/Brickset_Doorframe.glb', import.meta.url).pathname;
+    const BrickSet_Exterior_BuildingTop_Corner = new URL('./environment/BrickSet_Exterior_BuildingTop_Corner.glb', import.meta.url).pathname;
+    const Brickset_ExteriorBuilding_Top = new URL('./environment/Brickset_ExteriorBuilding_Top.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Bottom_LadderUp = new URL('./environment/BrickSet_FireEscape_Bottom_LadderUp.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Middle = new URL('./environment/BrickSet_FireEscape_Middle.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Top = new URL('./environment/BrickSet_FireEscape_Top.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_1m = new URL('./environment/BrickSet_HalfWall_1m.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_Corner = new URL('./environment/BrickSet_HalfWall_Corner.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_End = new URL('./environment/BrickSet_HalfWall_End.glb', import.meta.url).pathname;
+    const BrickSet_Wall_1m = new URL('./environment/BrickSet_Wall_1m.glb', import.meta.url).pathname;
+    const BrickSet_Wall_Corner = new URL('./environment/BrickSet_Wall_Corner.glb', import.meta.url).pathname;
+    const BrickSet_Wall_End = new URL('./environment/BrickSet_Wall_End.glb', import.meta.url).pathname;
+    const BrickSet_Window = new URL('./environment/BrickSet_Window.glb', import.meta.url).pathname;
+
 
 
     export var LoadedModels: BABYLON.AbstractMesh[] = [];
@@ -80,7 +109,11 @@ export namespace ModelLoader {
     export type models = "Scene" | "CityScene" | "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
         "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | 
         "Onion" | "FlareGun" | "Knife" | "Valve" | "Door" |
-        "Station" | "VendingMachine" | "ArcadeMachine" | "SmallCity";
+        "Station" | "VendingMachine" | "ArcadeMachine" | "SmallCity" | "AirConHub" | "ArtBust" | "Barrel" | "BoxPallet" | "Cardboard_boxGroup" | "Cardboard_boxGroup" |
+        "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
+        "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
+        "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
+        "BrickSet_Wall_End" | "BrickSet_Window";
 
     export function generateList(): models[] {
 
@@ -92,6 +125,58 @@ export namespace ModelLoader {
     function importModel(model: models) {
 
         switch (model) {
+            case "AirConHub":
+                return AirConHub;
+            case "ArtBust":
+                return ArtBust;
+            case "Barrel":
+                return Barrel;
+            case "BoxPallet":
+                return BoxPallet;
+            case "BrickSet_Exterior_BuildingTop_Corner":
+                return BrickSet_Exterior_BuildingTop_Corner;
+            case "BrickSet_FireEscape_Bottom_LadderUp":
+                return BrickSet_FireEscape_Bottom_LadderUp;
+            case "BrickSet_FireEscape_Middle":
+                return BrickSet_FireEscape_Middle;
+            case "BrickSet_FireEscape_Top":
+                return BrickSet_FireEscape_Top;
+            case "BrickSet_HalfWall_1m":
+                return BrickSet_HalfWall_1m;
+            case "BrickSet_HalfWall_Corner":
+                return BrickSet_HalfWall_Corner;
+            case "BrickSet_HalfWall_End":
+                return BrickSet_HalfWall_End;
+            case "BrickSet_Wall_1m":
+                return BrickSet_Wall_1m;
+            case "BrickSet_Wall_Corner":
+                return BrickSet_Wall_Corner;
+            case "BrickSet_Wall_End":
+                return BrickSet_Wall_End;
+            case "BrickSet_Window":
+                return BrickSet_Window;
+            case "Brickset_Doorframe":
+                return Brickset_Doorframe;
+            case "Brickset_ExteriorBuilding_Top":
+                return Brickset_ExteriorBuilding_Top;
+            case "Cardboard_boxGroup":
+                return Cardboard_boxGroup;
+            case "Cone":
+                return Cone;
+            case "Crate1":
+                return Crate1;
+            case "Crate2":
+                return Crate2;
+            case "Forklift":
+                return Forklift;
+            case "Ladder":
+                return Ladder;
+            case "MetalContainer":
+                return MetalContainer;
+            case "Plywood":
+                return Plywood;
+            case "Skip":
+                return Skip;
             case "FlareGun":
                 return flareGun;
             case "Door":
