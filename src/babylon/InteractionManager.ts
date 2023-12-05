@@ -58,20 +58,26 @@ export class InteractionManager {
 
                 case BABYLON.PointerEventTypes.POINTERTAP:
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
-
-                        var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                        let foundParent = bubbleParent(pickedMesh) as GameObject;
-                        SceneViewer.positionGizmo.attachedNode = null;
-                        SceneViewer.scaleGizmo.attachedNode = null
-                        SceneViewer.rotationGizmo.attachedNode = null
-                        SceneViewer.positionGizmo.attachedNode = foundParent;
-                        SceneViewer.scaleGizmo.attachedNode = foundParent;
-                        SceneViewer.rotationGizmo.attachedNode = foundParent;
-
-                        let gameObjectSelected = new CustomEvent("BuildMode:GameObjectSelected", { detail: { id:foundParent.uid } })
-                        document.dispatchEvent(gameObjectSelected);
-    
-
+                        // TODO: Move these
+                        switch(pointerInfo.event.button) {
+                            case 0: // Left
+                                var pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                                let foundParent = bubbleParent(pickedMesh) as GameObject;
+                                SceneViewer.positionGizmo.attachedNode = null;
+                                SceneViewer.scaleGizmo.attachedNode = null
+                                SceneViewer.rotationGizmo.attachedNode = null
+                                SceneViewer.positionGizmo.attachedNode = foundParent;
+                                SceneViewer.scaleGizmo.attachedNode = foundParent;
+                                SceneViewer.rotationGizmo.attachedNode = foundParent;
+        
+                                let gameObjectSelected = new CustomEvent("BuildMode:GameObjectSelected", { detail: { id:foundParent.uid } })
+                                document.dispatchEvent(gameObjectSelected);
+                                break;
+                            case 1: // Right
+                                break;
+                            case 2: // Middle
+                                break;
+                        }
                     }
                     else {
                         SceneViewer.positionGizmo.attachedNode = null;
