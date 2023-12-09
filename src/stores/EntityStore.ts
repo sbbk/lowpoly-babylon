@@ -3,13 +3,17 @@ import { defineStore } from "pinia"
 import { StoreDefinitions } from "./StoreDefinitions"
 import { BaseEntity } from "../components/Entity"
 import { SceneViewer } from "../babylon/sceneViewer"
+import { ModelLoader } from "../media/models/modelImporter"
+import * as BABYLON from "@babylonjs/core";
 // import EntityVue from "../views/Entity.vue"
 
 export const useEntityStore = defineStore(StoreDefinitions.EntityStore, () => {
 
     const entities = ref([]) as Ref<BaseEntity[]> 
-    function createEntity(location?:BABYLON.Vector3) {
+    async function createEntity(location?:BABYLON.Vector3) {
         const entity = new BaseEntity("New Entity",SceneViewer.scene);
+        entity.mesh = await ModelLoader.AppendModel("EntityBase",SceneViewer.scene) as BABYLON.Mesh;
+        entity.mesh.parent = entity;
         entities.value.push(entity);
     }
 

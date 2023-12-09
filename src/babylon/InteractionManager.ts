@@ -1,5 +1,5 @@
 import { useLevelEditorStore } from "../stores/LevelEditorStore";
-import { Entity, findEntityParent } from "../components/Entity";
+import { BaseEntity, Entity, findEntityParent } from "../components/Entity";
 import { SceneViewer } from "./sceneViewer";
 import * as BABYLON from "@babylonjs/core"
 
@@ -63,7 +63,7 @@ export class InteractionManager {
                         switch(pointerInfo.event.button) {
                             case 0: // Left
                                 var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                                let foundParent = bubbleParent(pickedMesh) as Entity;
+                                let foundParent = bubbleParent(pickedMesh) as BaseEntity;
                                 SceneViewer.positionGizmo.attachedNode = null;
                                 SceneViewer.scaleGizmo.attachedNode = null
                                 SceneViewer.rotationGizmo.attachedNode = null

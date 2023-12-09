@@ -42,6 +42,7 @@ export class GraphicsConfig {
 
 export namespace ModelLoader {
 
+    const entity = new URL('./entity_base.glb', import.meta.url).pathname;
     const scene = new URL('./scene.glb', import.meta.url).pathname;
     const crash = new URL('./crash/crash.glb', import.meta.url).pathname;
     const dva = new URL('./characters/dva.glb', import.meta.url).pathname;
@@ -113,7 +114,7 @@ export namespace ModelLoader {
         "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
         "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
-        "BrickSet_Wall_End" | "BrickSet_Window";
+        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase";
 
     export function generateList(): models[] {
 
@@ -125,6 +126,8 @@ export namespace ModelLoader {
     function importModel(model: models) {
 
         switch (model) {
+            case "EntityBase":
+                return entity;
             case "AirConHub":
                 return AirConHub;
             case "ArtBust":
