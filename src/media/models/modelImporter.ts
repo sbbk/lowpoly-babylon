@@ -87,19 +87,19 @@ export namespace ModelLoader {
     const Skip = new URL('./environment/Skip.glb', import.meta.url).pathname;
 
     // Brick Set Marc Richmond.
-    const Brickset_Doorframe = new URL('./environment/Brickset_Doorframe.glb', import.meta.url).pathname;
-    const BrickSet_Exterior_BuildingTop_Corner = new URL('./environment/BrickSet_Exterior_BuildingTop_Corner.glb', import.meta.url).pathname;
-    const Brickset_ExteriorBuilding_Top = new URL('./environment/Brickset_ExteriorBuilding_Top.glb', import.meta.url).pathname;
-    const BrickSet_FireEscape_Bottom_LadderUp = new URL('./environment/BrickSet_FireEscape_Bottom_LadderUp.glb', import.meta.url).pathname;
-    const BrickSet_FireEscape_Middle = new URL('./environment/BrickSet_FireEscape_Middle.glb', import.meta.url).pathname;
-    const BrickSet_FireEscape_Top = new URL('./environment/BrickSet_FireEscape_Top.glb', import.meta.url).pathname;
-    const BrickSet_HalfWall_1m = new URL('./environment/BrickSet_HalfWall_1m.glb', import.meta.url).pathname;
-    const BrickSet_HalfWall_Corner = new URL('./environment/BrickSet_HalfWall_Corner.glb', import.meta.url).pathname;
-    const BrickSet_HalfWall_End = new URL('./environment/BrickSet_HalfWall_End.glb', import.meta.url).pathname;
-    const BrickSet_Wall_1m = new URL('./environment/BrickSet_Wall_1m.glb', import.meta.url).pathname;
-    const BrickSet_Wall_Corner = new URL('./environment/BrickSet_Wall_Corner.glb', import.meta.url).pathname;
-    const BrickSet_Wall_End = new URL('./environment/BrickSet_Wall_End.glb', import.meta.url).pathname;
-    const BrickSet_Window = new URL('./environment/BrickSet_Window.glb', import.meta.url).pathname;
+    const Brickset_Doorframe = new URL('./environment/brickset/Brickset_Doorframe.glb', import.meta.url).pathname;
+    const BrickSet_Exterior_BuildingTop_Corner = new URL('./environment/brickset/BrickSet_Exterior_BuildingTop_Corner.glb', import.meta.url).pathname;
+    const Brickset_ExteriorBuilding_Top = new URL('./environment/brickset/Brickset_ExteriorBuilding_Top.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Bottom_LadderUp = new URL('./environment/brickset/BrickSet_FireEscape_Bottom_LadderUp.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Middle = new URL('./environment/brickset/BrickSet_FireEscape_Middle.glb', import.meta.url).pathname;
+    const BrickSet_FireEscape_Top = new URL('./environment/brickset/BrickSet_FireEscape_Top.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_1m = new URL('./environment/brickset/BrickSet_HalfWall_1m.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_Corner = new URL('./environment/brickset/BrickSet_HalfWall_Corner.glb', import.meta.url).pathname;
+    const BrickSet_HalfWall_End = new URL('./environment/brickset/BrickSet_HalfWall_End.glb', import.meta.url).pathname;
+    const BrickSet_Wall_1m = new URL('./environment/brickset/BrickSet_Wall_1m.glb', import.meta.url).pathname;
+    const BrickSet_Wall_Corner = new URL('./environment/brickset/BrickSet_Wall_Corner.glb', import.meta.url).pathname;
+    const BrickSet_Wall_End = new URL('./environment/brickset/BrickSet_Wall_End.glb', import.meta.url).pathname;
+    const BrickSet_Window = new URL('./environment/brickset/BrickSet_Window.glb', import.meta.url).pathname;
 
 
 
