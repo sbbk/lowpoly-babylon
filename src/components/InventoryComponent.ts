@@ -1,10 +1,10 @@
 import { SceneViewer } from "../babylon/sceneViewer";
-import { GameObject } from "./GameObject";
+import { Entity } from "./Entity";
 
 export class pInventorySlot {
 
     name: string;
-    item?: GameObject;
+    item?: Entity;
     visual: HTMLElement;
     itemIcon: HTMLImageElement;
 
@@ -20,7 +20,7 @@ export class pInventorySlot {
         return this.visual;
     }
 
-    addItem(item: GameObject) {
+    addItem(item: Entity) {
         this.item = item;
         if (this.item.icon) {
             this.itemIcon.src = this.item.icon;
@@ -60,7 +60,7 @@ export class pInventory {
         }
     }
 
-    add(item: GameObject) {
+    add(item: Entity) {
 
         if (this.amount >= this.max) return
         else {

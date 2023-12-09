@@ -1,4 +1,4 @@
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import { v4 as uuidv4 } from 'uuid';
 
 export class ImageComponent implements iGameComponent {

@@ -1,4 +1,5 @@
-import { GameObject, findGameObjectParent } from "../components/GameObject";
+import { useLevelEditorStore } from "../stores/LevelEditorStore";
+import { Entity, findEntityParent } from "../components/Entity";
 import { SceneViewer } from "./sceneViewer";
 import * as BABYLON from "@babylonjs/core"
 
@@ -62,15 +63,17 @@ export class InteractionManager {
                         switch(pointerInfo.event.button) {
                             case 0: // Left
                                 var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                                let foundParent = bubbleParent(pickedMesh) as GameObject;
+                                let foundParent = bubbleParent(pickedMesh) as Entity;
                                 SceneViewer.positionGizmo.attachedNode = null;
                                 SceneViewer.scaleGizmo.attachedNode = null
                                 SceneViewer.rotationGizmo.attachedNode = null
                                 SceneViewer.positionGizmo.attachedNode = foundParent;
                                 SceneViewer.scaleGizmo.attachedNode = foundParent;
                                 SceneViewer.rotationGizmo.attachedNode = foundParent;
+                                const useLevelEditor = useLevelEditorStore();
+                                useLevelEditor.selectEntity(foundParent);
         
-                                let gameObjectSelected = new CustomEvent("BuildMode:GameObjectSelected", { detail: { id:foundParent.uid } })
+                                let gameObjectSelected = new CustomEvent("BuildMode:EntitySelected", { detail: { id:foundParent.uid } })
                                 document.dispatchEvent(gameObjectSelected);
                                 break;
                             case 1: // Right
@@ -119,7 +122,7 @@ export class InteractionManager {
                 // Look for a parent game object.
                 let foundParent = bubbleParent(mesh);
                 if (foundParent) {
-                    let gameObject = foundParent as GameObject;
+                    let gameObject = foundParent as Entity;
                 }
             }
         })
@@ -147,9 +150,9 @@ export class InteractionManager {
                 return;
 
                 // Look for a parent game object.
-                let foundParent = findGameObjectParent(mesh);
+                let foundParent = findEntityParent(mesh);
                 if (foundParent) {
-                    let gameObject = foundParent as GameObject;
+                    let gameObject = foundParent as Entity;
                     if (!gameObject || !gameObject.activeComponent) return;
                     // Are we allowed to interact?
                     if (gameObject.activeComponent.canInteract == false) return;

@@ -1,7 +1,7 @@
 import { ModelLoader } from "../../media/models/modelImporter";
 import { SceneViewer } from "../../babylon/sceneViewer";
 import * as BABYLON from "@babylonjs/core"
-import { GameComponentType, GameObject } from "../../components/GameObject";
+import { GameComponentType, Entity } from "../../components/Entity";
 import { CollectableComponent } from "../../components/CollectableComponent";
 import { OneLineConversation } from "../../components/OneLineConversationComponent";
 import { ConversationComponent } from "../../components/ConversationComponent";
@@ -20,7 +20,7 @@ const items = require("../prefabs/prefabs.json");
 
     export class Prefab {
 
-        static async CreatePrefab(index:number,position?:number[],rotation?:number[],scale?:number[]):Promise<GameObject> {
+        static async CreatePrefab(index:number,position?:number[],rotation?:number[],scale?:number[]):Promise<Entity> {
 
             let itemToBuild = items[index];
             let mesh : BABYLON.Mesh;
@@ -33,7 +33,7 @@ const items = require("../prefabs/prefabs.json");
 
             // Set it enabled for now hopefully stops weird spawn collisions.
             mesh.setEnabled(false);
-            let gameObject = new GameObject(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh,itemToBuild.interactable,itemToBuild.uid);
+            let gameObject = new Entity(itemToBuild.id,itemToBuild.name,SceneViewer.scene,mesh,itemToBuild.interactable,itemToBuild.uid);
             mesh.setEnabled(true);
 
             // Setup Icons

@@ -1,7 +1,7 @@
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../../babylon/sceneViewer";
 import * as BABYLON from "@babylonjs/core"
-import { GameComponentType, GameObject, iGameComponent } from "../GameObject";
+import { GameComponentType, Entity, iGameComponent } from "../Entity";
 import { PhysicsComponent } from "../PhysicsComponents";
 
 export class SocketStringComponent implements iGameComponent {
@@ -14,7 +14,7 @@ export class SocketStringComponent implements iGameComponent {
     renderLoop: BABYLON.Observer<BABYLON.Scene>
     mass: number;
     mesh: BABYLON.Mesh;
-    parent: GameObject;
+    parent: Entity;
     enabled:boolean = true;
 
     enable() {
@@ -57,7 +57,7 @@ export class SocketStringComponent implements iGameComponent {
         // body.shape.filterCollideMask = 2; 
 
 
-        let gameObj1 = new GameObject('4', 'physi', SceneViewer.scene, ball1, true);
+        let gameObj1 = new Entity('4', 'physi', SceneViewer.scene, ball1, true);
         let phsyicsComponent1 = new PhysicsComponent('Physics', ball1, 30);
         gameObj1.addComponent(phsyicsComponent1);
         gameObj1.setActiveComponent(phsyicsComponent1)
@@ -146,7 +146,7 @@ export class SocketStringComponent implements iGameComponent {
         // body.shape.filterCollideMask = 2; 
 
 
-        let gameObj = new GameObject('4', 'physi', SceneViewer.scene, ball, true);
+        let gameObj = new Entity('4', 'physi', SceneViewer.scene, ball, true);
         let phsyicsComponent = new PhysicsComponent('Physics', ball, 30);
         gameObj.addComponent(phsyicsComponent);
         gameObj.setActiveComponent(phsyicsComponent)

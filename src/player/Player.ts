@@ -1,16 +1,16 @@
 import * as BABYLON from "@babylonjs/core"
-import { GameObject } from "../components/GameObject";
+import { Entity } from "../components/Entity";
 import { HandController } from "./HandController";
 import { WeaponController } from "../weapons/WeaponController";
 
-export class Player extends GameObject {
+export class Player extends Entity {
 
     scene:BABYLON.Scene;
     camera:BABYLON.FreeCamera;
     heroPhysicsAgregate:BABYLON.PhysicsAggregate;
     pointer:BABYLON.Mesh;
     pickupZone:BABYLON.Mesh;
-    currentTarget:GameObject = null;
+    currentTarget:Entity = null;
     handController:HandController;
     activeQuests:number[] = [];
     weaponController:WeaponController;

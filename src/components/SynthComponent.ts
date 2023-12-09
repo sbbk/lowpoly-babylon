@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core"
 import * as Tone from "tone"
-import { GameComponentType, GameObject, iGameComponent } from "./GameObject";
+import { GameComponentType, Entity, iGameComponent } from "./Entity";
 import { v4 as uuidv4 } from 'uuid';
 
 export class SynthPad implements iGameComponent {

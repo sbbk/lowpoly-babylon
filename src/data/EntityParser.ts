@@ -1,6 +1,6 @@
 import { SceneViewer } from "../babylon/sceneViewer";
 
-export interface ParsedGameObject {
+export interface ParsedEntity {
 
     id:string,
     // position:string[];
@@ -9,9 +9,9 @@ export interface ParsedGameObject {
 
 }
 
-export class GameObjectParser {
+export class EntityParser {
 
-    static gatheredData:ParsedGameObject[] = [];
+    static gatheredData:ParsedEntity[] = [];
 
     static exportData() {
 
@@ -23,14 +23,14 @@ export class GameObjectParser {
             console.log("Name",object.name)
             console.log("ID",object.id)
 
-            let gameObjectData:ParsedGameObject = {
+            let gameObjectData:ParsedEntity = {
                 id: object.id,
                 // position:[SceneViewer.gameObjects[i].position.x.toString(),SceneViewer.gameObjects[i].position.y.toString(),SceneViewer.gameObjects[i].position.z.toString()],
                 // rotation: [SceneViewer.gameObjects[i].rotation.x.toString(),SceneViewer.gameObjects[i].rotation.y.toString(),SceneViewer.gameObjects[i].rotation.z.toString()],
                 // scale: [SceneViewer.gameObjects[i].scaling.x.toString(),SceneViewer.gameObjects[i].scaling.y.toString(),SceneViewer.gameObjects[i].scaling.z.toString()]
             };
 
-            GameObjectParser.gatheredData.push(gameObjectData);
+            EntityParser.gatheredData.push(gameObjectData);
 
             // Gonna have to wait til we're on a server.
 

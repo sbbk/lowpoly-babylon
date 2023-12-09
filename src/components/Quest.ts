@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from 'uuid';
 const quests = require("./quests.json")
 import * as BABYLON from "@babylonjs/core"
 import { SceneViewer } from '../babylon/sceneViewer';
-import { GameObject } from './GameObject';
+import { Entity } from './Entity';
 
 
 export namespace Prefab {
@@ -36,7 +36,7 @@ export namespace QuestSystem {
                             if (node.id) {
                                 if (node.id == quest.itemID) {
                                     
-                                    let gameObjectNode = node as GameObject;
+                                    let gameObjectNode = node as Entity;
                                     let UICamera = new BABYLON.FreeCamera('ui-cam',new BABYLON.Vector3(gameObjectNode.mesh.getAbsolutePosition().x -1,gameObjectNode.mesh.getAbsolutePosition().y,gameObjectNode.mesh.getAbsolutePosition().z));
                                     UICamera.target = gameObjectNode.position;
                                     UICamera.layerMask = 4;
@@ -86,7 +86,7 @@ export namespace QuestSystem {
 
     }
 
-    // export class QuestGiver implements GameObject {
+    // export class QuestGiver implements Entity {
 
     // }
 

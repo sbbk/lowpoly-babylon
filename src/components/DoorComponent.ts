@@ -1,4 +1,4 @@
-import { GameComponentType, GameObject, iGameComponent } from "./GameObject";
+import { GameComponentType, Entity, iGameComponent } from "./Entity";
 import * as BABYLON from "@babylonjs/core"
 import { v4 as uuidv4 } from 'uuid';
 import { SceneViewer } from "../babylon/sceneViewer";

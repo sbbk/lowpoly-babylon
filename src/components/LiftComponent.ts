@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import { iComponentEventArgs } from "../triggers/EventTrigger";
 import { v4 as uuidv4 } from 'uuid';
 import { mapToNewRange } from "../utility/utilities";

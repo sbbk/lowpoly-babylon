@@ -1,6 +1,6 @@
 import {JSXComponent, jsx} from "@vertx/jsx"
 import "./builder.scss";
-import { GameComponentType, GameObject, findGameObjectByUID, iGameComponent } from "../components/GameObject";
+import { GameComponentType, Entity, findEntityByUID, iGameComponent } from "../components/Entity";
 import { DoorComponent } from "../components/DoorComponent";
 import { EventHandler, eventType } from "../triggers/EventTrigger";
 const items = require("../data/prefabs/prefabs.json");
@@ -15,7 +15,7 @@ export class EditPrefabPanel implements JSXComponent {
     interactable:boolean;
 
     // UI
-    gameObject:GameObject;
+    gameObject:Entity;
     nameArea:HTMLElement;
     idArea:HTMLElement;
     interactableArea:HTMLElement;
@@ -106,10 +106,10 @@ export class EditPrefabPanel implements JSXComponent {
         this.idArea = <div></div> as HTMLElement;
         this.interactableArea = <div></div> as HTMLElement;
         this.componentArea = <div class="component-area"></div> as HTMLElement;
-        document.addEventListener("BuildMode:GameObjectSelected", (e:CustomEvent) => {
+        document.addEventListener("BuildMode:EntitySelected", (e:CustomEvent) => {
 
             let gameObjectUID = e.detail.id;
-            let gameObject = findGameObjectByUID(gameObjectUID)
+            let gameObject = findEntityByUID(gameObjectUID)
             if (!gameObject) return;
             this.gameObject = gameObject;
             this.update();

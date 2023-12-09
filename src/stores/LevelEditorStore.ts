@@ -1,18 +1,19 @@
-import { computed, ref } from "vue"
+import { computed, ref, type Ref } from "vue"
 import { defineStore } from "pinia"
 import { StoreDefinitions } from "./StoreDefinitions"
+import { BaseEntity } from "../components/Entity"
 
-export const InteractionStore = defineStore(StoreDefinitions.LevelEditorStore, () => {
+export const useLevelEditorStore = defineStore(StoreDefinitions.LevelEditorStore, () => {
 
-    const count = ref(0)
-    const name = ref('Eduardo')
-    const doubleCount = computed(() => count.value * 2)
-    function increment() {
-      count.value++
+    const selectedEntity = ref(null) as Ref<null | BaseEntity>
+    function selectEntity(entity:BaseEntity) {
+      console.log("Select Entity",entity)
+      selectedEntity.value = entity;
     }
-
-    const selectedEntity = ref(null)
+    function deselectEntity() {
+      selectedEntity.value = null;
+    }
   
-    return { count, name, doubleCount, increment }
+    return { selectedEntity, deselectEntity, selectEntity }
     
   })

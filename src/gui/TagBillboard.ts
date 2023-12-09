@@ -1,7 +1,7 @@
 import { SceneViewer } from "../babylon/sceneViewer";
 import * as BABYLON from "@babylonjs/core"
 import * as GUI from "@babylonjs/gui"
-import { iGameComponent } from "../components/GameObject";
+import { iGameComponent } from "../components/Entity";
 
 export class TagBillboard {
 

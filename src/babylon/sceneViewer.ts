@@ -4,11 +4,11 @@ import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import HavokPhysics from "@babylonjs/havok";
 import { QuestSystem } from "../components/Quest"
 import { Prefab } from "../data/prefabs/CreatePrefab";
-import { GameObject, iGameComponent } from "../components/GameObject";
+import { Entity, iGameComponent } from "../components/Entity";
 import { pInventory } from "../components/InventoryComponent";
 import { Player } from "../player/Player";
 import { TagBillboard } from "../gui/TagBillboard";
-import { GameObjectParser } from "../data/GameObjectParser";
+import { EntityParser } from "../data/EntityParser";
 import { InteractionManager } from "./InteractionManager";
 import { PrefabSpawner } from "../builder/PrefabSpawner";
 const items = require("../data/prefabs/prefabs.json");
@@ -39,7 +39,7 @@ export class SceneViewer {
     static tagBillBoard:TagBillboard;
 
     // Game Objects & Components
-    static gameObjects:GameObject[];
+    static gameObjects:Entity[];
     static activeComponent:iGameComponent;
     static activeSynths:string[];
 
@@ -251,7 +251,7 @@ export class SceneViewer {
 
         let exportButton = document.getElementById('export-json');
         exportButton.addEventListener('click',() => {
-            GameObjectParser.exportData();
+            EntityParser.exportData();
         })
 
     }

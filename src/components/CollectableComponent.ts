@@ -1,6 +1,6 @@
 import { SceneViewer } from "../babylon/sceneViewer";
 import * as BABYLON from "@babylonjs/core"
-import { GameComponentType, GameObject, iGameComponent } from "./GameObject";
+import { GameComponentType, Entity, iGameComponent } from "./Entity";
 import { v4 as uuidv4 } from 'uuid';
 import { Player } from "../player/Player";
 import { WeaponType } from "../weapons/WeaponController";
@@ -18,11 +18,11 @@ export class CollectableComponent implements iGameComponent {
     canInteract: boolean = true;
     collectableType:CollectableType
     mesh?: BABYLON.Mesh;
-    gameObject: GameObject;
+    gameObject: Entity;
     enabled:boolean = true;
     physicsAggregate?:BABYLON.PhysicsAggregate;
 
-    constructor(name: string, type: GameComponentType, gameObject: GameObject,collectableType:CollectableType,uid:string) {
+    constructor(name: string, type: GameComponentType, gameObject: Entity,collectableType:CollectableType,uid:string) {
         this.id = uuidv4()
         this.uid = uid;
         this.gameObject = gameObject

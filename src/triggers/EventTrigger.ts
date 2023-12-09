@@ -1,4 +1,4 @@
-import { findGameObjectByUID, iGameComponent } from "../components/GameObject";
+import { findEntityByUID, iGameComponent } from "../components/Entity";
 import { Prefab } from "../data/prefabs/CreatePrefab";
 import { delayFunc } from "../utility/utilities";
 
@@ -44,7 +44,7 @@ export namespace EventHandler {
 
             this.type = type;
             console.log("TYPE",this.type);
-            let gameObject = findGameObjectByUID(targetID);
+            let gameObject = findEntityByUID(targetID);
             this.targetComponent = gameObject.activeComponent;
             if (timer) this.timer = timer;
             else {this.timer = 1000}

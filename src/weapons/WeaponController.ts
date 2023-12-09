@@ -4,7 +4,7 @@ import * as BABYLON from "@babylonjs/core";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { ModelLoader } from "../media/models/modelImporter";
 import { KeyboardShortcuts } from "../babylon/configs/keybindings";
-import { GameObject } from "../components/GameObject";
+import { Entity } from "../components/Entity";
 import { v4 as uuidv4 } from 'uuid';
 import { CollectableComponent, CollectableType } from "../components/CollectableComponent";
 
@@ -59,7 +59,7 @@ export class BaseWeapon implements iBaseWeapon{
     clipSize:number;
     damage:number;
     mesh:BABYLON.Mesh
-    transformNode:GameObject;
+    transformNode:Entity;
     innerMesh:BABYLON.Mesh;
 
     constructor(weaponType:WeaponType) {
@@ -140,7 +140,7 @@ export class FlareGun extends BaseWeapon {
         let container = await ModelLoader.AppendGltfContainer("FlareGun",SceneViewer.scene) as BABYLON.AssetContainer;
         let uuid = uuidv4();
         this.mesh = new BABYLON.Mesh(`root-flare-${uuid}`)
-        this.transformNode = new GameObject("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
+        this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
         collection.parent = this.mesh;
         let meshes = container.meshes;
@@ -227,7 +227,7 @@ export class Hand extends BaseWeapon {
         let container = await ModelLoader.AppendGltfContainer("Knife",SceneViewer.scene) as BABYLON.AssetContainer
         // TODO : All of this shit needs to be moved into the ModelLoader, but I need the container for now. Should make a loaded model class.
         this.mesh = new BABYLON.Mesh('d')
-        this.transformNode = new GameObject("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
+        this.transformNode = new Entity("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
         let collection = new BABYLON.Mesh('collection');
         collection.parent = this.mesh;
         let meshes = container.meshes;

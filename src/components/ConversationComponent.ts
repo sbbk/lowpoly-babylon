@@ -1,7 +1,7 @@
 import * as GUI from "@babylonjs/gui"
 import { SceneViewer } from "../babylon/sceneViewer";
 import { PitchShifter } from "../media/audio/tonePlayer";
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import { v4 as uuidv4 } from 'uuid';
 import * as BABYLON from "@babylonjs/core"
 

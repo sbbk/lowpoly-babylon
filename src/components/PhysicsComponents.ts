@@ -1,6 +1,6 @@
 import { SceneViewer } from "../babylon/sceneViewer";
 import * as BABYLON from "@babylonjs/core"
-import { GameComponentType, GameObject, iGameComponent } from "./GameObject";
+import { GameComponentType, Entity, iGameComponent } from "./Entity";
 import { v4 as uuidv4 } from 'uuid';
 
 
@@ -14,7 +14,7 @@ export class PhysicsComponent implements iGameComponent {
     physicsAggregate: BABYLON.PhysicsAggregate;
     mass: number;
     mesh: BABYLON.Mesh;
-    parent: GameObject;
+    parent: Entity;
     gravityFactor:number;
     collideSFX: BABYLON.Sound
     enabled:boolean = false;
@@ -29,7 +29,7 @@ export class PhysicsComponent implements iGameComponent {
         this.type = type;
         this.mesh = mesh;
         this.mass = mass;
-        this.parent = this.mesh.parent as GameObject;
+        this.parent = this.mesh.parent as Entity;
         this.physicsAggregate = new BABYLON.PhysicsAggregate(this.mesh, BABYLON.PhysicsShapeType.BOX, { mass: this.mass, restitution: 0.1, friction: 10 }, SceneViewer.scene);
         SceneViewer.physicsViewer.showBody(this.physicsAggregate.body)
 

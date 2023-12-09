@@ -1,5 +1,5 @@
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import * as Tone from "tone"
 import * as BABYLON from "@babylonjs/core";
 import { v4 as uuidv4 } from 'uuid';

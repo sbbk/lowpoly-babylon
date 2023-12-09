@@ -4,31 +4,32 @@ export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Tal
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
 import { EventTrigger } from "~/triggers/EventTrigger";
+import { Ref, ref } from "vue";
 
-export function findGameObject(id:string) {
+export function findEntity(id:string) {
 
     let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.id === id);
     return foundObject;
 
 }
-export function findGameObjectByUID(id:string) {
+export function findEntityByUID(id:string) {
 
     let foundObject = SceneViewer.gameObjects.find(gameObject => gameObject.uid === id);
     return foundObject;
 
 }
 
-export function findGameObjectParent(mesh: BABYLON.AbstractMesh): GameObject | null {
+export function findEntityParent(mesh: BABYLON.AbstractMesh): Entity | null {
     // If the mesh has no parent, return null
     if (!mesh.parent) {
       return null;
     }
-    // If the parent is an instance of GameObject, return it
-    if (mesh.parent instanceof GameObject) {
-    return mesh.parent as GameObject;
+    // If the parent is an instance of Entity, return it
+    if (mesh.parent instanceof Entity) {
+    return mesh.parent as Entity;
     }
     // Otherwise, recursively call the function with the parent as the argument
-    return findGameObjectParent(mesh.parent as BABYLON.AbstractMesh);
+    return findEntityParent(mesh.parent as BABYLON.AbstractMesh);
 }
 
 export enum iMaterial {
@@ -61,7 +62,85 @@ export interface iGameComponent {
 
 }
 
-export class GameObject extends BABYLON.TransformNode {
+export class BaseEntity extends BABYLON.TransformNode {
+    uid: string;
+    declare id: string;
+    mesh?: BABYLON.Mesh | BABYLON.AbstractMesh;
+    icon?: string;
+    maxHitPoints:number;
+    currentHitPoints:number;
+    invisible:boolean;
+    indestructable:boolean;
+    material:iMaterial;
+    physicsAggregate: BABYLON.PhysicsAggregate;
+    components: iGameComponent[];
+    activeComponent: iGameComponent;
+    interactable: boolean;
+    interact: () => void = () => {
+
+    }
+
+    constructor(name,scene) {
+        super(name, scene);
+        this.id = name;
+        this.uid = uuidv4();
+        this.maxHitPoints = 0;
+        this.components = [];
+        this.interactable = true;
+    }
+
+    getComponent(type: GameComponentType) {
+        let component = this.components.find(gameComponent => gameComponent.type === type);
+        return component;
+    }
+
+    loadMesh() {
+
+    }
+    destroyMesh() {
+
+    }
+
+    addComponent(component: iGameComponent) {
+
+        this.components.push(component);
+        component.init();
+
+    }
+
+    setActiveComponent(component: iGameComponent) {
+
+        let foundComponent = this.components.find(gameComponent => gameComponent.id === component.id);
+        if (foundComponent) {
+            this.activeComponent = foundComponent
+        }
+
+    }
+
+    setRotation(rotation: BABYLON.Vector3) {
+        this.rotation = rotation;
+    }
+
+    setPosition(position: BABYLON.Vector3) {
+
+        this.setAbsolutePosition(position);
+
+    }
+    setScale(scaling: BABYLON.Vector3) {
+        this.scaling = scaling;
+    }
+
+    bubbleParent(mesh: BABYLON.Node): BABYLON.Node {
+
+        while (mesh.parent !== null) {
+            mesh = mesh.parent;
+        }
+        return mesh;
+    }
+
+}
+
+export class Entity extends BABYLON.TransformNode {
 
     uid: string;
     declare id: string;

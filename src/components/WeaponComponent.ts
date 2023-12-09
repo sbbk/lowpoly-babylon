@@ -1,5 +1,5 @@
 import { Mesh, Vector3 } from "@babylonjs/core";
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import { FlareGun, Hand, WeaponType, iBaseWeapon } from "../weapons/WeaponController";
 import { Player } from "../player/Player";
 

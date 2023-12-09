@@ -1,5 +1,5 @@
 import * as BABYLON from "@babylonjs/core";
-import { GameComponentType, iGameComponent } from "./GameObject";
+import { GameComponentType, iGameComponent } from "./Entity";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { EventTrigger } from "../triggers/EventTrigger";
 
