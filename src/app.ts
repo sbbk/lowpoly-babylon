@@ -1,6 +1,11 @@
 import { SceneViewer } from "./babylon/sceneViewer";
 import * as Tone from "tone"
 import "./style/style.scss"
+import { createApp } from 'vue'
+import { createPinia } from 'pinia'
+
+import VueMain from './App.vue'
+
 
 export class App {
 
@@ -35,6 +40,11 @@ export class App {
     }
 
 }
+const vueApp = createApp(VueMain)
+
+vueApp.use(createPinia())
+
+vueApp.mount('#vue-app')
 let app = new App();
 app.awaitConfirm().then((whocares) => {
     app.run();
