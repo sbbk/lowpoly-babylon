@@ -70,6 +70,7 @@ export class BaseEntity extends BABYLON.TransformNode {
     maxHitPoints:number;
     currentHitPoints:number;
     invisible:boolean;
+    isDirty:boolean;
     indestructable:boolean;
     material:iMaterial;
     physicsAggregate: BABYLON.PhysicsAggregate;
@@ -86,6 +87,7 @@ export class BaseEntity extends BABYLON.TransformNode {
         this.uid = uuidv4();
         this.maxHitPoints = 0;
         this.components = [];
+        this.isDirty = false;
         this.interactable = true;
     }
 

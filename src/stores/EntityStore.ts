@@ -13,7 +13,7 @@ export const useEntityStore = defineStore(StoreDefinitions.EntityStore, () => {
     async function createEntity(location?:BABYLON.Vector3) {
         const entity = new BaseEntity("New Entity",SceneViewer.scene);
         entity.mesh = await ModelLoader.AppendModel("EntityBase",SceneViewer.scene) as BABYLON.Mesh;
-        entity.mesh.name = "EntityBase";
+        entity.mesh.name = "EntityBase"
         entity.mesh.parent = entity;
         entities.value.push(entity);
     }
