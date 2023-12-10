@@ -4,6 +4,7 @@ import { useEntityStore } from "../../stores/EntityStore";
 import { useLevelEditorStore } from "../../stores/LevelEditorStore";
 import { BaseEntity, Entity } from "../../components/Entity";
 import { SceneViewer } from "../../babylon/sceneViewer";
+import ContextMenu from "./ContextMenu.vue";
 import EntityVue from "../Entity.vue";
 
 const entities = computed(() => {
@@ -34,6 +35,7 @@ function setGameMode(mode:string) {
         <button @click="$event => {setGameMode(`play`)}" id="play-mode">Play Mode</button>
         <button @click="$event => {setGameMode(`build`)}" id="build-mode">Build Mode</button>
         <h1>Entity List</h1>
+        <context-menu></context-menu>
         <div class="entity-wrapper" v-for="entity in entities" @click="$event => {selectEntity(entity)}">
             <entity-vue :entity="entity"></entity-vue>
         </div>
