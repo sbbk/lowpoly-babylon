@@ -62,11 +62,13 @@ export namespace ModelLoader {
     const onion = new URL('./items/onion.glb', import.meta.url).pathname;
     const valve = new URL('./valve.glb', import.meta.url).pathname;
     const metaldoor = new URL('../doors/door2.glb', import.meta.url).pathname;
+    const ps1 = new URL('./items/ps1.glb', import.meta.url).pathname;
 
 
     // Weapons
     const flareGun = new URL('./flare_gun1.glb', import.meta.url).pathname;
     const knife = new URL('./knife.glb', import.meta.url).pathname;
+    const watergun = new URL('./weapons/water_gun.glb', import.meta.url).pathname;
 
     // Environment
     const pacmanArcade = new URL('./environment/pacman-arcade.glb', import.meta.url).pathname;
@@ -86,6 +88,7 @@ export namespace ModelLoader {
     const MetalContainer = new URL('./environment/MetalContainer.glb', import.meta.url).pathname;
     const Plywood = new URL('./environment/Plywood.glb', import.meta.url).pathname;
     const Skip = new URL('./environment/Skip.glb', import.meta.url).pathname;
+    const SevenEleven = new URL('./environment/seveneleven.glb', import.meta.url).pathname;
 
     // Brick Set Marc Richmond.
     const Brickset_Doorframe = new URL('./environment/brickset/Brickset_Doorframe.glb', import.meta.url).pathname;
@@ -110,13 +113,20 @@ export namespace ModelLoader {
     export type models = "Scene" | "CityScene" | "CrashBandicoot" | "dva" | "CheesePlant" | "MetalCabinet" | "Maschine" |
         "Monitor" | "TrestleTable" | "doom" | "frog" | "neonJoint" | "boxMan" | "hallway" | "skull" | "VinylSingle" | 
         "Onion" | "FlareGun" | "Knife" | "Valve" | "Door" |
-        "Station" | "VendingMachine" | "ArcadeMachine" | "SmallCity" | "AirConHub" | "ArtBust" | "Barrel" | "BoxPallet" | "Cardboard_boxGroup" | "Cardboard_boxGroup" |
+        "Station" | "VendingMachine" | "ArcadeMachine" | "SmallCity" | "AirConHub" | "ArtBust" | "Barrel" | "BoxPallet" | "Cardboard_boxGroup" |
         "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
         "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
-        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase";
+        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun";
 
-    export const modelList = ["CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase"] as string[];
+    export const modelList = [
+        "CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase","frog","neonJoint","boxMan",
+        "hallway", "skull", "VinylSingle", "Onion", "FlareGun", "Knife", "Valve", "Door", "Station", "VendingMachine", "ArcadeMachine", "SmallCity", "AirConHub",
+        "ArtBust", "Barrel", "BoxPallet", "Cardboard_boxGroup", "Cone", "Crate1", "Forklift", "Ladder", "MetalContainer", "Plywood", "Skip", "Brickset_Doorframe",
+        "BrickSet_Exterior_BuildingTop_Corner", "Brickset_ExteriorBuilding_Top", "BrickSet_FireEscape_Bottom_LadderUp", "BrickSet_FireEscape_Middle", "BrickSet_FireEscape_Top",
+        "BrickSet_HalfWall_1m", "BrickSet_HalfWall_Corner", "BrickSet_HalfWall_End", "BrickSet_Wall_1m", "BrickSet_Wall_Corner", "BrickSet_Wall_End", "BrickSet_Window",
+        "SevenEleven", "PS1", "WaterGun"
+        ] as string[];
     function findModelInList(model:string) {
         let foundIndex = modelList.indexOf(model);
         if (!foundIndex) return;
@@ -135,6 +145,12 @@ export namespace ModelLoader {
         switch (model) {
             case "EntityBase":
                 return entity;
+            case "SevenEleven":
+                return SevenEleven;
+            case "WaterGun":
+                return watergun;
+            case "PS1":
+                return ps1;
             case "AirConHub":
                 return AirConHub;
             case "ArtBust":
