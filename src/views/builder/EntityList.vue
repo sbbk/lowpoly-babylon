@@ -2,9 +2,12 @@
 import { ComputedRef, computed } from "vue";
 import { useEntityStore } from "../../stores/EntityStore";
 import { useLevelEditorStore } from "../../stores/LevelEditorStore";
-import { BaseEntity } from "../../components/Entity";
+import { BaseEntity, Entity } from "../../components/Entity";
 import ComponentProvider from "../builder/components/ComponentProvider.vue"
 import { SceneViewer } from "../../babylon/sceneViewer";
+import DropdownComponent from "../builder/components/DropdownComponent.vue"
+import { ModelLoader } from "../../media/models/modelImporter";
+import * as BABYLON from "@babylonjs/core"
 
 const entities = computed(() => {
     return useEntityStore().entities
@@ -27,7 +30,20 @@ function setGameMode(mode:string) {
 
     }
 }
-
+const modelList = ModelLoader.modelList;
+async function setMesh(payload:any) {
+    const entity = payload.entity as Entity;
+    const newMesh = payload.item as string;
+    if (entity.mesh) {
+        entity.mesh.dispose();
+        entity.mesh = null;
+        console.log(modelList.indexOf(newMesh));
+        const meshStringAsType = newMesh as ModelLoader.models;
+        entity.mesh = await ModelLoader.AppendModel(meshStringAsType,SceneViewer.scene) as BABYLON.Mesh;
+        entity.mesh.name = newMesh;
+        entity.mesh.parent = entity;
+    }
+}
 </script>
 <template>
     <div>
@@ -36,6 +52,7 @@ function setGameMode(mode:string) {
         <h1>Entity List</h1>
         <div class="entity-wrapper" v-for="entity in entities" @click="$event => {selectEntity(entity)}">
             <h3>{{ entity.name }}</h3>
+            <dropdown-component v-if ="entity.mesh" @submit="setMesh" :list="modelList" :entity="entity" title="Mesh" :active="entity.mesh.name ? entity.mesh.name : null"></dropdown-component>
             <component-provider :entity="entity"></component-provider>
         </div>
     </div>

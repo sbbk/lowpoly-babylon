@@ -116,6 +116,13 @@ export namespace ModelLoader {
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
         "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase";
 
+    export const modelList = ["CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase"] as string[];
+    function findModelInList(model:string) {
+        let foundIndex = modelList.indexOf(model);
+        if (!foundIndex) return;
+        return modelList[foundIndex];
+    }
+
     export function generateList(): models[] {
 
         let models = ["CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom"] as models[];
