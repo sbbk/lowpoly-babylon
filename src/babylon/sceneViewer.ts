@@ -128,7 +128,7 @@ export class SceneViewer {
             var myGround = BABYLON.MeshBuilder.CreateBox('ground',{width:100,depth:100,height:2});
             myGround.renderingGroupId = 0;
 
-            myGround.position.y = -20;
+            myGround.position.y = -1.05;
             myGround.isPickable = false;
             myGround.checkCollisions= true;
             let groundMat = new BABYLON.StandardMaterial('groundmat');
@@ -272,6 +272,9 @@ export class SceneViewer {
         if (SceneViewer.interactionManager.PointerObservableFunction !== null) {
             SceneViewer.scene.onPointerObservable.remove(SceneViewer.interactionManager.PointerObservableFunction);
         }
+        if (SceneViewer.interactionManager.KeyObserverFunction !== null) {
+            SceneViewer.scene.onKeyboardObservable.remove(SceneViewer.interactionManager.KeyObserverFunction);
+        }
         if (!SceneViewer.interactionManager.RegisterBeforeRenderFunction !== null) {
             SceneViewer.scene.onBeforeRenderObservable.remove(SceneViewer.interactionManager.RegisterBeforeRenderFunction)
         }
@@ -280,7 +283,9 @@ export class SceneViewer {
             case "Play":
                 SceneViewer.UtilityLayer.shouldRender = false;
                 SceneViewer.camera = SceneViewer.player.camera;
+                SceneViewer.scene.activeCamera.detachControl();
                 SceneViewer.scene.activeCamera = SceneViewer.player.camera;
+                SceneViewer.scene.activeCamera.attachControl();
                 SceneViewer.interactionManager.registerPlayerPointers();
                 SceneViewer.interactionManager.registerPlayerBeforeRenderFunction();
                 SceneViewer.player.handController.setEnabled(true);
@@ -288,8 +293,9 @@ export class SceneViewer {
             case "Build":
                 SceneViewer.UtilityLayer.shouldRender = true;
                 SceneViewer.camera = SceneViewer.buildCamera;
+                SceneViewer.scene.activeCamera.detachControl();
                 SceneViewer.scene.activeCamera = SceneViewer.buildCamera;
-                SceneViewer.scene.setActiveCameraById(SceneViewer.buildCamera.id);
+                SceneViewer.scene.activeCamera.attachControl();
                 SceneViewer.interactionManager.registerBuildPointers();
                 SceneViewer.interactionManager.registerBuildBeforeRenderFunction();
                 if (SceneViewer.tagBillBoard) {

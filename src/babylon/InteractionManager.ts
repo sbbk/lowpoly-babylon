@@ -5,27 +5,31 @@ import * as BABYLON from "@babylonjs/core"
 
 export class InteractionManager {
 
-    pointerLock:boolean;
-    PointerObservableFunction:BABYLON.Observer<BABYLON.PointerInfo>
-    RegisterBeforeRenderFunction:BABYLON.Observer<BABYLON.Scene>;
-    gridSize:number = 0.5;
+    pointerLock: boolean;
+    PointerObservableFunction: BABYLON.Observer<BABYLON.PointerInfo>
+    KeyObserverFunction: BABYLON.Observer<BABYLON.KeyboardInfo>
+    RegisterBeforeRenderFunction: BABYLON.Observer<BABYLON.Scene>;
+    gridSize: number = 0.5;
     selectedGridPosition: BABYLON.Vector3;
     movingEntity: BaseEntity;
-    isMovingEntity:boolean;
-    meshClone:BABYLON.Mesh;
+    isMovingEntity: boolean;
+    meshClone: BABYLON.Mesh;
+    shiftHeld: boolean;
+    rotationValue: number = Math.PI / 12;
 
     // We're doing everything in here for now until the structure is figured out.
-    calculateClosestGridPosition(pickedPoint: BABYLON.Vector3) {
+    calculateClosestGridPosition(node: BaseEntity, pickedPoint: BABYLON.Vector3) {
         let snappedX = Math.round(pickedPoint.x / this.gridSize) * this.gridSize
         let snappedY = Math.round(pickedPoint.y / this.gridSize) * this.gridSize
         let snappedZ = Math.round(pickedPoint.z / this.gridSize) * this.gridSize
-        return new BABYLON.Vector3(snappedX, 0, snappedZ);
+        // Use the node's Y value.
+        return new BABYLON.Vector3(snappedX, node.getAbsolutePosition().y, snappedZ);
     }
 
     registerPlayerPointers() {
         let playerActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
 
-            switch(pointerInfo.type) {
+            switch (pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERDOWN:
                     if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
@@ -43,13 +47,13 @@ export class InteractionManager {
                         SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
                     }
 
-                break;
+                    break;
                 case BABYLON.PointerEventTypes.POINTERUP:
                     if (SceneViewer.activeComponent) {
                         SceneViewer.player.weaponController.equippedWeapon.stopFire();
                     }
                     SceneViewer.activeComponent = null;
-                break;
+                    break;
             }
 
 
@@ -58,6 +62,31 @@ export class InteractionManager {
     }
 
     registerBuildPointers() {
+
+        let buildKeys = SceneViewer.scene.onKeyboardObservable.add(async (kbInfo) => {
+
+            if (kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN) {
+                switch (kbInfo.event.key) {
+                    case "r":
+                        if (this.movingEntity) {
+                            this.movingEntity.rotate(BABYLON.Axis.Y, this.rotationValue, BABYLON.Space.WORLD);
+                        };
+                        break;
+                    case "q":
+                        if (this.movingEntity) {
+                            let currentPos = this.movingEntity.getAbsolutePosition();
+                            this.movingEntity.setAbsolutePosition(new BABYLON.Vector3(currentPos.x,currentPos.y - this.gridSize,currentPos.z))
+                        };
+                        break;
+                    case "w":
+                        if (this.movingEntity) {
+                            let currentPos = this.movingEntity.getAbsolutePosition();
+                            this.movingEntity.setAbsolutePosition(new BABYLON.Vector3(currentPos.x,currentPos.y + this.gridSize,currentPos.z))
+                        };
+                        break;
+                }
+            }
+        })
 
         let buildActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
 
@@ -68,15 +97,21 @@ export class InteractionManager {
                 return mesh;
             }
 
-            switch(pointerInfo.type) {
+            switch (pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERTAP:
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
                         // TODO: Move these
-                        switch(pointerInfo.event.button) {
+                        switch (pointerInfo.event.button) {
                             case 0: // Left
+                                break;
+                            case 1: // Middle
+                                break;
+                            case 2: // Right
+                                console.log("Tap Right..")
                                 var pickedMesh = pointerInfo.pickInfo.pickedMesh;
                                 let foundParent = bubbleParent(pickedMesh) as BaseEntity;
+                                if (foundParent instanceof BABYLON.Mesh) return;
                                 SceneViewer.positionGizmo.attachedNode = null;
                                 SceneViewer.scaleGizmo.attachedNode = null
                                 SceneViewer.rotationGizmo.attachedNode = null
@@ -86,13 +121,9 @@ export class InteractionManager {
                                 const useLevelEditor = useLevelEditorStore();
                                 useLevelEditor.selectEntity(foundParent);
                                 console.log("Hit P Tap")
-        
-                                let gameObjectSelected = new CustomEvent("BuildMode:EntitySelected", { detail: { id:foundParent.uid } })
+
+                                let gameObjectSelected = new CustomEvent("BuildMode:EntitySelected", { detail: { id: foundParent.uid } })
                                 document.dispatchEvent(gameObjectSelected);
-                                break;
-                            case 1: // Right
-                                break;
-                            case 2: // Middle
                                 break;
                         }
                     }
@@ -102,57 +133,79 @@ export class InteractionManager {
                         SceneViewer.rotationGizmo.attachedNode = null
                     }
                 case BABYLON.PointerEventTypes.POINTERDOWN:
-                    if (this.meshClone) {
-                        this.meshClone.dispose()
-                    }
-                    if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
-                        var pickedMesh = pointerInfo.pickInfo.pickedMesh;
-                        let foundParent = bubbleParent(pickedMesh) as BaseEntity;
-                        if (!foundParent) return;
-                        if (foundParent instanceof BABYLON.Mesh) return;
-                        this.movingEntity = foundParent;
-                        let mesh = foundParent.mesh;
-                        if (mesh) {
-                            this.meshClone = mesh.clone('picked-clone',foundParent) as BABYLON.Mesh
-                            this.meshClone.isPickable = false;
-                            mesh.setEnabled(false);
-                        }
-                        this.isMovingEntity = true;
-                        SceneViewer.camera.detachControl();
-                        console.log("Hit P Down")
+                    switch (pointerInfo.event.button) {
+                        case 0: // Left
+                            if (this.meshClone) {
+                                this.meshClone.dispose()
+                            }
+                            if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
+                                var pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                                let foundParent = bubbleParent(pickedMesh) as BaseEntity;
+                                if (!foundParent) return;
+                                if (foundParent instanceof BABYLON.Mesh) return;
+                                this.movingEntity = foundParent;
+                                let mesh = foundParent.mesh;
+                                // if (mesh) {
+                                //     this.meshClone = mesh.clone('picked-clone', foundParent) as BABYLON.Mesh
+                                //     this.meshClone.isPickable = false;
+                                //     let children = this.meshClone.getChildMeshes();
+                                //     children.forEach(child => {
+                                //         child.isPickable = false;
+                                //     })
+                                //     mesh.setEnabled(false);
+                                // }
+                                mesh.isPickable = false;
+                                let children = mesh.getChildMeshes();
+                                children.forEach(child => {
+                                    child.isPickable = false;
+                                })
+                                this.isMovingEntity = true;
+                                SceneViewer.camera.detachControl();
+                                console.log("Hit P Down")
+                            }
+                            break;
                     }
                     break;
                 case BABYLON.PointerEventTypes.POINTERMOVE:
                     if (!this.movingEntity) return;
                     if (this.isMovingEntity) {
                         var pickResult = SceneViewer.scene.pick(SceneViewer.scene.pointerX, SceneViewer.scene.pointerY);
-                        let snappedPos = this.calculateClosestGridPosition(pickResult.pickedPoint);
-                        this.meshClone.setAbsolutePosition(snappedPos);
+                        let snappedPos = this.calculateClosestGridPosition(this.movingEntity, pickResult.pickedPoint);
+                        this.movingEntity.setAbsolutePosition(snappedPos);
                     }
                     break;
                 case BABYLON.PointerEventTypes.POINTERUP:
-                    console.log("Is moving?",this.isMovingEntity);
-                    console.log("Moving entity?",this.movingEntity);
-                    if (this.meshClone) {
-                        this.meshClone.dispose()
+                    switch (pointerInfo.event.button) {
+                        case 0: // Left
+
+                            if (this.meshClone) {
+                                this.meshClone.dispose()
+                            }
+                            if (this.movingEntity) {
+                                let mesh = this.movingEntity.mesh;
+                                mesh.isPickable = true;
+                                let children = mesh.getChildMeshes();
+                                children.forEach(child => {
+                                    child.isPickable = true;
+                                })
+                            }
+                            if (this.isMovingEntity) {
+                                if (this.movingEntity !== null) {
+                                    let closestGrid = this.calculateClosestGridPosition(this.movingEntity, pointerInfo.pickInfo.pickedPoint);
+                                    this.movingEntity.setAbsolutePosition(closestGrid);
+                                }
+                                this.isMovingEntity = false;
+
+                            }
+                            SceneViewer.camera.attachControl()
+                            break;
                     }
-                    if (this.movingEntity) {
-                        this.movingEntity.mesh.setEnabled(true);
-                    }
-                    if (this.isMovingEntity) {
-                        if (this.movingEntity !== null) {
-                            let closestGrid = this.calculateClosestGridPosition(pointerInfo.pickInfo.pickedPoint);
-                            this.movingEntity.setAbsolutePosition(closestGrid);
-                        }
-                        this.isMovingEntity = false;
-            
-                    }
-                    SceneViewer.camera.attachControl()
                     break;
             }
         })
-        
+
         this.PointerObservableFunction = buildActions;
+        this.KeyObserverFunction = buildKeys
     }
 
     registerBuildBeforeRenderFunction() {
@@ -164,22 +217,22 @@ export class InteractionManager {
                 }
                 return mesh;
             }
-        
+
             // Clear highlights
             SceneViewer.highlightLayer.removeAllMeshes();
 
             SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
-            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target); ray.length = 100;
+            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
             let hit = SceneViewer.scene.pickWithRay(ray);
 
             if (hit.pickedMesh) {
 
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint);
-                
+
                 // We're not even within highlight distance.
                 if (distance > SceneViewer.highlightDistance)
-                return;
+                    return;
 
                 // Look for a parent game object.
                 let foundParent = bubbleParent(mesh);
@@ -195,44 +248,42 @@ export class InteractionManager {
 
     registerPlayerBeforeRenderFunction() {
         let renderLoop = SceneViewer.scene.onBeforeRenderObservable.add(() => {
-    
+
             // Clear highlights
             SceneViewer.highlightLayer.removeAllMeshes();
 
             SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
-            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position,target); ray.length = 100;
+            let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
             let hit = SceneViewer.scene.pickWithRay(ray);
 
             if (hit.pickedMesh) {
                 let mesh = hit.pickedMesh as BABYLON.Mesh;
                 let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
-                
                 // We're not even within highlight distance.
                 if (distance > SceneViewer.highlightDistance)
                 return;
-
                 // Look for a parent game object.
                 let foundParent = findEntityParent(mesh);
                 if (foundParent) {
-                    let gameObject = foundParent as Entity;
+                    console.log("Found Parent",foundParent);
+                    let gameObject = foundParent as BaseEntity;
                     if (!gameObject || !gameObject.activeComponent) return;
                     // Are we allowed to interact?
                     if (gameObject.activeComponent.canInteract == false) return;
                     // TODO: THIS ALL NEEDS TO FUCKING GO. Stop being lazy.
                     // Arbitrary for now but check against types of game objects to see if they're of an interactable type.
-                    if ( gameObject.activeComponent.type == "Interactable" || 
-                        gameObject.activeComponent.type == "Collectable" || 
-                        gameObject.activeComponent.type == "Talkable" || 
-                        gameObject.activeComponent.type == "Synth" || 
-                        gameObject.activeComponent.type == "Physics" || 
+                    if (gameObject.activeComponent.type == "Interactable" ||
+                        gameObject.activeComponent.type == "Collectable" ||
+                        gameObject.activeComponent.type == "Talkable" ||
+                        gameObject.activeComponent.type == "Synth" ||
+                        gameObject.activeComponent.type == "Physics" ||
                         gameObject.activeComponent.type == "SocketString" ||
                         gameObject.activeComponent.type == "Door" ||
                         gameObject.activeComponent.type == "Button" ||
                         gameObject.activeComponent.type == "PlayerAudioLoop" ||
                         gameObject.activeComponent.type == "Valve" ||
                         gameObject.activeComponent.type == "OneLineConversation"
-                        ) 
-                        {
+                    ) {
 
                         if (!mesh.parent) return;
                         let meshes = mesh.parent.getChildMeshes();
@@ -244,7 +295,7 @@ export class InteractionManager {
                         // })
 
                         // Add the billboard tag.
-                        SceneViewer.tagBillBoard.linkWithMesh(meshes[0],gameObject.activeComponent);
+                        SceneViewer.tagBillBoard.linkWithMesh(meshes[0], gameObject.activeComponent);
                         // TODO : WORK THESE WITH NEW 3D HANDS
                         if (BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint) < SceneViewer.interactDistance) {
                             SceneViewer.player.currentTarget = gameObject;
@@ -286,7 +337,7 @@ export class InteractionManager {
 
             }
             if (!hit.pickedMesh) {
-                
+
                 SceneViewer.player.currentTarget = null;
                 SceneViewer.tagBillBoard.setVisible(false);
 
@@ -297,26 +348,26 @@ export class InteractionManager {
                     })
                 }
                 SceneViewer.highlightLayer.isEnabled = false;
-            } 
+            }
         });
         this.RegisterBeforeRenderFunction = renderLoop
     }
 
-    disablePointerLock(value:boolean) {
+    disablePointerLock(value: boolean) {
 
         if (value == true) {
             this.pointerLock = true;
             document.exitPointerLock();
         }
-        else if(value == false) {
+        else if (value == false) {
             this.pointerLock = false;
             //true/false check if we're locked, faster than checking pointerlock on each single click.
             if (SceneViewer.GameMode == "Play" && this.pointerLock == false) {
                 SceneViewer.canvas.requestPointerLock = SceneViewer.canvas.requestPointerLock || SceneViewer.canvas.msRequestPointerLock || SceneViewer.canvas.mozRequestPointerLock || SceneViewer.canvas.webkitRequestPointerLock;
-            if (SceneViewer.canvas.requestPointerLock) {
-                SceneViewer.canvas.requestPointerLock();
+                if (SceneViewer.canvas.requestPointerLock) {
+                    SceneViewer.canvas.requestPointerLock();
+                }
             }
-        }
         }
     }
 

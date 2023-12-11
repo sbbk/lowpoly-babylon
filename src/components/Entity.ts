@@ -25,8 +25,8 @@ export function findEntityParent(mesh: BABYLON.AbstractMesh): Entity | null {
       return null;
     }
     // If the parent is an instance of Entity, return it
-    if (mesh.parent instanceof Entity) {
-    return mesh.parent as Entity;
+    if (mesh.parent instanceof BaseEntity) {
+    return mesh.parent as BaseEntity;
     }
     // Otherwise, recursively call the function with the parent as the argument
     return findEntityParent(mesh.parent as BABYLON.AbstractMesh);
