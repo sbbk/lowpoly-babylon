@@ -465,9 +465,9 @@ export namespace ModelLoader {
 
                 //meshes[0].normalizeToUnitCube();
                 meshes.forEach(mesh => {
+                    mesh.setParent(root);
                     if (!mesh.material) return;
                     if (mesh.material.albedoTexture) {
-                        mesh.setParent(root);
                         BABYLON.Effect.ShadersStore["customVertexShader"] = "\r\n" +
                             "precision highp float;\r\n" +
 

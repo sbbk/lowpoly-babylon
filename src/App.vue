@@ -7,19 +7,24 @@ import BabylonEngine from "./views/Engine.vue"
 import BabylonScene from "./views/Scene.vue"
 import BabylonSkybox from "./views/Skybox.vue"
 import HighlightLayer from "./views/HighlightLayer.vue"
+import Player from "./views/Player.vue"
+import InteractionManager from "./views/InteractionManager.vue"
 
 </script>
 
 <template>
   <header>
-    <babylon-canvas>
+    <!-- <babylon-canvas>
       <babylon-engine>
         <babylon-scene>
           <babylon-skybox></babylon-skybox>
           <highlight-layer></highlight-layer>
+          <player name="single-player">
+            <interaction-manager></interaction-manager>
+          </player>
         </babylon-scene>
       </babylon-engine>
-    </babylon-canvas>
+    </babylon-canvas> -->
     <entity-spawner></entity-spawner>
     <entity-list></entity-list>
     <selected-entity></selected-entity>

@@ -137,7 +137,7 @@ export class FlareGun extends BaseWeapon {
     }
 
     async init() {
-        let container = await ModelLoader.AppendGltfContainer("FlareGun",SceneViewer.scene) as BABYLON.AssetContainer;
+        let container = await ModelLoader.AppendGltfContainer("WaterGun",SceneViewer.scene) as BABYLON.AssetContainer;
         let uuid = uuidv4();
         this.mesh = new BABYLON.Mesh(`root-flare-${uuid}`)
         this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());

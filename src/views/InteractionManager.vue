@@ -11,6 +11,7 @@ const pointerLock = ref(false);
 const PointerObservableFunction = ref(null) as Ref<Observer<PointerInfo> | null>
 const RegisterBeforeRenderFunction = ref(null) as Ref<Observer<Scene> | null>;
 const gameMode = useGameManager().GameMode;
+let activeComponent = useGameManager().activeComponent;
  
 function registerPlayerPointers() {
         let playerActions = scene.value.onPointerObservable.add((pointerInfo, event) => {
@@ -22,23 +23,23 @@ function registerPlayerPointers() {
                         return;
                     }
                     // Cancel out if we already have something active.. prevent stacking.
-                    if (SceneViewer.activeComponent) return;
+                    if (activeComponent) return;
 
                     // If there's something to interact with continue..
                     if (player.value.currentTarget !== null || player.value.currentTarget !== undefined) {
 
                         // // Return if we can't interact right now.
                         if (!player.value.currentTarget.activeComponent.canInteract) return;
-                        SceneViewer.activeComponent = player.value.currentTarget.activeComponent;
+                        activeComponent = player.value.currentTarget.activeComponent;
                         player.value.weaponController.equippedWeapon.fire(player.value);
                     }
 
                 break;
                 case BABYLON.PointerEventTypes.POINTERUP:
-                    if (SceneViewer.activeComponent) {
+                    if (activeComponent) {
                         player.value.weaponController.equippedWeapon.stopFire();
                     }
-                    SceneViewer.activeComponent = null;
+                    activeComponent = null;
                 break;
             }
 
@@ -49,7 +50,7 @@ function registerPlayerPointers() {
 
     function registerBuildPointers() {
 
-        let buildActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
+        let buildActions = scene.value.onPointerObservable.add((pointerInfo, event) => {
 
             let bubbleParent = (mesh) => {
                 while (mesh.parent !== null) {
@@ -60,7 +61,7 @@ function registerPlayerPointers() {
 
             switch(pointerInfo.type) {
 
-                case BABYLON.PointerEventTypes.POINTERTAP:
+                case PointerEventTypes.POINTERTAP:
                     if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
                         // TODO: Move these
                         switch(pointerInfo.event.button) {
@@ -98,7 +99,7 @@ function registerPlayerPointers() {
 
     function registerBuildBeforeRenderFunction() {
 
-        let renderLoop = SceneViewer.scene.onBeforeRenderObservable.add(() => {
+        let renderLoop = scene.value.onBeforeRenderObservable.add(() => {
             let bubbleParent = (mesh) => {
                 while (mesh.parent !== null) {
                     mesh = mesh.parent;

@@ -8,6 +8,19 @@ export class InteractionManager {
     pointerLock:boolean;
     PointerObservableFunction:BABYLON.Observer<BABYLON.PointerInfo>
     RegisterBeforeRenderFunction:BABYLON.Observer<BABYLON.Scene>;
+    gridSize:number = 0.5;
+    selectedGridPosition: BABYLON.Vector3;
+    movingEntity: BaseEntity;
+    isMovingEntity:boolean;
+    meshClone:BABYLON.Mesh;
+
+    // We're doing everything in here for now until the structure is figured out.
+    calculateClosestGridPosition(pickedPoint: BABYLON.Vector3) {
+        let snappedX = Math.round(pickedPoint.x / this.gridSize) * this.gridSize
+        let snappedY = Math.round(pickedPoint.y / this.gridSize) * this.gridSize
+        let snappedZ = Math.round(pickedPoint.z / this.gridSize) * this.gridSize
+        return new BABYLON.Vector3(snappedX, 0, snappedZ);
+    }
 
     registerPlayerPointers() {
         let playerActions = SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
@@ -72,6 +85,7 @@ export class InteractionManager {
                                 SceneViewer.rotationGizmo.attachedNode = foundParent;
                                 const useLevelEditor = useLevelEditorStore();
                                 useLevelEditor.selectEntity(foundParent);
+                                console.log("Hit P Tap")
         
                                 let gameObjectSelected = new CustomEvent("BuildMode:EntitySelected", { detail: { id:foundParent.uid } })
                                 document.dispatchEvent(gameObjectSelected);
@@ -87,6 +101,54 @@ export class InteractionManager {
                         SceneViewer.scaleGizmo.attachedNode = null
                         SceneViewer.rotationGizmo.attachedNode = null
                     }
+                case BABYLON.PointerEventTypes.POINTERDOWN:
+                    if (this.meshClone) {
+                        this.meshClone.dispose()
+                    }
+                    if (pointerInfo.pickInfo && pointerInfo.pickInfo.pickedMesh) {
+                        var pickedMesh = pointerInfo.pickInfo.pickedMesh;
+                        let foundParent = bubbleParent(pickedMesh) as BaseEntity;
+                        if (!foundParent) return;
+                        if (foundParent instanceof BABYLON.Mesh) return;
+                        this.movingEntity = foundParent;
+                        let mesh = foundParent.mesh;
+                        if (mesh) {
+                            this.meshClone = mesh.clone('picked-clone',foundParent) as BABYLON.Mesh
+                            this.meshClone.isPickable = false;
+                            mesh.setEnabled(false);
+                        }
+                        this.isMovingEntity = true;
+                        SceneViewer.camera.detachControl();
+                        console.log("Hit P Down")
+                    }
+                    break;
+                case BABYLON.PointerEventTypes.POINTERMOVE:
+                    if (!this.movingEntity) return;
+                    if (this.isMovingEntity) {
+                        var pickResult = SceneViewer.scene.pick(SceneViewer.scene.pointerX, SceneViewer.scene.pointerY);
+                        let snappedPos = this.calculateClosestGridPosition(pickResult.pickedPoint);
+                        this.meshClone.setAbsolutePosition(snappedPos);
+                    }
+                    break;
+                case BABYLON.PointerEventTypes.POINTERUP:
+                    console.log("Is moving?",this.isMovingEntity);
+                    console.log("Moving entity?",this.movingEntity);
+                    if (this.meshClone) {
+                        this.meshClone.dispose()
+                    }
+                    if (this.movingEntity) {
+                        this.movingEntity.mesh.setEnabled(true);
+                    }
+                    if (this.isMovingEntity) {
+                        if (this.movingEntity !== null) {
+                            let closestGrid = this.calculateClosestGridPosition(pointerInfo.pickInfo.pickedPoint);
+                            this.movingEntity.setAbsolutePosition(closestGrid);
+                        }
+                        this.isMovingEntity = false;
+            
+                    }
+                    SceneViewer.camera.attachControl()
+                    break;
             }
         })
         
