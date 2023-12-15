@@ -2,6 +2,7 @@ import * as BABYLON from "@babylonjs/core"
 import { Entity } from "../components/Entity";
 import { HandController } from "./HandController";
 import { WeaponController } from "../weapons/WeaponController";
+import { SceneViewer } from "../babylon/sceneViewer";
 
 export class Player extends Entity {
 
@@ -14,6 +15,8 @@ export class Player extends Entity {
     handController:HandController;
     activeQuests:number[] = [];
     weaponController:WeaponController;
+    cameraRoll: number;
+    rolling:boolean;
     constructor(id,name,scene:BABYLON.Scene,mesh,interactable,uid) {
         super(id,name,scene,mesh,interactable,uid);
         this.id = id;
@@ -30,6 +33,7 @@ export class Player extends Entity {
         this.camera.checkCollisions = true;
         this.camera.applyGravity = true;
         this.camera.ellipsoid = new BABYLON.Vector3(0.5, 1, 0.5);
+        this.cameraRoll = 1;
         this.camera.attachControl();
 
         // Debugs
@@ -37,6 +41,7 @@ export class Player extends Entity {
         window["gravity"] = this.camera.applyGravity;
         window["collisions"] = this.camera.checkCollisions;
         window["pSpeed"] = this.camera.speed;
+        window["cameraRoll"] = this.cameraRoll;
 
         // Hands
         this.handController = new HandController();
@@ -47,12 +52,71 @@ export class Player extends Entity {
         this.camera.keysDown.push(83);
         this.camera.keysRight.push(68)
 
+        let rollLeftAnimation = new BABYLON.Animation("camera-roll-left", "rotation.z", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        let rollLeft = [];
+        rollLeft.push({
+            frame: 0,
+            value: 0
+        });
+        rollLeft.push({
+            frame: 30,
+            value: this.cameraRoll
+        });
+        this.camera.animations.push(rollLeftAnimation);
+        rollLeftAnimation.setKeys(rollLeft);
+
+        let rollRightAnimation = new BABYLON.Animation("camera-roll-right", "rotation.z", 30, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        let rollRight = [];
+        rollRight.push({
+            frame: 0,
+            value: 0
+        });
+        rollRight.push({
+            frame: 30,
+            value: -this.cameraRoll
+        });
+        this.camera.animations.push(rollRightAnimation);
+        rollRightAnimation.setKeys(rollRight);
+
         // Jump
-        document.onkeydown = (e) => {
+        // document.onkeydown = (e) => {
 
-            if (e.code === "Space") this.camera.cameraDirection.y += 1;
+        //     console.log(e.code);
+        //     if (e.code === "Space") this.camera.cameraDirection.y += 1;
+        //     if (e.code === "KeyA") {
+        //         if (this.rolling) return;
+        //         this.rolling = true;
+        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollLeftAnimation],0,30,false);
+        //     }
+        //     if (e.code === "KeyD") {
+        //         if (this.rolling) return;
+        //         this.rolling = true;
+        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollRightAnimation],0,30,false);
+        //     }
 
-        };
+        // };
+        // document.onkeyup = (e) => {
+        //     if (e.code === "KeyA") {
+        //         let frame = 30;
+        //         let animation = rollRightAnimation.runtimeAnimations[0];
+        //         if (animation) {
+        //             frame = Math.floor(animation.animation.runtimeAnimations[0].currentFrame);
+        //         }
+        //         SceneViewer.scene.stopAnimation(this.camera);
+        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollLeftAnimation],frame,0,false);
+        //         this.rolling = false;
+        //     }
+        //     if (e.code === "KeyD") {
+        //         let frame = 30;
+        //         let animation = rollRightAnimation.runtimeAnimations[0];
+        //         if (animation) {
+        //             frame = Math.floor(animation.animation.runtimeAnimations[0].currentFrame);
+        //         }
+        //         SceneViewer.scene.stopAnimation(this.camera);
+        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollRightAnimation],frame,0,false);
+        //         this.rolling = false;
+        //     }
+        // }
 
         // Hero mesh.
         this.mesh.isPickable = false;

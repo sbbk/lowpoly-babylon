@@ -5,7 +5,7 @@ import { Ref, inject, reactive, ref, watch } from 'vue';
 import * as BABYLON from "@babylonjs/core"
 import { SceneViewer } from '../../../babylon/sceneViewer';
 
-const entity = inject("entity") as BaseEntity;
+const entity = inject("entity") as Ref<BaseEntity>;
 const isDirty = inject("isdirty") as Ref<boolean>
 const physicsComponent = inject('physics-component') as Ref<null | PhysicsComponent>;
 let physicsAggregate = physicsComponent.value.physicsAggregate;
@@ -16,11 +16,12 @@ if (isDirtyNow == false) return;
 isDirty.value = true;
 // SceneViewer.physicsViewer.hideBody(physicsAggregate.body);
 physicsAggregate.dispose();
-physicsAggregate = new BABYLON.PhysicsAggregate(entity.mesh, BABYLON.PhysicsShapeType.BOX, { mass: 10, restitution: 0.1, friction: 10 }, SceneViewer.scene);
+physicsAggregate = new BABYLON.PhysicsAggregate(entity.value.mesh, BABYLON.PhysicsShapeType.BOX, { mass: 10, restitution: 0.1, friction: 10 }, SceneViewer.scene);
 isDirty.value = false;
 })
 
 </script>
 <template>
+    <slot></slot>
     <h1>{{isDirty}}</h1>
 </template>

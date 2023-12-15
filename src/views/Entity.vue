@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const isDirty = ref(false);
-provide('entity',props.entity);
+provide('entity',ref(props.entity));
 provide('isdirty',isDirty);
 
 const modelList = ModelLoader.modelList;
@@ -36,6 +36,8 @@ async function setMesh(payload:any) {
 <template>
     <h3>{{ props.entity.name }}</h3>
     <dropdown-component v-if ="props.entity.mesh" @submit="setMesh" :list="modelList" :entity="props.entity" title="Mesh" :active="props.entity.mesh.name ? props.entity.mesh.name : null"></dropdown-component>
-    <component-provider></component-provider>
+    <keep-alive>
+        <component-provider></component-provider>
+    </keep-alive>
 
 </template>

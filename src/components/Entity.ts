@@ -110,6 +110,18 @@ export class BaseEntity extends BABYLON.TransformNode {
 
     }
 
+    removeComponent(component: iGameComponent) {
+
+        let componentToRemove = this.components.indexOf(component);
+        component.enabled = false;
+        component.canInteract = false;
+        if (this.activeComponent == component) {
+            this.activeComponent = null;
+        }
+        this.components.splice(componentToRemove);
+
+    }
+
     setActiveComponent(component: iGameComponent) {
 
         let foundComponent = this.components.find(gameComponent => gameComponent.id === component.id);

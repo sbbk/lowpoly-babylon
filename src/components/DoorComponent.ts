@@ -3,9 +3,18 @@ import * as BABYLON from "@babylonjs/core"
 import { v4 as uuidv4 } from 'uuid';
 import { SceneViewer } from "../babylon/sceneViewer";
 
-export type openDirection = "left" | "right" | "up" | "down";
-export type openType = "slide" | "swing";
-
+export enum openDirection {
+    Left = "left",
+    Right = "right",
+    Up = "up",
+    Down = "down"
+}
+export enum openType {
+    Slide = "slide",
+    Swing = "swing"
+}
+export const openDirections = [openDirection.Left,openDirection.Right,openDirection.Up,openDirection.Down];
+export const openTypes = [openType.Slide,openType.Swing] as openType[];
 export class DoorComponent implements iGameComponent {
 
     name:string = "Door";

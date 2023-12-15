@@ -1,51 +1,49 @@
-import { findEntityByUID, iGameComponent } from "../components/Entity";
+import { Entity, findEntityByUID, iGameComponent } from "../components/Entity";
 import { Prefab } from "../data/prefabs/CreatePrefab";
 import { delayFunc } from "../utility/utilities";
 
-export enum eventType{
-USE = "USE",
-SPAWN = "SPAWN",
-KILL = "KILL",
-ENABLE = "ENABLE",
-DISABLE = "DISABLE",
-TOGGLE = "TOGGLE",
-TOGGLETOFROM = "TOGGLETOFROM",
-UESWITHARGS = "USEWITHARGS" }
-export type triggerTypes = "Component" | "Spawn"
-
-
-export interface iComponentEventArgs {
-    min:number,
-    max:number,
-    current:number,
-    update:boolean,
-}
-
-export interface EventTrigger {
-
-    type: eventType;
-    fire: (args?:iComponentEventArgs) => void;
-    setParentComponent: (component:iGameComponent) => iGameComponent;
-
-}
-
 export namespace EventHandler {
 
+    export interface iComponentEventArgs {
+        min:number,
+        max:number,
+        current:number,
+        update:boolean,
+    }
+    
+    export interface EventTrigger {
+    
+        type: eventType;
+        fire: (args?:iComponentEventArgs) => void;
+        setParentComponent: (component:iGameComponent) => iGameComponent;
+    }
+    
+    export enum eventType{
+        USE = "USE",
+        SPAWN = "SPAWN",
+        KILL = "KILL",
+        ENABLE = "ENABLE",
+        DISABLE = "DISABLE",
+        TOGGLE = "TOGGLE",
+        TOGGLETOFROM = "TOGGLETOFROM",
+        UESWITHARGS = "USEWITHARGS" }
+        export type triggerTypes = "Component" | "Spawn"
     
     export class ComponentEventTrigger implements EventTrigger {
 
         type: eventType;
+        targetEntity:Entity
         parentComponent:iGameComponent;
         targetComponent: iGameComponent;
         timer?:number;
+        enabled:boolean;
 
 
-        constructor(type: eventType,targetID:string,timer?:number) {
+        constructor(type: eventType,timer?:number) {
 
             this.type = type;
-            console.log("TYPE",this.type);
-            let gameObject = findEntityByUID(targetID);
-            this.targetComponent = gameObject.activeComponent;
+            this.targetComponent = null;
+            this.enabled = true;
             if (timer) this.timer = timer;
             else {this.timer = 1000}
         }
@@ -54,10 +52,24 @@ export namespace EventHandler {
             this.parentComponent = component;
             return this.parentComponent
         }
+        setTargetComponent(component:iGameComponent) {
+            this.targetComponent = component;
+        }
+        setTargetEntity(gameObjectId:string) {
+            this.targetEntity = findEntityByUID(gameObjectId);
+            // Set active as default.
+            this.setTargetComponent(this.targetEntity.activeComponent);
+        }
 
         async fire(args?:iComponentEventArgs) {
-            console.log("HEY",this.type,this.targetComponent);
-
+            if (!this.targetEntity) {
+                console.warn("No Target ENTITY for Trigger");
+                return;
+            }
+            if (!this.targetComponent) {
+                console.warn("No Target COMPONENT for Trigger");
+                return;
+            };
             switch (this.type) {
                 case eventType.USE:
                     this.targetComponent.interact();
