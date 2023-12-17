@@ -26,7 +26,7 @@ watch(isDirty, (isDirtyNow) => {
 </script>
 <template>
     <div class="component-wrapper">
-        <h1>Door Component</h1>
+        <h5>Door Component</h5>
         <slot></slot>
         <label>Enabled</label>
         <input style="float:right" type="checkbox" v-model="enabled" />
@@ -38,7 +38,7 @@ watch(isDirty, (isDirtyNow) => {
         <label>Direction</label>
         <h3>{{ openDirection }}</h3>
         <select v-model="openDirection">
-            <option v-for="direction of openDirections">{{direction  }}</option>
+            <option v-for="direction of openDirections">{{ direction  }}</option>
         </select>
     </div>
 </template>

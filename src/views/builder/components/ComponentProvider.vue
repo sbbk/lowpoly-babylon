@@ -21,6 +21,8 @@ const doorComponent = ref(entity.value.getComponent("Door")) as Ref<null | DoorC
 provide("door-component",doorComponent);
 const buttonComponent = ref(entity.value.getComponent("Button")) as Ref<null | ButtonComponent>
 provide("button-component",buttonComponent)
+// const componentEventTrigger = ref(entity.value.componentTrigger) as Ref<null | EventHandler.ComponentEventTrigger>
+// provide("component-trigger",componentEventTrigger);
 
 provide("entity",entity);
 provide("isdirty",isDirty);
@@ -32,7 +34,7 @@ function addComponent(component:GameComponentType) {
     switch(component) {
         case "Door":
             if (doorComponent.value) return;
-            doorComponent.value = new DoorComponent(openDirection.Left,openType.Swing,entity.value.mesh as BABYLON.Mesh);
+            doorComponent.value = new DoorComponent(openDirection.Left,openType.Slide,entity.value.mesh as BABYLON.Mesh);
             doorComponent.value.enabled = true;
             entity.value.addComponent(doorComponent.value);
             entity.value.setActiveComponent(doorComponent.value);
@@ -50,6 +52,11 @@ function addComponent(component:GameComponentType) {
             entity.value.setActiveComponent(buttonComponent.value);
             break;
     }
+}
+function attachComponentEventTrigger(component:iGameComponent) {
+
+    component.trigger = new EventHandler.ComponentEventTrigger(EventHandler.eventType.USE);
+    console.log("Component..",component);
 
 }
 
@@ -59,18 +66,25 @@ function addComponent(component:GameComponentType) {
         <button @click="addComponent(`Physics`)" v-if="physicsComponent == null">Add Physics Component</button>
         <button @click="addComponent(`Door`)" v-if="doorComponent == null">Add Door Component</button>
         <button @click="addComponent(`Button`)" v-if="buttonComponent == null">Add Button Component</button>
-        <physics-component-view v-if="physicsComponent">
-            <button @click="entity.removeComponent(physicsComponent)">Remove</button>
-            <button @click="entity.setActiveComponent(physicsComponent)">Set Active</button>
-        </physics-component-view>
-        <door-component-view v-if="doorComponent">
-            <button @click="entity.removeComponent(doorComponent)">Remove</button>
-            <button @click="entity.setActiveComponent(doorComponent)">Set Active</button>
-        </door-component-view>
-        <button-component-view v-if="buttonComponent">
-            <button @click="entity.removeComponent(buttonComponent)">Remove</button>
-            <button @click="entity.setActiveComponent(buttonComponent)">Set Active</button>
-        </button-component-view>
+        <keep-alive>
+            <physics-component-view v-if="physicsComponent">
+                <button @click="entity.removeComponent(physicsComponent)">Remove</button>
+                <button @click="entity.setActiveComponent(physicsComponent)">Set Active</button>
+            </physics-component-view>
+        </keep-alive>
+        <keep-alive>
+            <door-component-view v-if="doorComponent">
+                <button @click="entity.removeComponent(doorComponent)">Remove</button>
+                <button @click="entity.setActiveComponent(doorComponent)">Set Active</button>
+            </door-component-view>
+        </keep-alive>
+        <keep-alive>
+            <button-component-view v-if="buttonComponent">
+                <button @click="entity.removeComponent(buttonComponent)">Remove</button>
+                <button @click="entity.setActiveComponent(buttonComponent)">Set Active</button>
+                <button @click="attachComponentEventTrigger(buttonComponent)">Add Trigger</button>
+            </button-component-view>
+        </keep-alive>
     </div>
 </template>
 <style>

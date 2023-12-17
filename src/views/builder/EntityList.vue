@@ -52,6 +52,10 @@ function setGameMode(mode:string) {
 </template>
 <style scoped>
     .entity-wrapper {
-
-    }
+        padding: 10px;
+        border: 1px dashed white;
+        margin: 10px;
+        border-radius: 5px;
+        background: rgba(0,0,0,0.2);
+        }
 </style>

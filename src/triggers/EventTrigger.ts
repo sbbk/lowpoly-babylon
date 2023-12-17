@@ -18,7 +18,7 @@ export namespace EventHandler {
         setParentComponent: (component:iGameComponent) => iGameComponent;
     }
     
-    export enum eventType{
+    export enum eventType {
         USE = "USE",
         SPAWN = "SPAWN",
         KILL = "KILL",
@@ -26,8 +26,11 @@ export namespace EventHandler {
         DISABLE = "DISABLE",
         TOGGLE = "TOGGLE",
         TOGGLETOFROM = "TOGGLETOFROM",
-        UESWITHARGS = "USEWITHARGS" }
-        export type triggerTypes = "Component" | "Spawn"
+        UESWITHARGS = "USEWITHARGS"
+    }
+    export const triggerEventTypes = [eventType.USE,eventType.ENABLE,eventType.DISABLE,eventType.TOGGLE,eventType.TOGGLETOFROM,eventType.UESWITHARGS] as eventType[]
+
+    export type triggerTypes = "Component" | "Spawn"
     
     export class ComponentEventTrigger implements EventTrigger {
 
@@ -42,6 +45,7 @@ export namespace EventHandler {
         constructor(type: eventType,timer?:number) {
 
             this.type = type;
+            this.targetEntity = null;
             this.targetComponent = null;
             this.enabled = true;
             if (timer) this.timer = timer;

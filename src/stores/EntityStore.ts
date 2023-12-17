@@ -24,7 +24,13 @@ export const useEntityStore = defineStore(StoreDefinitions.EntityStore, () => {
         const indexInArray = entities.value.indexOf(foundEntity);
         entities.value.splice(indexInArray,1);
     }
+    function findEntityById(id:string) {
+
+        let foundObject = entities.value.find(gameObject => gameObject.uid === id);
+        return foundObject;
+    
+    }
   
-    return { createEntity, removeEntity, entities }
+    return { createEntity, removeEntity, entities, findEntityById }
     
   })

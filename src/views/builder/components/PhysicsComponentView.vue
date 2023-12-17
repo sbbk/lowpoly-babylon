@@ -23,5 +23,5 @@ isDirty.value = false;
 </script>
 <template>
     <slot></slot>
-    <h1>{{isDirty}}</h1>
+    <h5>Physics Component</h5>
 </template>

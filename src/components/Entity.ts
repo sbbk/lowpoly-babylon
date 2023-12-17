@@ -3,7 +3,7 @@ export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Tal
 | "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger" | "Valve" | "Lift";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
-import { EventTrigger } from "~/triggers/EventTrigger";
+import { EventHandler, EventTrigger } from "~/triggers/EventTrigger";
 import { Ref, ref } from "vue";
 
 export function findEntity(id:string) {
@@ -77,6 +77,7 @@ export class BaseEntity extends BABYLON.TransformNode {
     components: iGameComponent[];
     activeComponent: iGameComponent;
     interactable: boolean;
+    componentTrigger:EventHandler.ComponentEventTrigger;
     interact: () => void = () => {
 
     }
@@ -106,6 +107,8 @@ export class BaseEntity extends BABYLON.TransformNode {
     addComponent(component: iGameComponent) {
 
         this.components.push(component);
+        console.log("Adding component..",component);
+        console.log("Components: ",this.components);
         component.init();
 
     }
