@@ -66,6 +66,7 @@ export namespace ModelLoader {
 
 
     // Weapons
+    const hands = new URL('./hands/hands-rig3.glb',import.meta.url).pathname
     const flareGun = new URL('./flare_gun1.glb', import.meta.url).pathname;
     const knife = new URL('./knife.glb', import.meta.url).pathname;
     const watergun = new URL('./weapons/water_gun.glb', import.meta.url).pathname;
@@ -117,7 +118,7 @@ export namespace ModelLoader {
         "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
         "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
-        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun";
+        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun" | "Hands";
 
     export const modelList = [
         "CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase","frog","neonJoint","boxMan",
@@ -145,6 +146,8 @@ export namespace ModelLoader {
         switch (model) {
             case "EntityBase":
                 return entity;
+            case "Hands":
+                return hands;
             case "SevenEleven":
                 return SevenEleven;
             case "WaterGun":
@@ -865,11 +868,29 @@ export namespace ModelLoader {
         return new Promise(function (resolve, reject) {
             let path = importModel(model);
             BABYLON.SceneLoader.LoadAssetContainer(path, "", scene, ((container) => {
+                let rootMesh = new BABYLON.Mesh('root')
                 container.addAllToScene();
                 let meshes = container.meshes;
                 meshes.forEach(mesh => {
                     mesh.checkCollisions = false;
+                    rootMesh.addChild(mesh);
                 })
+                let childMeshes = rootMesh.getChildMeshes();
+                let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+                let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+            
+                for(let i=0; i<childMeshes.length; i++){
+                    let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+                    let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+            
+                    min = BABYLON.Vector3.Minimize(min, meshMin);
+                    max = BABYLON.Vector3.Maximize(max, meshMax);
+                }
+        
+                let width = max.subtract(min);
+                rootMesh.scaling = width;
+                rootMesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
+                container.meshes = [rootMesh];
                 LoadedModels.push(container.meshes[0]);
                 resolve(container);
 

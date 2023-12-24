@@ -4,7 +4,7 @@ import * as BABYLON from "@babylonjs/core";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { ModelLoader } from "../media/models/modelImporter";
 import { KeyboardShortcuts } from "../babylon/configs/keybindings";
-import { Entity } from "../components/Entity";
+import { BaseEntity, Entity, findEntityParent } from "../components/Entity";
 import { v4 as uuidv4 } from 'uuid';
 import { CollectableComponent, CollectableType } from "../components/CollectableComponent";
 
@@ -47,6 +47,7 @@ export class BaseWeapon implements iBaseWeapon{
     canBeDropped: boolean;
     projectile:BABYLON.Mesh;
     animations:BABYLON.AnimationGroup[];
+    range:number = 40;
     weaponType:WeaponType;
     physicsAggregate:BABYLON.PhysicsAggregate;
     playingAnimation:BABYLON.AnimationGroup;
@@ -57,7 +58,7 @@ export class BaseWeapon implements iBaseWeapon{
     currentAmmo:number;
     maxAmmo:number;
     clipSize:number;
-    damage:number;
+    damage:number = 10;
     mesh:BABYLON.Mesh
     transformNode:Entity;
     innerMesh:BABYLON.Mesh;
@@ -135,55 +136,68 @@ export class FlareGun extends BaseWeapon {
     onUnequip() {
 
     }
+    fire(whoFired:Player) {
+
+        let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
+        let hit = SceneViewer.scene.pickWithRay(ray);
+        let rayHelper = new BABYLON.RayHelper(ray)
+        rayHelper.show(SceneViewer.scene, new BABYLON.Color3(0,1,0));
+        setTimeout(() => {
+            rayHelper.dispose();
+        }, 1000);
+        SceneViewer.player.target = hit.pickedPoint;
+
+        if (hit.pickedMesh) {
+            let mesh = hit.pickedMesh as BABYLON.Mesh;
+            let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
+            // We're not even within highlight distance.
+            if (distance > this.range)
+            return;
+            // Look for a parent game object.
+            let foundParent = findEntityParent(mesh);
+            if (foundParent instanceof BaseEntity) {
+                // Do Damage
+                foundParent.currentHitPoints -= this.damage;
+                console.log(`Done ${this.damage} damage. Hit Points for ${foundParent.name} is now ${foundParent.currentHitPoints}`);
+                if (foundParent.currentHitPoints <= 0) {
+                    foundParent.destroy();
+                }
+            }
+        }
+
+        console.log("Target",SceneViewer.player.currentTarget);
+        
+    }
 
     async init() {
         let container = await ModelLoader.AppendGltfContainer("WaterGun",SceneViewer.scene) as BABYLON.AssetContainer;
         let uuid = uuidv4();
-        this.mesh = new BABYLON.Mesh(`root-flare-${uuid}`)
+        this.mesh = container.meshes[0] as BABYLON.Mesh;
         this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
-        let collection = new BABYLON.Mesh('collection');
-        collection.parent = this.mesh;
-        let meshes = container.meshes;
-        meshes.forEach(mesh => {
-            collection.addChild(mesh);
-        })
-
-        let childMeshes = this.mesh.getChildMeshes();
-        let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
-        let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
-    
-        for(let i=0; i<childMeshes.length; i++){
-            let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
-            let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
-    
-            min = BABYLON.Vector3.Minimize(min, meshMin);
-            max = BABYLON.Vector3.Maximize(max, meshMax);
-        }
-
-        let width = max.subtract(min);
-        this.mesh.scaling = width;
-        this.mesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
+       
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
             animation.enableBlending = true;
             animation.stop();
         })
         this.transformNode.parent = SceneViewer.player.camera;
-        this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
+
         this.mesh.isPickable = false;
         this.mesh.renderingGroupId = 3;
         this.mesh.checkCollisions = false;
+        let childMeshes = this.mesh.getChildMeshes();
         childMeshes.forEach(child => {
             child.renderingGroupId = 3;
             child.isPickable = false;
             child.checkCollisions = false;
         })
-        this.mesh.position.z = 3;
-        this.mesh.position.y = -0.5;
         this.mesh.position.x = 1;
-        this.mesh.rotation.y = -Math.PI / 1.7;
-        this.mesh.rotation.z = 0.09;
-        // this.mesh.setEnabled(false);
+        this.mesh.position.y = -0.5
+        this.mesh.position.z = 2;
+        this.mesh.rotation.x = -0.1
+        this.mesh.rotation.y = -0.1
+        this.mesh.rotation.z = 1.5
+        this.mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
 
     }
 
@@ -205,14 +219,15 @@ export class Hand extends BaseWeapon {
         if (SceneViewer.activeComponent) {
             SceneViewer.activeComponent.interact(whoFired)
         }
-        this.playAnimation(0,false);
+        // this.playAnimation(0,false);
+        this.playAnimation(1,false);
     }
     stopFire() {
         console.log("Stop",SceneViewer.activeComponent);
         if (SceneViewer.activeComponent) {
             SceneViewer.activeComponent.endInteract();
         }
-        this.playAnimation(1,true)
+        this.playAnimation(0,true)
         // SceneViewer.activeComponent = null;
     }
     reload:() => Promise<void>;
@@ -224,57 +239,34 @@ export class Hand extends BaseWeapon {
     }
 
     async init() {
-        let container = await ModelLoader.AppendGltfContainer("Knife",SceneViewer.scene) as BABYLON.AssetContainer
-        // TODO : All of this shit needs to be moved into the ModelLoader, but I need the container for now. Should make a loaded model class.
-        this.mesh = new BABYLON.Mesh('d')
-        this.transformNode = new Entity("FlareGun","FlareGun",SceneViewer.scene,this.mesh,false,uuidv4());
-        let collection = new BABYLON.Mesh('collection');
-        collection.parent = this.mesh;
-        let meshes = container.meshes;
-        meshes.forEach(mesh => {
-            collection.addChild(mesh);
-        })
+        let container = await ModelLoader.AppendGltfContainer("Hands",SceneViewer.scene) as BABYLON.AssetContainer
+        this.mesh = container.meshes[0] as BABYLON.Mesh;
+        this.transformNode = new Entity("Hands","Hands",SceneViewer.scene,this.mesh,false,uuidv4());
 
-        let childMeshes = this.mesh.getChildMeshes();
-        let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
-        let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
-    
-        for(let i=0; i<childMeshes.length; i++){
-            let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
-            let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
-    
-            min = BABYLON.Vector3.Minimize(min, meshMin);
-            max = BABYLON.Vector3.Maximize(max, meshMax);
-        }
-
-        let width = max.subtract(min);
-        this.mesh.scaling = width;
-        this.mesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
             animation.enableBlending = true;
             animation.stop();
         })
+        this.animations[0].start(true);
         this.transformNode.parent = SceneViewer.player.camera;
-        this.mesh.scaling = new BABYLON.Vector3(0.005,0.005,0.005);
+        
         this.mesh.isPickable = false;
-        this.mesh.renderingGroupId = 3;
         this.mesh.checkCollisions = false;
+        this.mesh.renderingGroupId = 3;
+
+        let childMeshes = this.mesh.getChildMeshes();
         childMeshes.forEach(child => {
-            child.renderingGroupId = 3;
             child.isPickable = false;
             child.checkCollisions = false;
-        })
-        this.mesh.scaling = new BABYLON.Vector3(4,4,4);
-        this.mesh.renderingGroupId = 3;
-        let children = this.mesh.getChildMeshes();
-        children.forEach(child => {
             child.renderingGroupId = 3;
         })
-        this.mesh.position.z = 1;
-        this.mesh.position.y = -6;
+
+        this.mesh.position.z = 0.6;
+        this.mesh.position.y = -0.2;
+        this.mesh.scaling = new BABYLON.Vector3(3,3,3);
+
         this.mesh.setEnabled(false);
-        this.playAnimation(1,true);
     }
 
 }

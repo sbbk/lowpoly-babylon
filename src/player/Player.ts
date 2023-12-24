@@ -8,13 +8,13 @@ export class Player extends Entity {
 
     scene:BABYLON.Scene;
     camera:BABYLON.FreeCamera;
-    heroPhysicsAgregate:BABYLON.PhysicsAggregate;
     pointer:BABYLON.Mesh;
     pickupZone:BABYLON.Mesh;
     currentTarget:Entity = null;
     handController:HandController;
     activeQuests:number[] = [];
     weaponController:WeaponController;
+    target:BABYLON.Vector3;
     cameraRoll: number;
     rolling:boolean;
     constructor(id,name,scene:BABYLON.Scene,mesh,interactable,uid) {
@@ -26,7 +26,6 @@ export class Player extends Entity {
         this.interactable = interactable;
         this.uid = uid;
         this.camera = new BABYLON.FreeCamera('main',new BABYLON.Vector3(6,3,6));
-        //this.camera.position = new BABYLON.Vector3(42.775998054306555,5.231532323582747, 40.643488638043486);
         this.camera.minZ = 0.1;
         this.camera.speed = 0.6;
         this.camera.angularSensibility = 9000;
@@ -44,7 +43,7 @@ export class Player extends Entity {
         window["cameraRoll"] = this.cameraRoll;
 
         // Hands
-        this.handController = new HandController();
+        // this.handController = new HandController();
 
         // Define Bindings.
         this.camera.keysUp.push(87);
@@ -121,11 +120,6 @@ export class Player extends Entity {
         // Hero mesh.
         this.mesh.isPickable = false;
         this.mesh.parent = this.camera;
-        // this.heroMesh.position.x = 0.0;
-        // this.heroMesh.position.y = 1.0;
-        // this.heroMesh.position.z = 0.0;
-        // this.heroPhysicsAgregate = new BABYLON.PhysicsAggregate(SceneViewer.heroMesh, BABYLON.PhysicsShapeType.SPHERE, { mass: 1, restitution: 0.75 }, SceneViewer.scene);
-        // this.camera.parent = this.heroMesh;
 
         this.pickupZone = BABYLON.MeshBuilder.CreateSphere('pickup');
         let pickupmat = new BABYLON.StandardMaterial('pmat');

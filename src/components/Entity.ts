@@ -3,8 +3,9 @@ export type GameComponentType = "Interactable" | "Static" | "Collectable" | "Tal
 | "Image" | "OneLineConversation" | "Physics" | "SocketString" | "Door" | "Button" | "DelayedAutoTrigger" | "PlayerAudioLoop" | "IntersectInOutTrigger" | "Valve" | "Lift";
 import { SceneViewer } from "../babylon/sceneViewer";
 import { v4 as uuidv4 } from 'uuid';
-import { EventHandler, EventTrigger } from "~/triggers/EventTrigger";
+import { EventHandler } from "../triggers/EventTrigger";
 import { Ref, ref } from "vue";
+import { useEntityStore } from "../stores/EntityStore";
 
 export function findEntity(id:string) {
 
@@ -50,7 +51,7 @@ export interface iGameComponent {
     mesh?: BABYLON.Mesh;
     label?:string;
     canInteract: boolean;
-    trigger?:EventTrigger;
+    // trigger?:EventTrigger;
     enabled:boolean;
     init: () => void;
     interact: (args?:any) => void;
@@ -86,7 +87,8 @@ export class BaseEntity extends BABYLON.TransformNode {
         super(name, scene);
         this.id = name;
         this.uid = uuidv4();
-        this.maxHitPoints = 0;
+        this.maxHitPoints = 100;
+        this.currentHitPoints = this.maxHitPoints;
         this.components = [];
         this.isDirty = false;
         this.interactable = true;
@@ -101,7 +103,13 @@ export class BaseEntity extends BABYLON.TransformNode {
 
     }
     destroyMesh() {
-
+        if (this.mesh) this.mesh.dispose();
+    }
+    destroy() {
+        this.destroyMesh();
+        this.dispose();
+        // Will work when we transfer to Vue.
+        // useEntityStore().removeEntity(this)
     }
 
     addComponent(component: iGameComponent) {

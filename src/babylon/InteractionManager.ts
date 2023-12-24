@@ -32,6 +32,10 @@ export class InteractionManager {
             switch (pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERDOWN:
+
+                    // Always fire?
+                    SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
+
                     if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
                         return;
                     }
@@ -44,7 +48,6 @@ export class InteractionManager {
                         // // Return if we can't interact right now.
                         if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
                         SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
-                        SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
                     }
 
                     break;
