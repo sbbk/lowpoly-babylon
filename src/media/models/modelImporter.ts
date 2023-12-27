@@ -106,6 +106,9 @@ export namespace ModelLoader {
     const BrickSet_Wall_End = new URL('./environment/brickset/BrickSet_Wall_End.glb', import.meta.url).pathname;
     const BrickSet_Window = new URL('./environment/brickset/BrickSet_Window.glb', import.meta.url).pathname;
 
+    // Effects
+    const eyeball = new URL('./effects/eyeball.glb', import.meta.url).pathname;
+
 
 
     export var LoadedModels: BABYLON.AbstractMesh[] = [];
@@ -118,7 +121,7 @@ export namespace ModelLoader {
         "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
         "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
-        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun" | "Hands";
+        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun" | "Hands" | "Eyeball";
 
     export const modelList = [
         "CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase","frog","neonJoint","boxMan",
@@ -126,7 +129,7 @@ export namespace ModelLoader {
         "ArtBust", "Barrel", "BoxPallet", "Cardboard_boxGroup", "Cone", "Crate1", "Forklift", "Ladder", "MetalContainer", "Plywood", "Skip", "Brickset_Doorframe",
         "BrickSet_Exterior_BuildingTop_Corner", "Brickset_ExteriorBuilding_Top", "BrickSet_FireEscape_Bottom_LadderUp", "BrickSet_FireEscape_Middle", "BrickSet_FireEscape_Top",
         "BrickSet_HalfWall_1m", "BrickSet_HalfWall_Corner", "BrickSet_HalfWall_End", "BrickSet_Wall_1m", "BrickSet_Wall_Corner", "BrickSet_Wall_End", "BrickSet_Window",
-        "SevenEleven", "PS1", "WaterGun"
+        "SevenEleven", "PS1", "WaterGun", "Eyeball"
         ] as string[];
     function findModelInList(model:string) {
         let foundIndex = modelList.indexOf(model);
@@ -146,6 +149,8 @@ export namespace ModelLoader {
         switch (model) {
             case "EntityBase":
                 return entity;
+            case "Eyeball":
+                return eyeball;
             case "Hands":
                 return hands;
             case "SevenEleven":
@@ -870,6 +875,41 @@ export namespace ModelLoader {
             BABYLON.SceneLoader.LoadAssetContainer(path, "", scene, ((container) => {
                 let rootMesh = new BABYLON.Mesh('root')
                 container.addAllToScene();
+                let meshes = container.meshes;
+                meshes.forEach(mesh => {
+                    mesh.checkCollisions = false;
+                    rootMesh.addChild(mesh);
+                })
+                let childMeshes = rootMesh.getChildMeshes();
+                let min = childMeshes[0].getBoundingInfo().boundingBox.minimumWorld;
+                let max = childMeshes[0].getBoundingInfo().boundingBox.maximumWorld;
+            
+                for(let i=0; i<childMeshes.length; i++){
+                    let meshMin = childMeshes[i].getBoundingInfo().boundingBox.minimumWorld;
+                    let meshMax = childMeshes[i].getBoundingInfo().boundingBox.maximumWorld;
+            
+                    min = BABYLON.Vector3.Minimize(min, meshMin);
+                    max = BABYLON.Vector3.Maximize(max, meshMax);
+                }
+        
+                let width = max.subtract(min);
+                rootMesh.scaling = width;
+                rootMesh.setBoundingInfo(new BABYLON.BoundingInfo(min, max));
+                container.meshes = [rootMesh];
+                LoadedModels.push(container.meshes[0]);
+                resolve(container);
+
+            }))
+        })
+
+    }
+
+    export function PreloadGltfContainer(model: models, scene: BABYLON.Scene):Promise<BABYLON.AssetContainer> {
+
+        return new Promise(function (resolve, reject) {
+            let path = importModel(model);
+            BABYLON.SceneLoader.LoadAssetContainer(path, "", scene, ((container) => {
+                let rootMesh = new BABYLON.Mesh('root')
                 let meshes = container.meshes;
                 meshes.forEach(mesh => {
                     mesh.checkCollisions = false;

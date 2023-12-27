@@ -7,6 +7,7 @@ import { KeyboardShortcuts } from "../babylon/configs/keybindings";
 import { BaseEntity, Entity, findEntityParent } from "../components/Entity";
 import { v4 as uuidv4 } from 'uuid';
 import { CollectableComponent, CollectableType } from "../components/CollectableComponent";
+import { Crosshairs } from "../player/HUD";
 
 export enum WeaponType {
 
@@ -123,6 +124,7 @@ export class FlareGun extends BaseWeapon {
     declare physicsAggregate: BABYLON.PhysicsAggregate;
     declare mesh:BABYLON.Mesh;
     declare animations:BABYLON.AnimationGroup[];
+    fireAnimation:BABYLON.Animation;
     constructor() {
         super(WeaponType.FLAREGUN)
         this.canBeDropped = true;
@@ -138,7 +140,8 @@ export class FlareGun extends BaseWeapon {
     }
     fire(whoFired:Player) {
 
-        let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
+        let target = SceneViewer.camera.getTarget(); 
+        let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
         let hit = SceneViewer.scene.pickWithRay(ray);
         let rayHelper = new BABYLON.RayHelper(ray)
         rayHelper.show(SceneViewer.scene, new BABYLON.Color3(0,1,0));
@@ -146,7 +149,7 @@ export class FlareGun extends BaseWeapon {
             rayHelper.dispose();
         }, 1000);
         SceneViewer.player.target = hit.pickedPoint;
-
+        SceneViewer.scene.beginAnimation(this.mesh,0,30);
         if (hit.pickedMesh) {
             let mesh = hit.pickedMesh as BABYLON.Mesh;
             let distance = BABYLON.Vector3.Distance(SceneViewer.camera.globalPosition, hit.pickedPoint);
@@ -158,15 +161,17 @@ export class FlareGun extends BaseWeapon {
             if (foundParent instanceof BaseEntity) {
                 // Do Damage
                 foundParent.currentHitPoints -= this.damage;
+                SceneViewer.HUDManager.setVisible(Crosshairs.Hit,70);
+                foundParent.takeDamage(hit.pickedPoint,this.damage);
                 console.log(`Done ${this.damage} damage. Hit Points for ${foundParent.name} is now ${foundParent.currentHitPoints}`);
                 if (foundParent.currentHitPoints <= 0) {
                     foundParent.destroy();
                 }
             }
-        }
+        }        
+    }
 
-        console.log("Target",SceneViewer.player.currentTarget);
-        
+    addEasingAnimations(mesh:BABYLON.Mesh) {
     }
 
     async init() {
@@ -174,7 +179,7 @@ export class FlareGun extends BaseWeapon {
         let uuid = uuidv4();
         this.mesh = container.meshes[0] as BABYLON.Mesh;
         this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
-       
+        this.addEasingAnimations(this.mesh);
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
             animation.enableBlending = true;
@@ -197,7 +202,29 @@ export class FlareGun extends BaseWeapon {
         this.mesh.rotation.x = -0.1
         this.mesh.rotation.y = -0.1
         this.mesh.rotation.z = 1.5
-        this.mesh.scaling = new BABYLON.Vector3(0.5,0.5,0.5);
+        this.mesh.scaling = new BABYLON.Vector3(0.7,0.7,0.7);
+
+        let animation = new BABYLON.Animation("positionAnim", "position.z", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        let easingFunction = new BABYLON.QuadraticEase();
+        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEOUT);
+
+        // Apply the easing function to both animations
+        animation.setEasingFunction(easingFunction);
+        var keys = [];
+        keys.push({
+            frame: 0,
+            value: this.mesh.position.z
+        });
+        keys.push({
+            frame: 1,
+            value: this.mesh.position.z + -0.2
+        });
+        keys.push({
+            frame: 10,
+            value: this.mesh.position.z
+        });
+        animation.setKeys(keys);
+        this.mesh.animations.push(animation);
 
     }
 

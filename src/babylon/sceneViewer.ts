@@ -10,6 +10,7 @@ import { TagBillboard } from "../gui/TagBillboard";
 import { EntityParser } from "../data/EntityParser";
 import { InteractionManager } from "./InteractionManager";
 import { PrefabSpawner } from "../builder/PrefabSpawner";
+import { HUDManager } from "../player/HUD";
 const items = require("../data/prefabs/prefabs.json");
 
 export type GameMode = "Play" | "Build"
@@ -27,6 +28,7 @@ export class SceneViewer {
     loadedModel:BABYLON.Scene
     currentTarget:number;
     static interactionManager:InteractionManager;
+    static HUDManager: HUDManager;
     static inventory:pInventory;
     
     // PHYSICS
@@ -73,6 +75,7 @@ export class SceneViewer {
         SceneViewer.gravity = -30;
         SceneViewer.gameObjects = [];
         SceneViewer.questManager = new QuestSystem.QuestManager();
+        SceneViewer.HUDManager = new HUDManager();
 
         // Highlight Layer & Interaction.
         SceneViewer.highlightLayer = new BABYLON.HighlightLayer('hl-l',SceneViewer.scene);

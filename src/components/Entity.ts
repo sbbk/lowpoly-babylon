@@ -6,6 +6,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { EventHandler } from "../triggers/EventTrigger";
 import { Ref, ref } from "vue";
 import { useEntityStore } from "../stores/EntityStore";
+import { GibManager, MeshGib } from "../effects/MeshGib";
 
 export function findEntity(id:string) {
 
@@ -79,6 +80,7 @@ export class BaseEntity extends BABYLON.TransformNode {
     activeComponent: iGameComponent;
     interactable: boolean;
     componentTrigger:EventHandler.ComponentEventTrigger;
+    gibManager:GibManager;
     interact: () => void = () => {
 
     }
@@ -87,11 +89,14 @@ export class BaseEntity extends BABYLON.TransformNode {
         super(name, scene);
         this.id = name;
         this.uid = uuidv4();
-        this.maxHitPoints = 100;
+        this.maxHitPoints = 40;
         this.currentHitPoints = this.maxHitPoints;
         this.components = [];
         this.isDirty = false;
         this.interactable = true;
+        this.gibManager = new GibManager();
+        this.gibManager.init();
+
     }
 
     getComponent(type: GameComponentType) {
@@ -107,9 +112,50 @@ export class BaseEntity extends BABYLON.TransformNode {
     }
     destroy() {
         this.destroyMesh();
+        let createGib = this.gibManager.spawnGib("Eyeball",this.getAbsolutePosition())
         this.dispose();
         // Will work when we transfer to Vue.
         // useEntityStore().removeEntity(this)
+    }
+    takeDamage(vector:BABYLON.Vector3,damageAmount:number) {
+        let damageUrl = new URL(`../media/images/sprites/damage/damage-10.png`,import.meta.url).pathname
+        const damageManager = new BABYLON.SpriteManager("damage", damageUrl, 2000, {width: 50, height: 50},SceneViewer.scene);
+        const damage = new BABYLON.Sprite("damage-sprite", damageManager);
+        damage.position = vector.clone();
+        damage.width = 1;
+        damage.height = 1;
+        let animation = new BABYLON.Animation("positionAnim", "position.y", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
+        let easingFunction = new BABYLON.QuadraticEase();
+        easingFunction.setEasingMode(BABYLON.EasingFunction.EASINGMODE_EASEINOUT);
+
+        // Apply the easing function to both animations
+        animation.setEasingFunction(easingFunction);
+        var keys = [];
+        keys.push({
+            frame: 0,
+            value: damage.position.y
+        });
+        keys.push({
+            frame: 10,
+            value: damage.position.y + 2.7
+        });
+        keys.push({
+            frame: 12,
+            value: damage.position.y + 2.8
+        });
+        keys.push({
+            frame: 30,
+            value: damage.position.y + 1
+        });
+        animation.setKeys(keys);
+        damage.animations.push(animation);
+        SceneViewer.scene.beginAnimation(damage,0,30);
+
+        setTimeout(() => {
+            damageManager.dispose();
+            damage.dispose();
+        }, 500);
+    
     }
 
     addComponent(component: iGameComponent) {

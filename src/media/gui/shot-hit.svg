@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="uuid-c5239459-34cc-48ec-b36a-199f74f7b686" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 78.8 78.8">
+  <defs>
+    <style>
+      .uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3 {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-miterlimit: 10;
+        stroke-width: 4px;
+      }
+    </style>
+  </defs>
+  <g id="uuid-b92b7acc-c3f3-4966-80be-27261b10adba" data-name="Layer 3">
+    <g>
+      <line class="uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3" x1="56.38" y1="56.38" x2="76.8" y2="76.8"/>
+      <line class="uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3" x1="2" y1="2" x2="22.42" y2="22.42"/>
+      <g>
+        <line class="uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3" x1="22.42" y1="56.38" x2="2" y2="76.8"/>
+        <line class="uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3" x1="76.8" y1="2" x2="56.38" y2="22.42"/>
+      </g>
+      <circle class="uuid-bda7d5be-f253-4d48-8b15-5f16212c78c3" cx="39.4" cy="39.4" r="2.01"/>
+    </g>
+  </g>
+</svg>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="uuid-c9c0aaa5-b4f1-4f4a-953a-f51c296b62dc" data-name="Layer 2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90.02 90.02">
+  <defs>
+    <style>
+      .uuid-d0ac619f-88cd-4849-b446-0dce387f8e6d {
+        fill: none;
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-miterlimit: 10;
+        stroke-width: 4px;
+      }
+    </style>
+  </defs>
+  <g id="uuid-f2cf8e24-3e08-43dd-8c53-252b99d5db05" data-name="Layer 2">
+    <g>
+      <line class="uuid-d0ac619f-88cd-4849-b446-0dce387f8e6d" x1="59.15" y1="45.01" x2="88.02" y2="45.01"/>
+      <line class="uuid-d0ac619f-88cd-4849-b446-0dce387f8e6d" x1="2" y1="45.01" x2="30.87" y2="45.01"/>
+      <line class="uuid-d0ac619f-88cd-4849-b446-0dce387f8e6d" x1="45.01" y1="59.15" x2="45.01" y2="88.02"/>
+      <line class="uuid-d0ac619f-88cd-4849-b446-0dce387f8e6d" x1="45.01" y1="2" x2="45.01" y2="30.87"/>
+    </g>
+  </g>
+</svg>
