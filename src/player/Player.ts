@@ -77,46 +77,6 @@ export class Player extends Entity {
         this.camera.animations.push(rollRightAnimation);
         rollRightAnimation.setKeys(rollRight);
 
-        // Jump
-        // document.onkeydown = (e) => {
-
-        //     console.log(e.code);
-        //     if (e.code === "Space") this.camera.cameraDirection.y += 1;
-        //     if (e.code === "KeyA") {
-        //         if (this.rolling) return;
-        //         this.rolling = true;
-        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollLeftAnimation],0,30,false);
-        //     }
-        //     if (e.code === "KeyD") {
-        //         if (this.rolling) return;
-        //         this.rolling = true;
-        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollRightAnimation],0,30,false);
-        //     }
-
-        // };
-        // document.onkeyup = (e) => {
-        //     if (e.code === "KeyA") {
-        //         let frame = 30;
-        //         let animation = rollRightAnimation.runtimeAnimations[0];
-        //         if (animation) {
-        //             frame = Math.floor(animation.animation.runtimeAnimations[0].currentFrame);
-        //         }
-        //         SceneViewer.scene.stopAnimation(this.camera);
-        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollLeftAnimation],frame,0,false);
-        //         this.rolling = false;
-        //     }
-        //     if (e.code === "KeyD") {
-        //         let frame = 30;
-        //         let animation = rollRightAnimation.runtimeAnimations[0];
-        //         if (animation) {
-        //             frame = Math.floor(animation.animation.runtimeAnimations[0].currentFrame);
-        //         }
-        //         SceneViewer.scene.stopAnimation(this.camera);
-        //         SceneViewer.scene.beginDirectAnimation(this.camera,[rollRightAnimation],frame,0,false);
-        //         this.rolling = false;
-        //     }
-        // }
-
         // Hero mesh.
         this.mesh.isPickable = false;
         this.mesh.parent = this.camera;
@@ -131,13 +91,6 @@ export class Player extends Entity {
         this.pickupZone.position.x = 0;
         this.pickupZone.visibility = 0;
         this.pickupZone.isPickable = false;
-
-        this.pointer = BABYLON.Mesh.CreateSphere("Sphere", 16.0, 0.01, this.scene, false, BABYLON.Mesh.DOUBLESIDE);
-        // move the sphere upward 1/2 of its height
-        this.pointer.position.x = 0.0;
-        this.pointer.position.y = 0.0;
-        this.pointer.position.z = 0.0;
-        this.pointer.isPickable = false;
         this.weaponController = new WeaponController();
         
 

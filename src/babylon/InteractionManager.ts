@@ -224,7 +224,6 @@ export class InteractionManager {
             // Clear highlights
             SceneViewer.highlightLayer.removeAllMeshes();
 
-            SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
             let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
             let hit = SceneViewer.scene.pickWithRay(ray);
 
@@ -255,7 +254,6 @@ export class InteractionManager {
             // Clear highlights
             SceneViewer.highlightLayer.removeAllMeshes();
 
-            SceneViewer.player.pointer.position = SceneViewer.camera.getTarget();
             let target = SceneViewer.camera.getTarget(); let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
             let hit = SceneViewer.scene.pickWithRay(ray);
 

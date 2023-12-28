@@ -69,7 +69,8 @@ export namespace ModelLoader {
     const hands = new URL('./hands/hands-rig3.glb',import.meta.url).pathname
     const flareGun = new URL('./flare_gun1.glb', import.meta.url).pathname;
     const knife = new URL('./knife.glb', import.meta.url).pathname;
-    const watergun = new URL('./weapons/water_gun.glb', import.meta.url).pathname;
+    const watergun = new URL('./weapons/water_gun_2.glb', import.meta.url).pathname;
+    const ak47 = new URL('./weapons/ak471.glb', import.meta.url).pathname;
 
     // Environment
     const pacmanArcade = new URL('./environment/pacman-arcade.glb', import.meta.url).pathname;
@@ -121,7 +122,7 @@ export namespace ModelLoader {
         "Cone" | "Crate1" | "Crate2" | "Forklift" | "Ladder" | "MetalContainer" | "Plywood" | "Skip" |
         "Brickset_Doorframe" | "BrickSet_Exterior_BuildingTop_Corner" | "Brickset_ExteriorBuilding_Top" | "BrickSet_FireEscape_Bottom_LadderUp" | "BrickSet_FireEscape_Middle" |
         "BrickSet_FireEscape_Top" | "BrickSet_HalfWall_1m" | "BrickSet_HalfWall_Corner" | "BrickSet_HalfWall_End" | "BrickSet_Wall_1m" | "BrickSet_Wall_Corner" |
-        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun" | "Hands" | "Eyeball";
+        "BrickSet_Wall_End" | "BrickSet_Window" | "EntityBase" | "SevenEleven" | "PS1" | "WaterGun" | "Hands" | "Eyeball" | "AK47";
 
     export const modelList = [
         "CrashBandicoot", "dva", "CheesePlant", "MetalCabinet", "Maschine", "Monitor", "TrestleTable", "doom", "EntityBase","frog","neonJoint","boxMan",
@@ -129,7 +130,7 @@ export namespace ModelLoader {
         "ArtBust", "Barrel", "BoxPallet", "Cardboard_boxGroup", "Cone", "Crate1", "Forklift", "Ladder", "MetalContainer", "Plywood", "Skip", "Brickset_Doorframe",
         "BrickSet_Exterior_BuildingTop_Corner", "Brickset_ExteriorBuilding_Top", "BrickSet_FireEscape_Bottom_LadderUp", "BrickSet_FireEscape_Middle", "BrickSet_FireEscape_Top",
         "BrickSet_HalfWall_1m", "BrickSet_HalfWall_Corner", "BrickSet_HalfWall_End", "BrickSet_Wall_1m", "BrickSet_Wall_Corner", "BrickSet_Wall_End", "BrickSet_Window",
-        "SevenEleven", "PS1", "WaterGun", "Eyeball"
+        "SevenEleven", "PS1", "WaterGun", "Eyeball", "AK47"
         ] as string[];
     function findModelInList(model:string) {
         let foundIndex = modelList.indexOf(model);
@@ -149,6 +150,8 @@ export namespace ModelLoader {
         switch (model) {
             case "EntityBase":
                 return entity;
+            case "AK47":
+                return ak47;
             case "Eyeball":
                 return eyeball;
             case "Hands":

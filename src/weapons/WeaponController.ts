@@ -38,7 +38,8 @@ export interface iBaseWeapon {
     canBeDropped:boolean;
     clipSize:number;
     damage:number;
-    mesh:BABYLON.Mesh
+    mesh:BABYLON.Mesh;
+    initialRotation:BABYLON.Quaternion
 
 }
 
@@ -63,6 +64,7 @@ export class BaseWeapon implements iBaseWeapon{
     mesh:BABYLON.Mesh
     transformNode:Entity;
     innerMesh:BABYLON.Mesh;
+    initialRotation:BABYLON.Quaternion;
 
     constructor(weaponType:WeaponType) {
         this.canBeDropped = true;
@@ -87,6 +89,14 @@ export class BaseWeapon implements iBaseWeapon{
     onEquip() {
 
     }
+    setInitialRotation() {
+        var rotation = this.mesh.rotation.clone(); // get the mesh's rotation
+        var quaternion = BABYLON.Quaternion.FromEulerAngles(rotation.x, rotation.y, rotation.z); // get the quaternion
+        this.mesh.rotationQuaternion = null;
+        this.mesh.rotationQuaternion = quaternion; 
+        this.initialRotation = quaternion;
+    }
+
     onUnequip() {}
     drop(weaponType:WeaponType) {
         this.stopPlayingAnimation();
@@ -175,7 +185,7 @@ export class FlareGun extends BaseWeapon {
     }
 
     async init() {
-        let container = await ModelLoader.AppendGltfContainer("WaterGun",SceneViewer.scene) as BABYLON.AssetContainer;
+        let container = await ModelLoader.AppendGltfContainer("AK47",SceneViewer.scene) as BABYLON.AssetContainer;
         let uuid = uuidv4();
         this.mesh = container.meshes[0] as BABYLON.Mesh;
         this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
@@ -196,13 +206,14 @@ export class FlareGun extends BaseWeapon {
             child.isPickable = false;
             child.checkCollisions = false;
         })
-        this.mesh.position.x = 1;
-        this.mesh.position.y = -0.5
+        this.mesh.position.x = 0.3;
+        this.mesh.position.y = -0.2
         this.mesh.position.z = 2;
-        this.mesh.rotation.x = -0.1
-        this.mesh.rotation.y = -0.1
-        this.mesh.rotation.z = 1.5
-        this.mesh.scaling = new BABYLON.Vector3(0.7,0.7,0.7);
+        // this.mesh.rotation.x = -0.2
+        this.mesh.rotation.y = 1.5
+        // this.mesh.rotation.z = 1.5
+        this.mesh.scaling = new BABYLON.Vector3(1,1,1);
+        window["ak47"] = this.mesh;
 
         let animation = new BABYLON.Animation("positionAnim", "position.z", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
         let easingFunction = new BABYLON.QuadraticEase();
@@ -303,9 +314,60 @@ export class WeaponController {
     player:Player;
     equippedWeapon:iBaseWeapon;
     availableWeapons:iBaseWeapon[];
+    movementXRaw:number = 0;
+    movementYRaw:number = 0;
+    swayMultiplier:number;
+    smooth:number;
+    isSwaying:boolean;
+    isReturning:boolean;
+    returnSpeed:number;
 
     constructor() {
         this.init();
+        this.isSwaying = false;
+        this.isReturning = false;
+        this.returnSpeed = 0;
+
+        SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
+            if (this.isReturning) return;
+            this.isSwaying = true;
+            this.swayMultiplier = 1;
+            this.smooth = 0.1;
+            this.movementXRaw = pointerInfo.event.movementX;
+            this.movementYRaw = pointerInfo.event.movementY
+            if (!this.equippedWeapon) return;
+            if (!this.equippedWeapon.mesh) return;
+            let movementX = this.movementXRaw * this.swayMultiplier; // Negate the values
+            let movementY = this.movementYRaw * this.swayMultiplier; // Negate the values
+            movementX = BABYLON.Scalar.Clamp(movementX, -0.5, 0.5);
+            movementY = BABYLON.Scalar.Clamp(movementY, -0.5, 0.5);
+            var rotationX = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, movementX);
+            var rotationY = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, movementY);
+            let targetRotation;
+            targetRotation = rotationX.multiply(rotationY);
+            let delta = SceneViewer.engine.getDeltaTime() / 1000;
+            this.equippedWeapon.mesh.rotationQuaternion = BABYLON.Quaternion.Slerp(this.equippedWeapon.mesh.rotationQuaternion, targetRotation, this.smooth * delta);
+            this.isSwaying = false;
+            setTimeout(() => {
+            }, 300);
+        })
+        
+        SceneViewer.scene.onBeforeRenderObservable.add(() => {
+            if (!this.equippedWeapon) return;
+            if (!this.equippedWeapon.mesh) return;
+            if (this.isSwaying == true) return;
+            this.isReturning = true;
+            let delta = SceneViewer.engine.getDeltaTime() / 1000;
+            this.returnSpeed += delta;
+            let lerpFactor = this.returnSpeed * 4;
+            lerpFactor = BABYLON.Scalar.Clamp(lerpFactor, 0, 1);
+            this.equippedWeapon.mesh.rotationQuaternion = BABYLON.Quaternion.Slerp(this.equippedWeapon.mesh.rotationQuaternion, this.equippedWeapon.initialRotation, lerpFactor);
+            if (BABYLON.Quaternion.AreClose(this.equippedWeapon.mesh.rotationQuaternion, this.equippedWeapon.initialRotation, 0.01)) {
+                this.isReturning = false;
+                this.returnSpeed = 0;
+            }
+        })
+
     }
 
     async init() {
@@ -313,7 +375,10 @@ export class WeaponController {
         let hand = new Hand();
         this.createKeyBindings();
         await hand.init();
+        hand.setInitialRotation();
         await flareGun.init();
+        flareGun.setInitialRotation()
+
         this.availableWeapons = [hand,flareGun];
         this.availableWeapons.forEach(weapon => {
             weapon.mesh.setEnabled(false);
@@ -355,6 +420,7 @@ export class WeaponController {
 
     }
 
+    
     fire() {
         console.log("Fire weapon")
         this.equippedWeapon.fire(this.player);
@@ -371,6 +437,7 @@ export class WeaponController {
         setTimeout(() => {
             this.equippedWeapon.onUnequip();
             this.equippedWeapon.mesh.setEnabled(true);
+
         }, 100);
 
     }
