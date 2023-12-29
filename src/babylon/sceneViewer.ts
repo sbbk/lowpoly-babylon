@@ -249,15 +249,15 @@ export class SceneViewer {
     static setGameMode(mode:GameMode) {
 
         // Remove existing game mode observers.
-        if (SceneViewer.interactionManager.PointerObservableFunction !== null) {
-            SceneViewer.scene.onPointerObservable.remove(SceneViewer.interactionManager.PointerObservableFunction);
-        }
-        if (SceneViewer.interactionManager.KeyObserverFunction !== null) {
-            SceneViewer.scene.onKeyboardObservable.remove(SceneViewer.interactionManager.KeyObserverFunction);
-        }
-        if (!SceneViewer.interactionManager.RegisterBeforeRenderFunction !== null) {
-            SceneViewer.scene.onBeforeRenderObservable.remove(SceneViewer.interactionManager.RegisterBeforeRenderFunction)
-        }
+        // if (SceneViewer.interactionManager.PointerObservableFunction !== null) {
+        //     SceneViewer.scene.onPointerObservable.remove(SceneViewer.interactionManager.PointerObservableFunction);
+        // }
+        // if (SceneViewer.interactionManager.KeyObserverFunction !== null) {
+        //     SceneViewer.scene.onKeyboardObservable.remove(SceneViewer.interactionManager.KeyObserverFunction);
+        // }
+        // if (!SceneViewer.interactionManager.RegisterBeforeRenderFunction !== null) {
+        //     SceneViewer.scene.onBeforeRenderObservable.remove(SceneViewer.interactionManager.RegisterBeforeRenderFunction)
+        // }
 
         switch(mode) {
             case "Play":
@@ -275,8 +275,8 @@ export class SceneViewer {
                 SceneViewer.scene.activeCamera.detachControl();
                 SceneViewer.scene.activeCamera = SceneViewer.buildCamera;
                 SceneViewer.scene.activeCamera.attachControl();
-                SceneViewer.interactionManager.registerBuildPointers();
-                SceneViewer.interactionManager.registerBuildBeforeRenderFunction();
+                // SceneViewer.interactionManager.registerBuildPointers();
+                // SceneViewer.interactionManager.registerBuildBeforeRenderFunction();
                 if (SceneViewer.tagBillBoard) {
                     SceneViewer.tagBillBoard.setVisible(false);
                 }
@@ -285,10 +285,10 @@ export class SceneViewer {
             
         SceneViewer.GameMode = mode;
         SceneViewer.camera.attachControl(true);
-        ModelLoader.LoadModel("SevenEleven",SceneViewer.scene,false).then((scene) => {
-            let model = scene as BABYLON.Mesh;
-            model.scaling = new BABYLON.Vector3(0.06,0.06,0.06);
-        })
+        // ModelLoader.LoadModel("SevenEleven",SceneViewer.scene,false).then((scene) => {
+        //     let model = scene as BABYLON.Mesh;
+        //     model.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
+        // })
     }
 
 }

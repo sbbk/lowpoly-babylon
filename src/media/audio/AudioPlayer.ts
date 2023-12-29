@@ -1,5 +1,5 @@
 import { SceneViewer } from "../../babylon/sceneViewer";
-import * as BABYLON from "babylonjs";
+import * as BABYLON from "@babylonjs/core"
 
 export class AudioPlayer {
     private audio: BABYLON.Sound | null;

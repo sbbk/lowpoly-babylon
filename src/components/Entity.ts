@@ -118,6 +118,10 @@ export class BaseEntity extends BABYLON.TransformNode {
         // useEntityStore().removeEntity(this)
     }
     takeDamage(vector:BABYLON.Vector3,damageAmount:number) {
+        this.currentHitPoints -= damageAmount;
+        if (this.currentHitPoints <= 0) {
+            this.destroy();
+        }
         let damageUrl = new URL(`../media/images/sprites/damage/damage-10.png`,import.meta.url).pathname
         const damageManager = new BABYLON.SpriteManager("damage", damageUrl, 2000, {width: 50, height: 50},SceneViewer.scene);
         const damage = new BABYLON.Sprite("damage-sprite", damageManager);
@@ -150,7 +154,6 @@ export class BaseEntity extends BABYLON.TransformNode {
         animation.setKeys(keys);
         damage.animations.push(animation);
         SceneViewer.scene.beginAnimation(damage,0,30);
-
         setTimeout(() => {
             damageManager.dispose();
             damage.dispose();

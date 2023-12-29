@@ -34,6 +34,7 @@ export class InteractionManager {
                 case BABYLON.PointerEventTypes.POINTERDOWN:
 
                     // Always fire?
+                    console.log("Hit")
                     SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
 
                     if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
