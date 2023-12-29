@@ -1,6 +1,6 @@
 import * as BABYLON from "@babylonjs/core"
 import { GLTFFileLoader } from "@babylonjs/loaders";
-import { GraphicsConfig } from "../media/models/modelImporter";
+import { GraphicsConfig, ModelLoader } from "../media/models/modelImporter";
 import HavokPhysics from "@babylonjs/havok";
 import { QuestSystem } from "../components/Quest"
 import { Entity, iGameComponent } from "../components/Entity";
@@ -11,6 +11,7 @@ import { EntityParser } from "../data/EntityParser";
 import { InteractionManager } from "./InteractionManager";
 import { PrefabSpawner } from "../builder/PrefabSpawner";
 import { HUDManager } from "../player/HUD";
+import { AudioPlayer } from "../media/audio/AudioPlayer";
 const items = require("../data/prefabs/prefabs.json");
 
 export type GameMode = "Play" | "Build"
@@ -29,6 +30,7 @@ export class SceneViewer {
     currentTarget:number;
     static interactionManager:InteractionManager;
     static HUDManager: HUDManager;
+    static audioPlayer:AudioPlayer;
     static inventory:pInventory;
     
     // PHYSICS
@@ -283,6 +285,10 @@ export class SceneViewer {
             
         SceneViewer.GameMode = mode;
         SceneViewer.camera.attachControl(true);
+        ModelLoader.LoadModel("SevenEleven",SceneViewer.scene,false).then((scene) => {
+            let model = scene as BABYLON.Mesh;
+            model.scaling = new BABYLON.Vector3(0.06,0.06,0.06);
+        })
     }
 
 }

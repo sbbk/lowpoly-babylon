@@ -12,7 +12,7 @@ import { Crosshairs } from "../player/HUD";
 export enum WeaponType {
 
     HANDS = "HANDS",
-    FLAREGUN = "FLAREGUN"
+    AK47 = "AK47"
 
 }
 
@@ -128,7 +128,7 @@ export class BaseWeapon implements iBaseWeapon{
 
 }
 
-export class FlareGun extends BaseWeapon {
+export class WeaponAK47 extends BaseWeapon {
 
     declare canBeDropped: boolean;
     declare physicsAggregate: BABYLON.PhysicsAggregate;
@@ -136,7 +136,7 @@ export class FlareGun extends BaseWeapon {
     declare animations:BABYLON.AnimationGroup[];
     fireAnimation:BABYLON.Animation;
     constructor() {
-        super(WeaponType.FLAREGUN)
+        super(WeaponType.AK47)
         this.canBeDropped = true;
     }
     stopFire() {
@@ -152,12 +152,108 @@ export class FlareGun extends BaseWeapon {
 
         let target = SceneViewer.camera.getTarget(); 
         let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target); ray.length = 100;
+        class Projectile {
+            private sprite: BABYLON.Sprite;
+            private hitSprite: BABYLON.Sprite;
+
+            constructor(private startPosition: BABYLON.Vector3, private targetPosition: BABYLON.Vector3) {
+                this.createSprite();
+                this.createHitSprite();
+                this.fire();
+            }
+
+            private createSprite() {
+                // Create the sprite for the projectile
+                let projectileSprite = new URL("../media/images/sprites/damage/damage-10.png",import.meta.url).pathname
+                const spriteManager = new BABYLON.SpriteManager('projectileSpriteManager', projectileSprite, 1, 32, SceneViewer.scene);
+                this.sprite = new BABYLON.Sprite('projectile', spriteManager);
+                this.sprite.position = this.startPosition;
+                this.sprite.size = 0.5;
+            }
+
+            private createHitSprite() {
+                // Create the sprite for the hit effect
+                let hitSprite = new URL("../media/images/sprites/damage/damage-20.png",import.meta.url).pathname
+                const hitSpriteManager = new BABYLON.SpriteManager('hitSpriteManager', hitSprite, 1, 32, SceneViewer.scene);
+                this.hitSprite = new BABYLON.Sprite('hitEffect', hitSpriteManager);
+                this.hitSprite.isVisible = false;
+                this.hitSprite.size = 1;
+            }
+
+            private fire() {
+                // Get the direction from the camera's rotation
+                const direction = new BABYLON.Vector3(
+                    Math.sin(SceneViewer.player.camera.rotation.y) * Math.cos(SceneViewer.player.camera.rotation.x),
+                    Math.sin(SceneViewer.player.camera.rotation.x),
+                    Math.cos(SceneViewer.player.camera.rotation.y) * Math.cos(SceneViewer.player.camera.rotation.x)
+                );
+            
+                // Set the speed of the projectile
+                const speed = 2;
+            
+                // Set the distance limit
+                const distanceLimit = 10;
+            
+                // Create a new function to move the sprite
+                const moveSprite = () => {
+                    // Update the sprite's position
+                    this.sprite.position.addInPlace(direction.scale(speed));
+                    // Check if the sprite has reached the distance limit
+                    if (BABYLON.Vector3.Distance(this.startPosition, this.sprite.position) > distanceLimit) {
+                        // Stop moving the sprite and destroy it
+                        SceneViewer.scene.unregisterBeforeRender(moveSprite);
+                        this.sprite.dispose();
+                        return;
+                    }
+            
+                    // Check if the sprite has hit something
+                    let ray = new BABYLON.Ray(this.startPosition, direction, speed);
+                    let hit = SceneViewer.scene.pickWithRay(ray, (mesh) => mesh.isPickable);
+                    if (hit && hit.hit) {
+                        // Stop moving the sprite
+                        SceneViewer.scene.unregisterBeforeRender(moveSprite);
+            
+                        // Show the hit effect
+                        this.hitSprite.position = hit.pickedPoint;
+                        this.hitSprite.isVisible = true;
+            
+                        // Hide the projectile sprite
+                        this.sprite.isVisible = false;
+                    }
+                };
+            
+                // Register the function
+                SceneViewer.scene.registerBeforeRender(moveSprite);
+            }
+
+            private showHitEffect(position: BABYLON.Vector3) {
+                // Set the position of the hit effect sprite
+                this.hitSprite.position = position;
+                this.hitSprite.isVisible = true;
+
+                // Play the hit effect animation
+                const animation = new BABYLON.Animation('hitEffectAnimation', 'size', 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT);
+                const keys = [];
+                keys.push({ frame: 0, value: 1 });
+                keys.push({ frame: 60, value: 0 });
+                animation.setKeys(keys);
+                this.hitSprite.animations = [animation];
+                SceneViewer.scene.beginAnimation(this.hitSprite, 0, 60, false, 1, () => {
+                    // Animation completed, hide the hit effect
+                    this.hitSprite.isVisible = false;
+
+                });
+            }
+        }
+
+        // Usage:
         let hit = SceneViewer.scene.pickWithRay(ray);
-        let rayHelper = new BABYLON.RayHelper(ray)
-        rayHelper.show(SceneViewer.scene, new BABYLON.Color3(0,1,0));
-        setTimeout(() => {
-            rayHelper.dispose();
-        }, 1000);
+        const projectile = new Projectile(this.mesh.getAbsolutePosition().clone(), hit.pickedPoint);
+        // let rayHelper = new BABYLON.RayHelper(ray)
+        // rayHelper.show(SceneViewer.scene, new BABYLON.Color3(0,1,0));
+        // setTimeout(() => {
+        //     rayHelper.dispose();
+        // }, 1000);
         SceneViewer.player.target = hit.pickedPoint;
         SceneViewer.scene.beginAnimation(this.mesh,0,30);
         if (hit.pickedMesh) {
@@ -188,7 +284,7 @@ export class FlareGun extends BaseWeapon {
         let container = await ModelLoader.AppendGltfContainer("AK47",SceneViewer.scene) as BABYLON.AssetContainer;
         let uuid = uuidv4();
         this.mesh = container.meshes[0] as BABYLON.Mesh;
-        this.transformNode = new Entity("Flaregun-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
+        this.transformNode = new Entity("WeaponAK47-",`tf-flare-${uuid}`,SceneViewer.scene,this.mesh,false,uuidv4());
         this.addEasingAnimations(this.mesh);
         this.animations = container.animationGroups;
         this.animations.forEach(animation => {
@@ -212,8 +308,8 @@ export class FlareGun extends BaseWeapon {
         // this.mesh.rotation.x = -0.2
         this.mesh.rotation.y = 1.5
         // this.mesh.rotation.z = 1.5
-        this.mesh.scaling = new BABYLON.Vector3(1,1,1);
-        window["ak47"] = this.mesh;
+        this.mesh.scaling = new BABYLON.Vector3(1.2,1.2,1.2);
+        window["WeaponAK47"] = this.mesh;
 
         let animation = new BABYLON.Animation("positionAnim", "position.z", 60, BABYLON.Animation.ANIMATIONTYPE_FLOAT, BABYLON.Animation.ANIMATIONLOOPMODE_CYCLE);
         let easingFunction = new BABYLON.QuadraticEase();
@@ -331,7 +427,8 @@ export class WeaponController {
         SceneViewer.scene.onPointerObservable.add((pointerInfo, event) => {
             if (this.isReturning) return;
             this.isSwaying = true;
-            this.swayMultiplier = 1;
+            this.swayMultiplier = 2;
+            
             this.smooth = 0.1;
             this.movementXRaw = pointerInfo.event.movementX;
             this.movementYRaw = pointerInfo.event.movementY
@@ -341,10 +438,10 @@ export class WeaponController {
             let movementY = this.movementYRaw * this.swayMultiplier; // Negate the values
             movementX = BABYLON.Scalar.Clamp(movementX, -0.5, 0.5);
             movementY = BABYLON.Scalar.Clamp(movementY, -0.5, 0.5);
-            var rotationX = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.X, movementX);
-            var rotationY = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, movementY);
+            let rotationZ = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Z, movementY); // Rotate around Z-axis based on Y movement
+            let rotationY = BABYLON.Quaternion.RotationAxis(BABYLON.Axis.Y, movementX); // Rotate around Y-axis based on X movement
             let targetRotation;
-            targetRotation = rotationX.multiply(rotationY);
+            targetRotation = this.equippedWeapon.mesh.rotationQuaternion.multiply(rotationZ).multiply(rotationY);
             let delta = SceneViewer.engine.getDeltaTime() / 1000;
             this.equippedWeapon.mesh.rotationQuaternion = BABYLON.Quaternion.Slerp(this.equippedWeapon.mesh.rotationQuaternion, targetRotation, this.smooth * delta);
             this.isSwaying = false;
@@ -371,15 +468,15 @@ export class WeaponController {
     }
 
     async init() {
-        let flareGun = new FlareGun();
+        let ak47 = new WeaponAK47()
         let hand = new Hand();
         this.createKeyBindings();
         await hand.init();
         hand.setInitialRotation();
-        await flareGun.init();
-        flareGun.setInitialRotation()
+        await ak47.init();
+        ak47.setInitialRotation()
 
-        this.availableWeapons = [hand,flareGun];
+        this.availableWeapons = [hand,ak47];
         this.availableWeapons.forEach(weapon => {
             weapon.mesh.setEnabled(false);
         })
@@ -394,11 +491,11 @@ export class WeaponController {
         }
         let pickedUpWeapon;
         switch(weaponType) {
-            case WeaponType.FLAREGUN:
-                let flaregun = new FlareGun();
-                flaregun.init();
-                this.availableWeapons.push(flaregun);
-                pickedUpWeapon = flaregun;
+            case WeaponType.AK47:
+                let ak47 = new WeaponAK47();
+                ak47.init();
+                this.availableWeapons.push(ak47);
+                pickedUpWeapon = ak47;
                 break;
             case WeaponType.HANDS:
                 let hands = new Hand();
