@@ -60,22 +60,23 @@ export class Projectile {
         let projectileSprite = new URL("../media/images/sprites/damage/damage-10.png", import.meta.url).pathname
         // Create a plane for the projectile
         this.sprite = BABYLON.MeshBuilder.CreatePlane('projectile', {}, SceneViewer.scene);
+        this.sprite.scaling = new BABYLON.Vector3(5,0.3,0.3)
         this.sprite.isPickable = false;
         
         // Set the position of the plane
         this.sprite.position = this.startPosition;
-    
+
         // Create a material for the plane
         let material = new BABYLON.StandardMaterial('projectileMaterial', SceneViewer.scene);
-    
+
         // Set the texture of the material
         material.diffuseTexture = new BABYLON.Texture(projectileSprite, SceneViewer.scene);
         material.backFaceCulling = false;
-    
+
         // Set the alpha mode to handle transparency
-        // material.diffuseTexture.hasAlpha = true;
-        // material.useAlphaFromDiffuseTexture = true;
-    
+        material.diffuseTexture.hasAlpha = true;
+        material.useAlphaFromDiffuseTexture = true;
+
         // Apply the material to the plane
         this.sprite.material = material;
 
@@ -93,20 +94,24 @@ export class Projectile {
     }
 
     private fire() {
-        // Get the direction from the camera's rotation
-
         // Set the speed of the projectile
         const speed = 2;
 
         // Set the distance limit
         const distanceLimit = 10;
 
+        // Rotate the sprite to match the angle between the target and the point it will hit
+        const targetPosition = this.startPosition.add(this.direction.scale(distanceLimit));
+        this.sprite.lookAt(targetPosition);
+
+        // Rotate the sprite 90 degrees counter-clockwise
+        this.sprite.rotate(BABYLON.Axis.Y, -Math.PI / 2);
+        
+
         // Create a new function to move the sprite
         const moveSprite = () => {
             // Update the sprite's position
             this.sprite.position.addInPlace(this.direction.scale(speed));
-            this.sprite.lookAt(this.direction);
-            this.sprite.rotate(BABYLON.Axis.Y, Math.PI / 2, BABYLON.Space.LOCAL);
             // Check if the sprite has reached the distance limit
             if (BABYLON.Vector3.Distance(this.startPosition, this.sprite.position) > distanceLimit) {
                 // Stop moving the sprite and destroy it
@@ -309,7 +314,7 @@ export class WeaponAK47 extends BaseWeapon {
     fire(whoFired: Player) {
 
         let target = SceneViewer.camera.getTarget();
-        let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position, target);
+        let ray = BABYLON.Ray.CreateNewFromTo(SceneViewer.camera.position.clone(), target);
         ray.length = 100;
         // Usage:
         let hit = SceneViewer.scene.pickWithRay(ray);
