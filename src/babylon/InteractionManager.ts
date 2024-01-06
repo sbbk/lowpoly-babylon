@@ -32,25 +32,10 @@ export class InteractionManager {
             switch (pointerInfo.type) {
 
                 case BABYLON.PointerEventTypes.POINTERDOWN:
-
-                    // Always fire?
-                    console.log("Hit")
-                    SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
-
-                    if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
-                        return;
+                    switch (pointerInfo.event.button) {
+                        case 0:
+                            SceneViewer.player.weaponController.equippedWeapon.fire(SceneViewer.player);
                     }
-                    // Cancel out if we already have something active.. prevent stacking.
-                    if (SceneViewer.activeComponent) return;
-
-                    // If there's something to interact with continue..
-                    if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
-
-                        // // Return if we can't interact right now.
-                        if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
-                        SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
-                    }
-
                     break;
                 case BABYLON.PointerEventTypes.POINTERUP:
                     if (SceneViewer.activeComponent) {
@@ -59,10 +44,44 @@ export class InteractionManager {
                     SceneViewer.activeComponent = null;
                     break;
             }
-
-
         })
+
+        let playerKeys = SceneViewer.scene.onKeyboardObservable.add(async (kbInfo) => {
+
+            if (kbInfo.type == BABYLON.KeyboardEventTypes.KEYDOWN) {
+                switch (kbInfo.event.key) {
+                    case "e":
+                        if (SceneViewer.player.currentTarget == null || !SceneViewer.player.currentTarget) {
+                            return;
+                        }
+                        // Cancel out if we already have something active.. prevent stacking.
+                        if (SceneViewer.activeComponent) return;
+    
+                        // If there's something to interact with continue..
+                        if (SceneViewer.player.currentTarget !== null || SceneViewer.player.currentTarget !== undefined) {
+    
+                            // // Return if we can't interact right now.
+                            if (!SceneViewer.player.currentTarget.activeComponent.canInteract) return;
+                            SceneViewer.activeComponent = SceneViewer.player.currentTarget.activeComponent;
+                            SceneViewer.activeComponent.interact(SceneViewer.player)
+                        }
+                        break;
+                }
+            }
+            if (kbInfo.type == BABYLON.KeyboardEventTypes.KEYUP) {
+                switch (kbInfo.event.key) {
+                    case "e":
+                        if (SceneViewer.activeComponent) {
+                            SceneViewer.activeComponent.endInteract(SceneViewer.player)
+                            SceneViewer.activeComponent = null;
+                        }
+                        break;
+                }
+            }
+        })
+
         this.PointerObservableFunction = playerActions;
+        this.KeyObserverFunction = playerKeys;
     }
 
     registerBuildPointers() {
@@ -267,7 +286,6 @@ export class InteractionManager {
                 // Look for a parent game object.
                 let foundParent = findEntityParent(mesh);
                 if (foundParent) {
-                    console.log("Found Parent",foundParent);
                     let gameObject = foundParent as BaseEntity;
                     if (!gameObject || !gameObject.activeComponent) return;
                     // Are we allowed to interact?
@@ -301,32 +319,32 @@ export class InteractionManager {
                         // TODO : WORK THESE WITH NEW 3D HANDS
                         if (BABYLON.Vector3.Distance(SceneViewer.camera.position, hit.pickedPoint) < SceneViewer.interactDistance) {
                             SceneViewer.player.currentTarget = gameObject;
-                            // switch(gameObject.activeComponent.type) {
-                            //     case "Collectable":
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.grab,0);
-                            //         break;
-                            //     case "Talkable":
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
-                            //         SceneViewer.player.currentTarget = gameObject;
-                            //         break;
-                            //     case "Synth":
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
-                            //         SceneViewer.player.currentTarget = gameObject
-                            //         break;
-                            //     case "Physics":
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
-                            //         SceneViewer.player.currentTarget = gameObject
-                            //         break;
-                            //     case "Door":
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
-                            //         SceneViewer.player.currentTarget = gameObject
-                            //         break;
-                            //     default:
-                            //         // SceneViewer.player.handController.setHandMode(HandMode.grab,0);
-                            //         SceneViewer.player.currentTarget = gameObject;
-                            //         break;
+                            switch(gameObject.activeComponent.type) {
+                                case "Collectable":
+                                    // SceneViewer.player.handController.setHandMode(HandMode.grab,0);
+                                    break;
+                                case "Talkable":
+                                    // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject;
+                                    break;
+                                case "Synth":
+                                    // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                case "Physics":
+                                    // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                case "Door":
+                                    // SceneViewer.player.handController.setHandMode(HandMode.cash,0);
+                                    SceneViewer.player.currentTarget = gameObject
+                                    break;
+                                default:
+                                    // SceneViewer.player.handController.setHandMode(HandMode.grab,0);
+                                    SceneViewer.player.currentTarget = gameObject;
+                                    break;
 
-                            // }
+                            }
                         }
                         else {
                             // SceneViewer.player.handController.setHandMode(HandMode.idle,0);

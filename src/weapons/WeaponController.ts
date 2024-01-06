@@ -57,10 +57,11 @@ export class Projectile {
 
     private createSprite() {
         // Create the sprite for the projectile
-        let projectileSprite = new URL("../media/images/sprites/damage/damage-10.png", import.meta.url).pathname
+        let projectileSprite = new URL("../media/sprites/gun/shot.png", import.meta.url).pathname
         // Create a plane for the projectile
         this.sprite = BABYLON.MeshBuilder.CreatePlane('projectile', {}, SceneViewer.scene);
-        this.sprite.scaling = new BABYLON.Vector3(5,0.3,0.3)
+        this.sprite.scaling = new BABYLON.Vector3(5,0.3,0.3);
+        this.sprite.receiveShadows = false;
         this.sprite.isPickable = false;
         
         // Set the position of the plane
@@ -84,6 +85,45 @@ export class Projectile {
 
     }
 
+    private createMuzzleFlash():BABYLON.Mesh {
+        // Create the sprite for the projectile
+        let muzzleFlashSpriteUrl = new URL("../media/sprites/gun/muzzle.png", import.meta.url).pathname
+        // Create a plane for the projectile
+        let muzzleSprite = BABYLON.MeshBuilder.CreatePlane('muzzle', {}, SceneViewer.scene);
+        muzzleSprite.scaling = new BABYLON.Vector3(1.3,1.3,1.3);
+        muzzleSprite.receiveShadows = false;
+        muzzleSprite.isPickable = false;
+        let startPos = this.startPosition.clone();
+
+        // Create a material for the plane
+        let material = new BABYLON.StandardMaterial('muzzleSpriteMat', SceneViewer.scene);
+        muzzleSprite.lookAt(startPos.add(this.direction.scale(10)));
+        // // Generate a random roll angle between two values
+        // let minRoll = -Math.PI / 4; // Adjust this to your actual minimum roll angle
+        // let maxRoll = Math.PI / 4; // Adjust this to your actual maximum roll angle
+        // let rollAngle = Math.random() * (maxRoll - minRoll) + minRoll;
+
+        // // Roll the muzzle sprite
+        // muzzleSprite.rotate(BABYLON.Axis.Z, rollAngle, BABYLON.Space.LOCAL);
+        
+        // Set the texture of the material
+        let muzzleTex = new BABYLON.Texture(muzzleFlashSpriteUrl, SceneViewer.scene);
+        material.diffuseTexture = muzzleTex;
+        material.emissiveTexture = muzzleTex;
+        material.backFaceCulling = false;
+
+        // Set the alpha mode to handle transparency
+        material.diffuseTexture.hasAlpha = true;
+        material.useAlphaFromDiffuseTexture = true;
+
+        // Apply the material to the plane
+        muzzleSprite.material = material;
+        
+        // Set the position of the plane
+        muzzleSprite.position = startPos;
+        return muzzleSprite;
+    }
+
     private createHitSprite() {
         // Create the sprite for the hit effect
         let hitSprite = new URL("../media/images/sprites/damage/damage-20.png", import.meta.url).pathname
@@ -94,6 +134,20 @@ export class Projectile {
     }
 
     private fire() {
+
+        const light = new BABYLON.PointLight("light", new BABYLON.Vector3(0, 0, 0), SceneViewer.scene);
+        light.diffuse = new BABYLON.Color3(1, 0.6, 0.3);
+        light.specular = new BABYLON.Color3(1, 1, 0);
+        light.intensity = 5;
+        light.position =  this.startPosition.clone();
+        let muzzleSprite = this.createMuzzleFlash()
+        
+        setTimeout(() => {
+            light.dispose()
+        }, 100);
+        setTimeout(() => {
+            muzzleSprite.dispose();
+        }, 25);
         // Set the speed of the projectile
         const speed = 2;
 
@@ -359,9 +413,10 @@ export class Hand extends BaseWeapon {
     }
 
     fire(whoFired: Player) {
-        if (SceneViewer.activeComponent) {
-            SceneViewer.activeComponent.interact(whoFired)
-        }
+        console.log("Fire weapon",SceneViewer.activeComponent)
+        // if (SceneViewer.activeComponent) {
+        //     SceneViewer.activeComponent.interact(whoFired)
+        // }
         this.playAnimation(1, false);
     }
     stopFire() {

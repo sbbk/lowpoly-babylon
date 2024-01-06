@@ -277,14 +277,18 @@ export class SceneViewer {
                 SceneViewer.scene.activeCamera.attachControl();
                 // SceneViewer.interactionManager.registerBuildPointers();
                 // SceneViewer.interactionManager.registerBuildBeforeRenderFunction();
-                if (SceneViewer.tagBillBoard) {
-                    SceneViewer.tagBillBoard.setVisible(false);
-                }
+                // if (SceneViewer.tagBillBoard) {
+                //     SceneViewer.tagBillBoard.setVisible(false);
+                // }
                 break;
             }
             
         SceneViewer.GameMode = mode;
         SceneViewer.camera.attachControl(true);
+        BABYLON.ParticleHelper.CreateAsync("rain", SceneViewer.scene, false).then((set) => {
+            set.start();
+        });
+    
         // ModelLoader.LoadModel("SevenEleven",SceneViewer.scene,false).then((scene) => {
         //     let model = scene as BABYLON.Mesh;
         //     model.scaling = new BABYLON.Vector3(0.05,0.05,0.05);
